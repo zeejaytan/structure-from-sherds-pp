@@ -1,0 +1,44 @@
+# Build outputs
+*.o
+*.out
+*.err
+*.log
+
+# Job outputs
+slurm-*.out
+*.sbatch.out
+*.sbatch.err
+pot_a_*.out
+pot_a_*.err
+
+# Large data files
+*.pcd
+*.ply
+*.xyz
+*.obj
+*.stl
+
+# Tools/Blender (too large)
+tools/blender-*/
+
+# Logs directory contents
+logs/*.txt
+logs/*.log
+logs/*.err
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
