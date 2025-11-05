@@ -26,6 +26,7 @@
 #include "class/feature_matching.h"			
 #include "class/ranking_system.h"
 
+// Original beam search parameters
 #define TOP_k 5
 #define BRANCH_b 3
 
@@ -456,5 +457,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
-

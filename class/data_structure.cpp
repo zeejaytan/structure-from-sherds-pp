@@ -242,7 +242,61 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
             index_(2, s) = stoi(results[3]);
         }
     } else {
-        cerr << "Error: Invalid file format - missing header information" << endl;
+        // Fallback: parse standard PCD header (VERSION/FIELDS/POINTS/DATA) and treat as single segment
+        int header_lines = 0;
+        int points = 0;
+        bool data_found = false;
+        for (size_t i = 0; i < fileContents.size(); ++i) {
+            const std::string &ln = fileContents[i];
+            if (ln.rfind("POINTS", 0) == 0) {
+                std::stringstream pss(ln);
+                std::string tag; pss >> tag >> points;
+            }
+            if (ln.rfind("DATA", 0) == 0) {
+                header_lines = i + 1;
+                data_found = true;
+                break;
+            }
+        }
+        if (!data_found) {
+            cerr << "Error: Invalid file format - missing header information" << endl;
+            return;
+        }
+        if (header_lines >= (int)fileContents.size()) {
+            cerr << "Error: File has insufficient point data" << endl;
+            return;
+        }
+        // Initialize a single segment index covering all points
+        index_.resize(3, 1);
+        index_(0, 0) = 1;
+        index_(1, 0) = (int)(fileContents.size() - header_lines);
+        index_(2, 0) = 0; // no rim/base info
+
+        int numberOfPoints = fileContents.size() - header_lines;
+        MatrixXd point_tmp(3, numberOfPoints);
+        MatrixXd normal_tmp(3, numberOfPoints);
+        int validPoints = 0;
+        std::stringstream ss2;
+        for (int i = 0; i < numberOfPoints; ++i) {
+            ss2.clear();
+            ss2.str(fileContents[header_lines + i]);
+            double x,y,z,nx=0.0,ny=0.0,nz=1.0;
+            if (ss2 >> x >> y >> z) {
+                point_tmp(0, i) = x; point_tmp(1, i) = y; point_tmp(2, i) = z;
+                // Try to read normals if present
+                if (ss2 >> nx >> ny >> nz) {
+                    // keep read normals
+                }
+                normal_tmp(0, i) = nx; normal_tmp(1, i) = ny; normal_tmp(2, i) = nz;
+                validPoints++;
+            }
+        }
+        // Assign outputs (no uniqueness filtering here; will be handled later)
+        point_ = point_tmp;
+        normal_ = normal_tmp;
+        point_index_.resize(numberOfPoints);
+        for (int i = 0; i < numberOfPoints; ++i) point_index_[i] = i;
+        cout << "Processed standard PCD: points=" << numberOfPoints << endl;
         return;
     }
 

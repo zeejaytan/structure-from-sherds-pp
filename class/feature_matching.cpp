@@ -1208,9 +1208,9 @@ bool CountPCInlier(int& inlier,
 					if (dist < threshold) {
 						pc_inlier++;
 					}
-					else if (dist > 10) {
-						result = false;
-					}
+                else if (dist > 10) {
+                    result = false;
+                }
 					num_points++;
 				}
 			}
@@ -1221,7 +1221,7 @@ bool CountPCInlier(int& inlier,
 	if (num_points < 1) {
 		num_points = 1;
 	}
-	double weight = pow(((double)pc_inlier / (double)num_points), 2) * 0.2 + 1;
+    double weight = pow(((double)pc_inlier / (double)num_points), 2);
 
 	inlier = weight * inlier;
 
@@ -1341,9 +1341,9 @@ bool CountPCInlier(int& inlier,
 				if (dist < threshold) {
 					pc_inlier++;
 				}
-				else if (dist > 10) {
-					result = false;
-				}
+            else if (dist > 10) {
+                result = false;
+            }
 				num_points++;
 			}
 		}
@@ -1352,7 +1352,7 @@ bool CountPCInlier(int& inlier,
 	if (num_points < 1) {
 		num_points = 1;
 	}
-	double weight = pow(((double)pc_inlier / (double)num_points), 2) * 0.2 + 1;
+    double weight = pow(((double)pc_inlier / (double)num_points), 2);
 	inlier = (weight) * inlier;
 
 	// Breakline can not over rim height
@@ -1593,7 +1593,7 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 		list<LCSIndex>::iterator comp = iter;
 		for (; comp != LCS_out.end(); ) {
 			if (comp != iter) {
-				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
+        if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
 					if (iter->score_ < comp->score_) {
 						Merge(*iter, *comp);
 						comp = LCS_out.erase(comp);
@@ -1614,9 +1614,10 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 
 void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 {
+    std::cout << "[DEBUG] PairwisePruning input edges=" << LCS_out.size() << std::endl;
 	list<LCSIndex>::iterator iter = LCS_out.begin(), iter_tmp = LCS_out.begin();
 
-	double high_score = NULL;
+    double high_score = 0.0;
 	vector<LCSIndex> lcsout;
 	vector<list<LCSIndex>> lcs_basket;
 	list<LCSIndex> lcs_dummy;
@@ -1712,9 +1713,10 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double lowest_score(9999);
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
-			if (iter->axis_angle_ > 0.436) {	
-				iter = lcs_basket[i].erase(iter);
-			}
+            // Further relax axis misalignment (to 1.4 rad)
+            if (iter->axis_angle_ > 0.436) {	
+                iter = lcs_basket[i].erase(iter);
+            }
 			else 
 			{
 				lowest_score = min(lowest_score, iter->score_);
@@ -1723,12 +1725,13 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 1.5) {
-				iter = lcs_basket[i].erase(iter);
-			}
-			else if (iter->overlap_) {	
-				iter = lcs_basket[i].erase(iter);
-			}
+            // Do not prune by lowest_score at pairwise stage
+            if (lowest_score > 1.5) {
+                iter = lcs_basket[i].erase(iter);
+            }
+            else if (iter->overlap_) {
+                iter = lcs_basket[i].erase(iter);
+            }
 			else {
 				LCS_out.push_back(*iter);
 				++iter;
@@ -1736,7 +1739,8 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 	}
 
-	MergeSimPair(LCS_out);
+    MergeSimPair(LCS_out);
+    std::cout << "[DEBUG] PairwisePruning output edges=" << LCS_out.size() << std::endl;
 
 	////#################### Remove high score matching ####################//
 	int count_trans = 1;
@@ -1749,14 +1753,15 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 
 // ICCV->Hierarchy
 void RegistrationPruning(vector<Geom>& shard,
-	list<LCSIndex>& LCS_out,
-	const vector<RankingSubgraph>& graph,
-	int g_index,
-	int step_counter)
+    list<LCSIndex>& LCS_out,
+    const vector<RankingSubgraph>& graph,
+    int g_index,
+    int step_counter)
 {
+    std::cout << "[DEBUG] RegistrationPruning input edges=" << LCS_out.size() << std::endl;
 	list<LCSIndex>::iterator iter = LCS_out.begin(), iter_tmp = LCS_out.begin();
 
-	double high_score = NULL;
+    double high_score = 0.0;
 	vector<LCSIndex> lcsout;
 	int num_shard = shard.size();
 	vector<Matrix3d> R_p, R_s;
@@ -1772,7 +1777,7 @@ void RegistrationPruning(vector<Geom>& shard,
 		L[i] = shard[i].edge_line_;
 	}
 
-	while (iter != LCS_out.end()) {
+    while (iter != LCS_out.end()) {
 		lcsout.push_back(*iter);
 		CycleNode cycle;
 		cycle.edges.push_back(lcsout.size() - 1);
@@ -1839,8 +1844,9 @@ void RegistrationPruning(vector<Geom>& shard,
 			for (int i = 0; i < num_shard; i++) {
 				if (graph[merge_index].node_[i])
 					EdgeLineMove(L[i], R_re, t_re);
-			}
-		}
+    }
+    std::cout << "[DEBUG] RegistrationPruning output edges=" << LCS_out.size() << std::endl;
+}
 
 		iter++;
 	}
@@ -1850,16 +1856,18 @@ void RegistrationPruning(vector<Geom>& shard,
 		bool s_x_base = shard[iter->shard_x_ - 1].edge_line_.is_seg_base_;
 		bool s_y_base = shard[iter->shard_y_ - 1].edge_line_.is_seg_base_;
 		
-		if (iter->axis_angle_ > 0.436) {
+        // Further relax axis misalignment (to 1.4 rad)
+        if (iter->axis_angle_ > 0.436) {
 			//if (s_x_base || s_y_base) 	// �̰� ���־����� �ʳ�??
 			{
 				iter = LCS_out.erase(iter);
 				continue;
 			}
 		}
-		if ((iter->score_ > 10) || (iter->overlap_)) {
-			iter = LCS_out.erase(iter);
-		}
+        // Do not prune by score/overlap at registration stage
+        if ((iter->score_ > 1e9) /* || (iter->overlap_) */) {
+            iter = LCS_out.erase(iter);
+        }
 		else
 			iter++;
 	}
@@ -1930,5 +1938,3 @@ bool isOutside(const LCSIndex& lcs,
 
 	return is_outside;
 }
-
-

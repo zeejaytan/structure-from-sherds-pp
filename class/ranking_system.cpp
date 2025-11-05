@@ -17,7 +17,7 @@ void RankingSubgraph::Copy(RankingSubgraph& input)
 
 bool RankingSubgraph::isSimilarGraph(RankingSubgraph& G_i)
 {
-	double rad_threshold = 0.262, t_threshold = 20.0;
+    double rad_threshold = 0.5, t_threshold = 40.0;
 
 	// First, check true node 
 	int base_node(-1);
@@ -253,7 +253,7 @@ void RankingSubgraph::CombineGraphChunk(list<Chunk>& priority,
 				T_c = Matrix4d::Zero();
 				T_i = Matrix4d::Ones();
 			}
-			if (isSimilarTrans(T_c, T_i, 0.436, 20.0)) {	// ICCV->Hierarchy 0.436->0.35
+            if (isSimilarTrans(T_c, T_i, 0.8, 40.0)) {	// relaxed
 				for (int i = 0; i < c_iter->i_edge.size(); i++) {
 					if (!(sub_graph_[i_index].SamePart(sub_graph_[c_iter->i_edge[i]])))
 					{
@@ -312,7 +312,7 @@ void RankingSubgraph::CombineChunk(list<Chunk>& priority)
 					T_c = Matrix4d::Zero();
 					T_i = Matrix4d::Ones();
 				}
-				if (isSimilarTrans(T_c, T_i, 0.436, 20.0))	// ICCV->Hierarchy 0.436 -> 0.35
+                if (isSimilarTrans(T_c, T_i, 0.8, 40.0))	// relaxed
 				{
 					for (int i = 0; i < c_iter->i_edge.size(); i++) {
 						//########## If two lcs are not same edges
@@ -404,16 +404,16 @@ void State::MakeTotalHierarchyPriority(void)
 
 void State::SynchronizeTrueNode(void)
 {
-	true_node_.clear();
-	vector<bool>().swap(true_node_);
-
-	true_node_.assign(graph_[0].node_.begin(), graph_[0].node_.end());
-	for (int i = 0; i < true_node_.size(); i++) {
-		for (int j = 1; j < graph_.size(); j++) {
-			if (graph_[j].node_[i])
-				true_node_[i] = true;
-		}
-	}
+    true_node_.clear();
+    vector<bool>().swap(true_node_);
+    if (graph_.empty()) return;
+    true_node_.assign(graph_[0].node_.begin(), graph_[0].node_.end());
+    for (int i = 0; i < (int)true_node_.size(); i++) {
+        for (int j = 1; j < (int)graph_.size(); j++) {
+            if (graph_[j].node_[i])
+                true_node_[i] = true;
+        }
+    }
 }
 
 void State::UpdateMatchedMatrix(vector<Geom>& shard)
@@ -682,7 +682,13 @@ void StateManager::Initialize(int N,
 
 	int num_shard = shard.size();
 
-	cout << "----- Make root graph  -----" << endl;
+    cout << "----- Make root graph  -----" << endl;
+    cout << "initial_graph edges=" << initial_graph_.size() << " shards=" << shard_.size() << endl;
+    cout << "Root ranking (node,score): ";
+    for (int dbg = 0; dbg < (int)root_node.size() && dbg < 10; ++dbg) {
+        cout << root_node[dbg].first << "(" << root_node[dbg].second << ") ";
+    }
+    cout << endl;
 	int num_s = root_node.size();
 	if (num_s > s_) num_s = s_;
 
@@ -698,15 +704,12 @@ void StateManager::Initialize(int N,
 		}
 
 
-		for (int i = start_i; i < end_i; i++) {
-			if (root_node[i].second <= 0 || !isroot) {
-				//isroot = false;
-				break;
-			}
-			RankingSubgraph root_graph(initial_graph_, num_shard);
+        for (int i = start_i; i < end_i; i++) {
+            if (!isroot) break; // allow zero-score roots to seed state
+            RankingSubgraph root_graph(initial_graph_, num_shard);
 
-			root_graph.node_[root_node[i].first - 1] = true;
-			root_graph.root_node_ = root_node[i].first;
+            root_graph.node_[root_node[i].first - 1] = true;
+            root_graph.root_node_ = root_node[i].first;
 
 			root_state.graph_.emplace_back(root_graph);
 			InputHistory(root_state.history_,
@@ -716,20 +719,26 @@ void StateManager::Initialize(int N,
 				Vector3d::Zero());
 		}
 
-		if (isroot && !root_state.graph_.empty()) {
-			ext_state_.emplace_back(root_state);
-			ext_state_.back().SynchronizeTrueNode();
-			ext_state_.back().MakeTotalHierarchyPriority();
-		}
-		else
-			break;
-	}
-	num_init_prio_ = ext_state_[0].total_priority_.size();
+        if (isroot && !root_state.graph_.empty()) {
+            ext_state_.emplace_back(root_state);
+            ext_state_.back().SynchronizeTrueNode();
+            ext_state_.back().MakeTotalHierarchyPriority();
+            cout << "Seeded root state with " << ext_state_.back().graph_.size() << " root graphs; total_priority="
+                 << ext_state_.back().total_priority_.size() << endl;
+        }
+        else
+            break;
+    }
+    if (!ext_state_.empty()) {
+        num_init_prio_ = ext_state_[0].total_priority_.size();
+    } else {
+        num_init_prio_ = 0;
+    }
 }
 
 bool StateManager::EndCondition(State& state)
 {
-	bool out = false;
+    bool out = false;
 
 	int counter(0);
 	for (int i = 0; i < shard_.size(); i++) {
@@ -747,12 +756,12 @@ bool StateManager::EndCondition(State& state)
 		}
 	}
 
-	if (state.total_priority_.empty()) {
-		cout << "End condition : Priority list empty " << endl;
-		out = true;
-	}
+    if (state.total_priority_.empty()) {
+        cout << "End condition : Priority list empty " << endl;
+        out = true;
+    }
 
-	return out;
+    return out;
 }
 
 void StateManager::PrepareNextStep(State& state)
@@ -856,14 +865,14 @@ void StateManager::PrepareNextStep(State& state)
 
 void StateManager::BuildStep(void)
 {
-	cout << "----- Start : " << step_counter_ << " Step -----" << endl;
+    cout << "----- Start : " << step_counter_ << " Step -----" << endl;
 
-	int num_state = ext_state_.size();
-	int num_shard = shard_.size();
-	vector<State> next_state_set;
-	int ext_s = s_;
-	cout << "----- Expend  Select " << ext_s << " number of graphs" << endl;
-	cout << "Number of current States : " << num_state << " same or less than " << N_ << endl;
+    int num_state = ext_state_.size();
+    int num_shard = shard_.size();
+    vector<State> next_state_set;
+    int ext_s = s_;
+    cout << "----- Expend  Select " << ext_s << " number of graphs" << endl;
+    cout << "Number of current States : " << num_state << " same or less than " << N_ << endl;
 
 	//########## Extend State (FIRST STAGE) 
 	//########## Current state manager has 'num_state' states, and each state explores 's_' times different states.
@@ -887,22 +896,23 @@ void StateManager::BuildStep(void)
 				}
 			}
 			//########## If the extension failed, Show current state as result
-			if (ext_counter == 0) {
-				out_state_.push_back(ext_state_[i]);
-			}
-		}
-	}
-	step_counter_++;
-	ext_state_.clear();
-	vector<State>().swap(ext_state_);
+            if (ext_counter == 0) {
+                out_state_.push_back(ext_state_[i]);
+            }
+        }
+    }
+    step_counter_++;
+    ext_state_.clear();
+    vector<State>().swap(ext_state_);
 
-	//########## End all graph building process
-	if (next_state_set.empty()) {
-		cout << "----- Finish build graph  -----" << endl;
-		sort(out_state_.begin(), out_state_.end(), [](State a, State b) -> bool {
-			return a.state_score_ > b.state_score_;
-			});
-		RemoveSameState(out_state_);
+    //########## End all graph building process
+    if (next_state_set.empty()) {
+        cout << "----- Finish build graph  -----" << endl;
+        cout << "No next states; out_state size=" << out_state_.size() << endl;
+        sort(out_state_.begin(), out_state_.end(), [](State a, State b) -> bool {
+            return a.state_score_ > b.state_score_;
+            });
+        RemoveSameState(out_state_);
 
 		for (int i = 0; i < out_state_.size(); i++) {
 			for (int j = 0; j < out_state_[i].graph_.size(); j++) {
@@ -917,22 +927,24 @@ void StateManager::BuildStep(void)
 	}
 
 	//########## Prepare next Step (SECOND STAGE)
-	else {
-		cout << "----- Select N subgraphs for next step  -----" << endl;
-		sort(next_state_set.begin(), next_state_set.end(), [](State a, State b) -> bool {
-			return a.state_score_ > b.state_score_;
-			});
-		RemoveSameState(next_state_set);
+    else {
+        cout << "----- Select N subgraphs for next step  -----" << endl;
+        sort(next_state_set.begin(), next_state_set.end(), [](State a, State b) -> bool {
+            return a.state_score_ > b.state_score_;
+            });
+        RemoveSameState(next_state_set);
 
-		int N = next_state_set.size();
-		if (N > N_) N = N_;
+        int N = next_state_set.size();
+        if (N > N_) N = N_;
 
-		cout << "Start to pick" << N << " number of high rank state" << endl;
-		for (int iter = 0; iter < N; iter++) {
-			PrepareNextStep(next_state_set[iter]);
-			ext_state_.push_back(next_state_set[iter]);
-		}
-	}
+        cout << "Start to pick" << N << " number of high rank state" << endl;
+        for (int iter = 0; iter < N; iter++) {
+            cout << "Preparing next step for state " << iter << ": graphs=" << next_state_set[iter].graph_.size()
+                 << " total_priority=" << next_state_set[iter].total_priority_.size() << endl;
+            PrepareNextStep(next_state_set[iter]);
+            ext_state_.push_back(next_state_set[iter]);
+        }
+    }
 	next_state_set.clear();
 	vector<State>().swap(next_state_set);
 
@@ -1393,27 +1405,20 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 					shard[i].MoveWOSurface(R_p, t_p);
 			}
 
-			// ICCV->Hierarchy
-			bool overlap = MergeOverlapTest(shard,
-				graph,
-				g_index,
-				merge_index);
+        // Skip overlap rejection here; rely on PC-inlier check downstream
+        // bool overlap = MergeOverlapTest(shard, graph, g_index, merge_index);
+        // if (overlap) lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
+        //########## Calculate PC based inlier (relaxed thresholds)
+        bool pc_out = CountPCInlier(lcs_iter->inliner_,
+            graph[g_index].node_,
+            graph[merge_index].node_,
+            shard,
+            12.0, 4.0);
 
-			if (overlap)
-				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
-			else {
-				//########## Calculate PC based inlier
-				bool pc_out = CountPCInlier(lcs_iter->inliner_,
-					graph[g_index].node_,
-					graph[merge_index].node_,
-					shard,
-					7.0, 1.5);	//
-
-				if (pc_out)
-					lcs_iter++;
-				else
-					lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
-			}
+        if (pc_out)
+            lcs_iter++;
+        else
+            lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 
 			for (int i = 0; i < shard.size(); i++) {
 				if (graph[merge_index].node_[i])
@@ -1423,27 +1428,20 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 		else {
 			shard[c_node - 1].MoveWOSurface(R_p, t_p);
 
-			//########## Remove Overlap fragment
-			bool overlap = SingleOverlapTest(graph[g_index].node_,
-				c_node - 1,
-				shard);
+        // Skip overlap rejection here; rely on PC-inlier check downstream
+        // bool overlap = SingleOverlapTest(graph[g_index].node_, c_node - 1, shard);
+        //########## Calculate PC based inlier (relaxed thresholds)
+        bool pc_out = CountPCInlier(lcs_iter->inliner_,
+            graph[g_index].node_,
+            shard,
+            c_node,
+            12.0, 4.0, false);
 
-			if (overlap)
-				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
-			else {
-				//########## Calculate PC based inlier
-				bool pc_out = CountPCInlier(lcs_iter->inliner_,
-					graph[g_index].node_,
-					shard,
-					c_node,
-					7.0, 1.5, false);
-
-				if (pc_out)
-					lcs_iter++;
-				else {
-					lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
-				}
-			}
+        if (pc_out)
+            lcs_iter++;
+        else {
+            lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
+        }
 			shard[c_node - 1].MoveWOSurface(R_pi, t_pi);
 		}
 	}
@@ -1824,7 +1822,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 			}
 			double pc_var_value(0);
 			if (!profile.empty()) {
-				profile_matched = ProfileChecking(profile, 7.0, 7.0);	//
+        profile_matched = ProfileChecking(profile, 10.0, 10.0);
 			}
 			if (profile_matched && is_rim) {
 				int up_count(0), down_count(0);

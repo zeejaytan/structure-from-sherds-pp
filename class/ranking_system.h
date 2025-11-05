@@ -174,7 +174,7 @@ struct PTR_PriorityList {
 
 class State {
 public:
-	State() : state_score_(0) {};
+    State() : state_score_(0) {};
 	explicit State(int num_shard) 
 		: state_score_(0), 
 		true_node_(num_shard, false) { };
@@ -184,7 +184,7 @@ public:
 	void MakeTotalHierarchyPriority(void);	
 
 	// Fill out reconstructed shards into true_node_
-	void SynchronizeTrueNode(void);		
+    void SynchronizeTrueNode(void);
 
 	// Fill out reconstructed points as true value into total_matched_matrix
 	void UpdateMatchedMatrix(vector<Geom>& shard);		
@@ -208,7 +208,7 @@ public:
 	string StringOutHistory(int index);
 
 public:
-	vector<RankingSubgraph> graph_;
+    vector<RankingSubgraph> graph_;
 	vector<PTR_PriorityList> total_priority_;
 	vector<bool> true_node_;
 	vector<TransHistory> history_;

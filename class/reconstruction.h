@@ -21,7 +21,7 @@
 class RankingSubgraph;
 
 #define CERES_FUNC_TOL			1.0e-3
-#define MINIMUM_NUMBER			6
+#define MINIMUM_NUMBER			4
 #define INLIER_THRESHOLD		1.5
 #define ANGLE_THRESHOLD			0.262
 

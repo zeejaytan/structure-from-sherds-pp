@@ -127,20 +127,48 @@ void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
 {
 	vector<double> distance(cor.cor.size()), Norm(cor.cor.size());
 	int num_inliers = 0;
+	int dist_rejects = 0;
+	int normal_rejects = 0;
+	int both_rejects = 0;
 
 	Corres dummy;
 	dummy.index_A = cor.index_A;
 	dummy.index_B = cor.index_B;
+
 	for (int i = 0; i < cor.cor.size(); i++) {
 		Norm[i] = (cor.cor[i].n_A.dot(cor.cor[i].n_B));
 		distance[i] = (cor.cor[i].p_A - cor.cor[i].p_B).norm();
 
-		if ((std::abs(distance[i]) < dist_TH) && (Norm[i]) > angle_TH) {
-			dummy.cor.push_back(cor.cor[i]);
+		bool dist_ok = (std::abs(distance[i]) < dist_TH);
+		bool normal_ok = (Norm[i] > angle_TH);
 
+		if (dist_ok && normal_ok) {
+			dummy.cor.push_back(cor.cor[i]);
 			num_inliers++;
+		} else {
+			// Track rejection reasons
+			if (!dist_ok && !normal_ok) {
+				both_rejects++;
+			} else if (!dist_ok) {
+				dist_rejects++;
+			} else if (!normal_ok) {
+				normal_rejects++;
+			}
 		}
 	}
+
+	// Log rejection statistics
+	int total_input = cor.cor.size();
+	if (total_input > 0) {
+		std::cout << "[REJECT] Pieces " << cor.index_A << "-" << cor.index_B
+		          << " total=" << total_input
+		          << " inliers=" << num_inliers
+		          << " dist_reject=" << dist_rejects
+		          << " normal_reject=" << normal_rejects
+		          << " both_reject=" << both_rejects
+		          << " (dist_TH=" << dist_TH << " normal_TH=" << angle_TH << ")" << std::endl;
+	}
+
 	cor.cor.clear();
 	cor = dummy;
 }
