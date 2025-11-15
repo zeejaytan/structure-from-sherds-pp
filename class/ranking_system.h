@@ -21,12 +21,17 @@
 #include <pcl/console/parse.h>
 #include <pcl/common/transforms.h>
 
+// Forward declaration for ConnectivityOptimizer
+class ConnectivityOptimizer;
+
 struct Chunk {
 	Chunk() :
 		node(0),
 		i_edge(0),
 		inlier(0),
-		graph_index(-1) {};
+		graph_index(-1),
+		global_connectivity_score(0.0),
+		combined_score(0.0) {};
 
 	bool operator ==(const Chunk& a) {
 		if (this->node != a.node) return false;
@@ -52,6 +57,8 @@ struct Chunk {
 	vector<int> i_edge;			// edge index about LCS list
 	int inlier;					// number of inlier of this chunk 
 	int graph_index;			// This indicates a graph in the state. -1 indicates priority was generated from unmatched shards
+	double global_connectivity_score;	// Global connectivity impact score from ConnectivityOptimizer
+	double combined_score;			// Final combined score (local + global)
 };
 
 struct TransHistory {

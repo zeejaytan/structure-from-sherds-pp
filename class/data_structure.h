@@ -144,7 +144,8 @@ public:
 	vector<MatrixXd>	feature_;				// 3*n matrix, 0 : diff-dist, 1 : diff-height, 2 : diff-theta, 3 : dist, 4 : height, 5 : theta, 6 : Thick
 	MatrixXd			index_;					// 0 : start, 1 : end, 2 : rim presence // 0 : regular piece, 1 : Rim piece, 2 : Base piece, 3 : Base with rim piece/ minus : fractured base
 	vector<Vector3d>	axis_point_;			// Axis starting point
-	vector<Vector3d>	axis_norm_;				// Axis normal
+	vector<Vector3d>	axis_norm_;				// Axis normal (transformed during alignment)
+	vector<Vector3d>	original_axis_norm_;	// Original axis normal (preserved before transformations)
 	vector<int>			point_index_;			// Point data index
 	bool				is_seg_rim_;			// Is this piece have rim?
 	bool				is_seg_base_;			// Is this piece base?
@@ -163,6 +164,7 @@ public:
 	Geom() {
 		is_matching_ = false;
 		is_thickness_ = false;
+		original_axis_height_ = 0.0;  // Initialize original height
 	};
 	~Geom() {};
 
@@ -200,6 +202,7 @@ public:
 	BreakLine sur_frac_;
 	bool is_matching_;
 	bool is_thickness_;
+	double original_axis_height_;  // Original axis height before AxisAlignment transformation
 };
 
 class Trans
@@ -208,6 +211,30 @@ public:
 	Trans() {
 		Initialize();
 	};
+
+	// EXPLICIT COPY CONSTRUCTOR - Fix for Trans object corruption
+	Trans(const Trans& other) :
+		index_(other.index_),
+		toward_(other.toward_),
+		R_(other.R_),
+		t_(other.t_),
+		T_(other.T_)
+	{
+		// Trans object copied properly
+	}
+
+	// EXPLICIT ASSIGNMENT OPERATOR - Fix for Trans object corruption
+	Trans& operator=(const Trans& other) {
+		if (this != &other) {
+			index_ = other.index_;
+			toward_ = other.toward_;
+			R_ = other.R_;
+			t_ = other.t_;
+			T_ = other.T_;
+		}
+		return *this;
+	}
+
 	~Trans() {};
 	
 	void Set(Matrix3d Ri,
@@ -321,7 +348,7 @@ public:
 		shard_x_(0),
 		shard_y_(0),
 		score_(0),
-		inliner_(0) 
+		inliner_(0)
 	{
 		start_.x = 0;
 		start_.y = 0;
@@ -334,6 +361,57 @@ public:
 		trans_.toward_ = shard_y_;
 		area_ = 0;
 	};
+
+	// EXPLICIT COPY CONSTRUCTOR - Fix for inlier corruption bug
+	LCSIndex(const LCSIndex& other) :
+		size_(other.size_),
+		cluster_(other.cluster_),
+		shard_x_(other.shard_x_),
+		shard_y_(other.shard_y_),
+		score_(other.score_),
+		inliner_(other.inliner_),  // CRITICAL: Preserve inliner field
+		index_(other.index_),
+		c_plausibility_(other.c_plausibility_),
+		remove_(other.remove_),
+		overlap_(other.overlap_),
+		axis_angle_(other.axis_angle_),
+		axis_index_x_(other.axis_index_x_),
+		axis_index_y_(other.axis_index_y_),
+		trans_(other.trans_),  // Copy Trans object
+		area_(other.area_)
+	{
+		start_.x = other.start_.x;
+		start_.y = other.start_.y;
+		end_.x = other.end_.x;
+		end_.y = other.end_.y;
+	}
+
+	// EXPLICIT ASSIGNMENT OPERATOR - Fix for inlier corruption bug
+	LCSIndex& operator=(const LCSIndex& other) {
+		if (this != &other) {
+			size_ = other.size_;
+			cluster_ = other.cluster_;
+			shard_x_ = other.shard_x_;
+			shard_y_ = other.shard_y_;
+			score_ = other.score_;
+			inliner_ = other.inliner_;  // CRITICAL: Preserve inliner field
+			index_ = other.index_;
+			c_plausibility_ = other.c_plausibility_;
+			remove_ = other.remove_;
+			overlap_ = other.overlap_;
+			axis_angle_ = other.axis_angle_;
+			axis_index_x_ = other.axis_index_x_;
+			axis_index_y_ = other.axis_index_y_;
+			trans_ = other.trans_;  // Copy Trans object
+			area_ = other.area_;
+			start_.x = other.start_.x;
+			start_.y = other.start_.y;
+			end_.x = other.end_.x;
+			end_.y = other.end_.y;
+		}
+		return *this;
+	}
+
 	~LCSIndex() {};
 
 	bool operator ==(const LCSIndex& b) {
@@ -364,17 +442,18 @@ public:
 		return temp;
 	}
 
-	LCSIndex operator=(int a) {
-		this->size_ = a;
-		this->end_.x = a;
-		this->end_.y = a;
-		this->start_.x = a;
-		this->start_.y = a;
-		this->score_ = a;
-		this->inliner_ = a;
-
-		return *this;
-	}
+	// DISABLED: This operator corrupts all fields by setting them to the same value
+	// Original operator=(int a) was causing data corruption during std::sort operations
+	// LCSIndex operator=(int a) {
+	//	this->size_ = a;
+	//	this->end_.x = a;
+	//	this->end_.y = a;
+	//	this->start_.x = a;
+	//	this->start_.y = a;
+	//	this->score_ = a;
+	//	this->inliner_ = a;
+	//	return *this;
+	// }
 
 	bool SamePart(const LCSIndex& b) const;
 	void InvertOrder(int shard, int num);	// WARNING : Recommand after changing order, return it back.

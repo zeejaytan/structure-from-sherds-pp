@@ -7,6 +7,11 @@
 #include "../class/filter.h"
 #include "../class/reconstruction.h"
 #include "../class/visualize.h"
+#include "../class/intersection_detector.h"
+#include "../class/hub_guided_beam_search.h"
+
+// POTTERY-AWARE GEOMETRIC VALIDATION (SIMPLIFIED FOR INTEGRATION)
+#include "../pottery_geometric_validator_simple.h"
 
 class RankingSubgraph;
 
@@ -26,7 +31,7 @@ void LCSPointAverage(list<LCSIndex>& cls,
 	LCSpoint& middle);
 
 list<LCSIndex> Clustering(list<LCSIndex>& c_result,
-	int cls_threshold = 20);
+	int cls_threshold = 5); // REDUCED from 20 to 5 to prevent false clustering
 
 LCSIndex Representative(list<LCSIndex>& cls,
 	LCSpoint& middle);
@@ -165,5 +170,11 @@ bool isOutside(const LCSIndex& lcs,
 	const int& g_index,
 	int c_node,
 	int& merge_index);
+
+// POTTERY-AWARE VALIDATION FUNCTIONS (LEGACY ICP INTEGRATION)
+bool isPotteryValidationEnabled();
+bool isPotteryValidConnection(int piece_a_id, int piece_b_id,
+                            const Vector3d& point_a, const Vector3d& normal_a,
+                            const Vector3d& point_b, const Vector3d& normal_b);
 
 #endif

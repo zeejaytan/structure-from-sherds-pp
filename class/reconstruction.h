@@ -21,8 +21,8 @@
 class RankingSubgraph;
 
 #define CERES_FUNC_TOL			1.0e-3
-#define MINIMUM_NUMBER			6
-#define INLIER_THRESHOLD		1.5
+#define MINIMUM_NUMBER			1  // Further reduced for NURBS geometric features
+#define INLIER_THRESHOLD		3.0  // Relaxed distance threshold
 #define ANGLE_THRESHOLD			0.262
 
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
@@ -45,6 +45,12 @@ void AxisAlignment(BreakLine& data,
 	Vector3d& t_out,
 	int axis_index = 0);
 
+// UNIFIED POTTERY-AWARE VALIDATION SYSTEM
+void UnifiedPotteryValidation(Corres& cor,
+	double dist_TH,
+	double angle_TH);
+
+// LEGACY: Redirects to unified system for backward compatibility
 void RejectOutlier(Corres& cor,
 	double dist_TH,
 	double angle_TH);

@@ -3,3 +3,42 @@ build/Debug/
 build/Release/
 build/
 .vscode/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Makefile
+compile_commands.json
+
+# Build artifacts
+*.a
+*.o
+*.so
+Hierarchy-Clear
+Hierarchy-Clear-Branch-*
+test_teaser
+
+# Logs and output
+*.log
+*.out
+*.err
+logs/
+
+# Backup files
+*.backup
+*.original
+
+# Test data and results
+test_data/
+Dataset/
+results_*/
+
+# CMake dependencies
+_deps/
+
+# Scripts and local configs
+scripts/

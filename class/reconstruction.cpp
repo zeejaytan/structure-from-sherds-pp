@@ -1,5 +1,7 @@
 #include "reconstruction.h"
 #include "../class/ranking_system.h"
+#include "ground_truth_debug.h"
+#include "robust_icp.h"
 
 //############################## other function ##############################//
 bool isConverge(const Matrix4d& T,
@@ -123,26 +125,74 @@ void AxisAlignment(BreakLine& data,
 	data.axis_point_[axis_index] = { 0, 0, 0 };
 }
 
-void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
+// UNIFIED POTTERY-AWARE VALIDATION: Replaces old RejectOutlier system
+void UnifiedPotteryValidation(Corres& cor, double dist_TH, double angle_TH = 0.65)
 {
 	vector<double> distance(cor.cor.size()), Norm(cor.cor.size());
 	int num_inliers = 0;
 
+	// Debug output for important connections
+	bool is_red_blue = (cor.index_A == 1 && cor.index_B == 3) || (cor.index_A == 3 && cor.index_B == 1);
+	bool is_pieces_1_2 = (cor.index_A == 1 && cor.index_B == 2) || (cor.index_A == 2 && cor.index_B == 1);
+	if (is_red_blue || is_pieces_1_2) {
+		if (is_pieces_1_2) {
+			cout << "*** UNIFIED POTTERY VALIDATION DEBUG *** Pieces 1-2" << endl;
+		} else {
+			cout << "*** UNIFIED POTTERY VALIDATION DEBUG *** Red-Blue Connection" << endl;
+		}
+		cout << "Initial correspondences: " << cor.cor.size() << endl;
+		cout << "Distance threshold: " << dist_TH << ", Using pottery-first validation" << endl;
+	}
+
 	Corres dummy;
 	dummy.index_A = cor.index_A;
 	dummy.index_B = cor.index_B;
+	int dist_rejects = 0, pottery_rejects = 0;
+
 	for (int i = 0; i < cor.cor.size(); i++) {
 		Norm[i] = (cor.cor[i].n_A.dot(cor.cor[i].n_B));
 		distance[i] = (cor.cor[i].p_A - cor.cor[i].p_B).norm();
 
-		if ((std::abs(distance[i]) < dist_TH) && (Norm[i]) > angle_TH) {
-			dummy.cor.push_back(cor.cor[i]);
+		// UNIFIED POTTERY VALIDATION: Single coherent validation system
+		bool correspondence_valid = false;
+		if (isPotteryValidationEnabled()) {
+			correspondence_valid = SimplePotteryValidator::validatePotteryCorrespondence(
+				cor.index_A, cor.index_B, cor.cor[i].p_A, cor.cor[i].n_A, cor.cor[i].p_B, cor.cor[i].n_B, dist_TH);
+		} else {
+			// FALLBACK: Legacy distance + normal validation for non-pottery
+			bool dist_ok = (std::abs(distance[i]) < dist_TH);
+			bool normal_ok = (Norm[i] > angle_TH);
+			correspondence_valid = dist_ok && normal_ok;
+		}
 
+		if (is_red_blue) {
+			cout << "Correspondence " << i << ": distance=" << distance[i]
+				 << ", normal_dot=" << Norm[i] << " -> " << (correspondence_valid ? "ACCEPTED" : "REJECTED") << endl;
+		}
+
+		if (correspondence_valid) {
+			dummy.cor.push_back(cor.cor[i]);
 			num_inliers++;
+		} else {
+			if (distance[i] >= dist_TH) dist_rejects++;
+			else pottery_rejects++;
 		}
 	}
+
+	if (is_red_blue || is_pieces_1_2) {
+		cout << "Final correspondences: " << num_inliers << " (rejected: "
+			 << dist_rejects << " distance, " << pottery_rejects << " pottery)" << endl;
+	}
+
 	cor.cor.clear();
 	cor = dummy;
+}
+
+// LEGACY FUNCTION: Keep for backward compatibility, redirect to unified system
+void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
+{
+	cout << "*** LEGACY REDIRECT *** RejectOutlier -> UnifiedPotteryValidation" << endl;
+	UnifiedPotteryValidation(cor, dist_TH, angle_TH);
 }
 
 void MakeBlock(BreakLine& L,
@@ -457,12 +507,12 @@ void MakeSingleCorres(vector<Corres>& COR,
 		int i_B = cor_making_index[i];
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, L[c_node - 1], L[i_B], onetoone);
-		RejectOutlier(cor_line, 20, 0.7);
+		RejectOutlier(cor_line, 2.0, 0.85);  // FIXED: Much stricter outlier rejection for pottery
 
 		cor_line.index_A = c_node;
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
+		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
 			cor_counter++;
 			cor_index[i] = true;
 		}
@@ -521,7 +571,7 @@ void MakeMergeCorres(vector<Corres>& COR,
 		int i_mov = pair_index[i].first, i_fix = pair_index[i].second;
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, L[i_mov], L[i_fix], onetoone);
-		RejectOutlier(cor_line, 20, 0.7);
+		RejectOutlier(cor_line, 2.0, 0.85);  // FIXED: Much stricter outlier rejection for pottery
 
 		cor_line.index_A = i_mov + 1;
 		cor_line.index_B = i_fix + 1;
@@ -584,13 +634,13 @@ void MakeMultiCorres(vector<Corres>& COR,
 		int i_A = pair_index[i].first, i_B = pair_index[i].second;
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
-		RejectOutlier(cor_line, 20, 0.7);
+		RejectOutlier(cor_line, 2.0, 0.85);  // FIXED: Much stricter outlier rejection for pottery
 
 		cor_line.index_A = i_A + 1;
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
 		// If the number of breakline correspondence is over 6, fill out the table
-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
+		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
 			cor_counter++;
 			cor_index[i] = true;
 
@@ -663,7 +713,7 @@ void MakeCorWithSur(vector<Corres>& COR_line,
 		cor_line.index_B = i_B + 1;
 		COR_line_dummy[i] = cor_line;
 		// If the number of breakline correspondence is over 6, fill out the table
-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
+		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
 			cor_counter++;
 			cor_index[i] = true;
 
@@ -682,7 +732,7 @@ void MakeCorWithSur(vector<Corres>& COR_line,
 			for (int c = 0; c < tmp_frac.cor.size(); c++) {
 				tmp_frac.cor[c].n_B = -1 * tmp_frac.cor[c].n_B;
 			}
-			RejectOutlier(tmp_frac, 10, 0.7);
+			RejectOutlier(tmp_frac, 10, 0.65);
 
 			// Make inner surface correspondence
 			MakeCor(tmp_sur, cor_line, shard[i_A].sur_out_, shard[i_B].sur_out_, 4);
@@ -714,6 +764,9 @@ bool inlierCalculate(int& inlier,
 	const vector<BreakLine>& L,
 	bool volume_weight)
 {
+	cout << "*** USING LEGACY ICP *** Direct legacy inlier calculation (robust ICP removed)" << endl;
+
+	// Use proven legacy CountInlier system directly
 	vector<double> num_points(L.size(), 0);
 	for (int i = 0; i < L.size(); i++) {
 		num_points[i] = L[i].point_.cols();
@@ -722,14 +775,14 @@ bool inlierCalculate(int& inlier,
 		cor,
 		num_points,
 		INLIER_THRESHOLD,
-		ANGLE_THRESHOLD);	
+		ANGLE_THRESHOLD);
 
 	if (inlier < MINIMUM_NUMBER) {
 		return false;
 	}
 
 	if (volume_weight) {
-		double den(0), input_w(0), volume_weight(1);
+		double den(0), input_w(0), volume_weight_val(1);
 		for (int i = 0; i < true_node.size(); i++) {
 			if (true_node[i]) {
 				den += 100.0;
@@ -738,9 +791,12 @@ bool inlierCalculate(int& inlier,
 		}
 
 		input_w = input_w / den;
-		volume_weight = (exp(input_w) - exp(-input_w)) / (exp(input_w) + exp(-input_w));
-		inlier = (int)(volume_weight * (double)inlier);
+		volume_weight_val = (exp(input_w) - exp(-input_w)) / (exp(input_w) + exp(-input_w));
+		inlier = (int)(volume_weight_val * (double)inlier);
 	}
+
+	cout << "*** INLIER CALCULATION COMPLETE *** Final inlier count: " << inlier
+	     << ", Success: LEGACY" << endl;
 
 	return true;
 }
@@ -1184,24 +1240,38 @@ void Icp(vector<BreakLine>& L,
 		else {
 			//if not then just use whole breakline data to make correspondence.
 			MakeCor(cor_in, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
-			RejectOutlier(cor_in, 20, 0.7);
+			// CRITICAL FIX: Do NOT run pottery validation during ICP iterations!
+			// Pottery validation with 3mm touching threshold kills ICP refinement on iteration 1,
+			// preventing convergence to <1mm precision. Ground truth pieces TOUCH perfectly,
+			// but iteration 0 feature-match alignment has 5-12mm distances that need ICP refinement.
+			// RejectOutlier(cor_in, 20, 0.65);  // REMOVED - was killing ICP after iteration 0
 		}
 
 		COR.push_back(cor_in);
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
 
-		//############### Check correspondence number ###############// 
+		//############### Check correspondence number ###############//
 		bool miss_cor = false;
 		//#pragma omp parallel for
 		for (int i = 0; i < COR.size(); i++) {
 			if (COR[i].cor.size() < MINIMUM_NUMBER) {
 				miss_cor = true;
 				cycle.score = 11.0;
+
+				// GROUND TRUTH DEBUG: Track correspondence failures
+				int piece1 = COR[i].index_A;
+				int piece2 = COR[i].index_B;
+				if (GroundTruthDebugger::isGroundTruthConnection(piece1, piece2)) {
+					GroundTruthDebugger::trackConnection(piece1, piece2,
+						GroundTruthDebugger::ICP_CORRESPONDENCE_STAGE,
+						"Insufficient correspondences after outlier rejection",
+						COR[i].cor.size(), MINIMUM_NUMBER);
+				}
 				break;
 			}
 
-			// Fill out edge table 
+			// Fill out edge table
 			int s_A = COR[i].index_A - 1;
 			int s_B = COR[i].index_B - 1;
 			true_node[s_A] = true;
@@ -1212,10 +1282,10 @@ void Icp(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// RELAXED: More permissive distance outlier detection (was 3.0, original 5.0)
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraint(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1255,7 +1325,7 @@ void Icp(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = CERES_FUNC_TOL;
+		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
 		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1295,13 +1365,22 @@ void Icp(vector<BreakLine>& L,
 			BreakLine p_A = L[shard_A - 1], p_B = L[shard_B - 1];
 			vector<Corres> cor_conv;
 			MakeCor(cor_pair, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
-			RejectOutlier(cor_pair, 20, 0.7);
+			RejectOutlier(cor_pair, 20, 0.65);
 			cor_conv.push_back(cor_pair);
 			
 			MatchingScore(cycle.score, cor_conv);
+
+			// DEBUG: Log inlier calculation details
+			int temp_inlier_before = cycle.inlier;
 			bool inlier_cal = inlierCalculate(cycle.inlier, true_node, cor_conv, L);
+			std::cout << "*** INLIER CALCULATION DEBUG *** Before=" << temp_inlier_before
+			          << " After=" << cycle.inlier << " Success=" << (inlier_cal ? "true" : "false")
+			          << " Score=" << std::fixed << std::setprecision(3) << cycle.score << std::endl;
+
 			if (!inlier_cal) {
 				cycle.score = 11.0;
+				std::cout << "*** INLIER THRESHOLD FAIL *** Inlier count " << cycle.inlier
+				          << " < MINIMUM_NUMBER " << MINIMUM_NUMBER << ", score reset to 11.0" << std::endl;
 			}
 
 			break;
@@ -1414,10 +1493,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// RELAXED: More permissive distance outlier detection (was 3.0, original 5.0)
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1457,7 +1536,7 @@ void Registration(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = CERES_FUNC_TOL;
+		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
 		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1607,10 +1686,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// RELAXED: More permissive distance outlier detection (was 3.0, original 5.0)
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1657,7 +1736,7 @@ void Registration(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = CERES_FUNC_TOL;
+		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
 		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1730,11 +1809,11 @@ void IcpIncGraphAxis(
 	MatrixXd dummy_table(num_shard, num_shard);
 	double** trans = new double* [num_shard];	// trans : transfortation
 	double** s = new double* [num_shard];		// s : rotaion representer
-	double w_d(1.0), w_n(3.0), w_line(1.0);
+	double w_d(2.0), w_n(5.0), w_line(3.0);  // FIXED: Increased constraint weights
 	double w_r(1.0), w_h(1.0);
-	double w_a(0.1);
+	double w_a(1.0);  // FIXED: Increased axis weight from 0.1 to 1.0
 	bool cor_onetoone = true, point_to_line = true;
-	int max_iteration = 100, ceres_iteration = 100;
+	int max_iteration = 200, ceres_iteration = 200;  // FIXED: More iterations
 
 	for (int i = 0; i < num_shard; ++i) {
 		trans[i] = new double[3];
@@ -1780,10 +1859,10 @@ void IcpIncGraphAxis(
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);	// 5
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);	// 2
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);	// 1.5
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);		// 5
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(1.0);	// FIXED: Stricter distance constraint
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(0.5);	// FIXED: Stricter normal constraint
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.0);	// FIXED: Stricter axis constraint
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.0);		// FIXED: Stricter rim constraint
 
 		int num_cor_points(0);
 		//######################### correspondence distance ###########################// 
@@ -1836,7 +1915,7 @@ void IcpIncGraphAxis(
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = CERES_FUNC_TOL;
+		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
 		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1858,7 +1937,7 @@ void IcpIncGraphAxis(
 				T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
 			}
 			Matrix4d T = T1.inverse() * T2;
-			if (isConverge(T, 0.05, 1.0))
+			if (isConverge(T, 0.02, 0.2))  // FIXED: Stricter convergence for pottery assembly
 				count++;
 		}
 
@@ -2009,7 +2088,7 @@ void IcpFine(
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = CERES_FUNC_TOL;
+		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
 		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);

@@ -27,6 +27,7 @@ BreakLine::BreakLine(const BreakLine& rhs)
 	index_ = rhs.index_;
 	axis_point_ = rhs.axis_point_;
 	axis_norm_ = rhs.axis_norm_;
+	original_axis_norm_ = rhs.original_axis_norm_;
 	point_index_ = rhs.point_index_;
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -47,6 +48,7 @@ BreakLine::BreakLine(BreakLine&& rhs)
 	index_ = move(rhs.index_);
 	axis_point_ = move(rhs.axis_point_);
 	axis_norm_ = move(rhs.axis_norm_);
+	original_axis_norm_ = move(rhs.original_axis_norm_);
 	point_index_ = move(rhs.point_index_);
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -69,6 +71,7 @@ BreakLine& BreakLine::operator=(const BreakLine& rhs)
 	index_ = rhs.index_;
 	axis_point_ = rhs.axis_point_;
 	axis_norm_ = rhs.axis_norm_;
+	original_axis_norm_ = rhs.original_axis_norm_;
 	point_index_ = rhs.point_index_;
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -93,6 +96,7 @@ BreakLine& BreakLine::operator=(BreakLine&& rhs)
 	index_ = move(rhs.index_);
 	axis_point_ = move(rhs.axis_point_);
 	axis_norm_ = move(rhs.axis_norm_);
+	original_axis_norm_ = move(rhs.original_axis_norm_);
 	point_index_ = move(rhs.point_index_);
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -162,15 +166,22 @@ void BreakLine::ReadAxis(const string & file)
         }
         axis_point_.push_back(Vector3d(x, y, z));
         axis_norm_.push_back(Vector3d(nx, ny, nz));
+        original_axis_norm_.push_back(Vector3d(nx, ny, nz));  // PRESERVE ORIGINAL
         count++;
     }
-    
+
     if (count == 0) {
         cerr << "Warning: No points were read from the file" << endl;
     } else {
         cout << "Successfully read " << count << " points" << endl;
+        if (!axis_norm_.empty()) {
+            cout << "*** AXIS DATA LOADED *** First axis: ["
+                 << axis_norm_[0].transpose() << "]" << endl;
+            cout << "*** ORIGINAL AXIS PRESERVED *** First original: ["
+                 << original_axis_norm_[0].transpose() << "]" << endl;
+        }
     }
-    
+
     fin.close();
     feature_.resize(axis_point_.size());
 }
@@ -259,15 +270,18 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
 
     MatrixXd point_tmp(3, numberOfPoints);
     MatrixXd normal_tmp(3, numberOfPoints);
+    MatrixXd curvature_tmp(1, numberOfPoints);  // NURBS curvature data (column 7)
     stringstream ss;
     int validPoints = 0;
 
     for (int i = 0; i < numberOfPoints; i++) {
         ss.clear();
         ss.str(fileContents[i]);
-        
+
+        double curv;
         if (ss >> point_tmp(0, i) >> point_tmp(1, i) >> point_tmp(2, i)
-            >> normal_tmp(0, i) >> normal_tmp(1, i) >> normal_tmp(2, i)) {
+            >> normal_tmp(0, i) >> normal_tmp(1, i) >> normal_tmp(2, i) >> curv) {
+            curvature_tmp(0, i) = curv;
             validPoints++;
         } else {
             cerr << "Warning: Failed to parse point data at index " << i << endl;
@@ -293,20 +307,25 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
     // Resize and populate final arrays
     point_.resize(3, num_unique_points);
     normal_.resize(3, num_unique_points);
-    feature_.resize(axis_point_.size());
+
+    // CURVATURE LOADING: Resize feature_ to accommodate curvature data at index 6
+    feature_.resize(7);  // Index 6 will hold curvature data
+    feature_[6].resize(1, num_unique_points);  // Curvature stored as 1×N matrix
+
     point_index_.resize(num_unique_points);
-    
+
     int counter = 0;
     for (int i = 0; i < numberOfPoints; i++) {
         if (single_point[i]) {
             point_.col(counter) = point_tmp.col(i);
             normal_.col(counter) = normal_tmp.col(i);
+            feature_[6](0, counter) = curvature_tmp(0, i);  // Store curvature
             point_index_[counter] = counter;
             counter++;
         }
     }
 
-    cout << "Successfully processed PCD file" << endl;
+    cout << "Successfully processed PCD file with " << num_unique_points << " points and curvature data" << endl;
 }
 void BreakLine::CalculateLineNormal(void)
 {
