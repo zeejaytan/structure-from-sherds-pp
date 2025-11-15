@@ -1,8 +1,11 @@
+# Build directories
+build/
 build/.vs/
 build/Debug/
 build/Release/
-build/
 .vscode/
+.idea/
+.claude/
 
 # CMake generated files
 CMakeCache.txt
@@ -14,23 +17,36 @@ CTestTestfile.cmake
 Makefile
 compile_commands.json
 
-# Build artifacts
+# Build artifacts and outputs
 *.a
 *.o
 *.so
+*.out
+*.err
+*.log
 Hierarchy-Clear
 Hierarchy-Clear-Branch-*
 test_teaser
 
-# Logs and output
-*.log
-*.out
-*.err
-logs/
+# Job outputs
+slurm-*.out
+*.sbatch.out
+*.sbatch.err
+pot_a_*.out
+pot_a_*.err
 
-# Backup files
-*.backup
-*.original
+# Large data files
+*.pcd
+*.ply
+*.xyz
+*.obj
+*.stl
+
+# Logs
+logs/
+logs/*.txt
+logs/*.log
+logs/*.err
 
 # Test data and results
 test_data/
@@ -39,6 +55,23 @@ results_*/
 
 # CMake dependencies
 _deps/
+
+# Backup files
+*.backup
+*.original
+*.tmp
+*.bak
+*.swp
+*~
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Tools/Blender (too large)
+tools/blender-*/
 
 # Scripts and local configs
 scripts/

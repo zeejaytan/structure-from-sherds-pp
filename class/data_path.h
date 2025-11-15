@@ -6,7 +6,10 @@
 #ifndef _DATA_PATH_H_
 #define _DATA_PATH_H_
 
+// Dataset selection
 #define POT_A
+// Use TRAY_000 to run full 40-piece Tray dataset
+// #define TRAY_000
 //#define POT_B
 //#define POT_C
 //#define POT_D
@@ -32,7 +35,7 @@ using namespace std;
 string data_type = "SfS_pp/"; // Or BreakingBad/Objects
 //string pot_type = "Other/";
 
-string path = "/Dataset/" + data_type;
+string path = "/data/gpfs/projects/punim2657/sfs_preprocessing/NURBS_Dataset_20251103/" + data_type;
 //string path = "C:/Pottery/Pottery Data/" + pot_type;
 
 
@@ -1373,6 +1376,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 6
 };
 #endif
+
 
 
 //############################################ ICCV Pottery A ############################################//
