@@ -27,7 +27,7 @@ echo "  Axis angle threshold: 0.436 rad (25°)"
 echo "  Weighting: pow(ratio, 2)"
 echo ""
 
-cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp
+cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp
 
 echo "=== Executable Information ==="
 ls -lh build/Hierarchy-Clear-headless
@@ -38,7 +38,7 @@ echo "Running headless version (auto-save first result)"
 echo ""
 
 time /apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer exec \
-    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp:/workspace" \
+    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp:/workspace" \
     --bind "/data/gpfs/projects/punim2657/sfs_preprocessing/NURBS_Dataset_20250907_CompleteFixed:/data/gpfs/projects/punim2657/sfs_preprocessing/NURBS_Dataset_20250907_CompleteFixed" \
     /data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif \
     bash -c "cd /workspace/build && ./Hierarchy-Clear-headless"

@@ -12,8 +12,8 @@ sbatch run_legacy_sfs.sbatch
 ## What's Inside
 
 ### Repository
-- **Source**: https://github.com/SeongJong-Yoo/structure-from-sherds-pp
-- **Cloned to**: `structure-from-sherds-pp/`
+- **Source**: https://github.com/zeejaytan/structure-from-sherds-pp
+- **Code Location**: Root directory (merged from subdirectory)
 
 ### Files Created
 1. **main_headless.cpp** - Headless version of the original main.cpp

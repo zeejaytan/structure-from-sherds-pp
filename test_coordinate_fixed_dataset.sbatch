@@ -55,7 +55,7 @@ echo "✓ Dataset appears complete"
 echo ""
 
 echo "=== Step 1: Backup Current data_path.h ==="
-DATA_PATH_H="/data/gpfs/projects/punim2657/sfs_main/structure-from-sherds-pp/class/data_path.h"
+DATA_PATH_H="/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/class/data_path.h"
 BACKUP_PATH="${DATA_PATH_H}.backup_$(date +%Y%m%d_%H%M%S)"
 cp "$DATA_PATH_H" "$BACKUP_PATH"
 echo "✓ Backed up: $BACKUP_PATH"
@@ -95,7 +95,7 @@ echo "  $LATEST_DATASET"
 echo ""
 
 echo "=== Step 3: Rebuild SFS Executables ==="
-cd /data/gpfs/projects/punim2657/sfs_main/structure-from-sherds-pp/build
+cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/build
 echo "Running: make clean && make -j4"
 make clean > /dev/null 2>&1
 make -j4 2>&1 | tail -10
@@ -124,7 +124,7 @@ echo ""
 
 time apptainer exec --bind /data/gpfs/projects/punim2657:/data/gpfs/projects/punim2657 \
     /data/gpfs/projects/punim2657/sfs_main/pcl_191_ceres_nurbs.sif \
-    bash -c "cd /data/gpfs/projects/punim2657/sfs_main/structure-from-sherds-pp/build && \
+    bash -c "cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/build && \
              ./Hierarchy-Clear-headless" > "$TEST_OUTPUT/assembly_output.log" 2>&1
 
 ASSEMBLY_EXIT=$?

@@ -14,7 +14,7 @@
 module load GCC/11.3.0 OpenMPI/4.1.4
 
 CONTAINER_SIF="/data/gpfs/projects/punim2657/sfs_preprocessing/pcl_191_nurbs.sif"
-SOURCE_DIR="/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp"
+SOURCE_DIR="/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp"
 BUILD_DIR="${SOURCE_DIR}/build"
 
 echo "========================================================================="

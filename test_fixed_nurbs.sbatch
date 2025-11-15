@@ -24,7 +24,7 @@ echo ""
 cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp
 
 CONTAINER_SIF="/data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif"
-SOURCE_DIR="/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp"
+SOURCE_DIR="/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp"
 
 # Create output directory with timestamp
 OUTPUT_DIR="test_results_fixed_nurbs_$(date +%Y%m%d_%H%M%S)"

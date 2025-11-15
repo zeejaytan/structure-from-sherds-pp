@@ -14,7 +14,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Start time: $(date)"
 echo ""
 
-cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp
+cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp
 
 echo "=== DEBUG MODE ENABLED ==="
 echo "This run will generate detailed diagnostics for assembly analysis"
@@ -48,7 +48,7 @@ echo ""
 
 echo "=== Building Legacy SFS++ Code (Debug Mode) ==="
 time /apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer exec \
-    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp:/workspace" \
+    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp:/workspace" \
     /data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif \
     bash -c "cd /workspace && rm -rf build && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j8"
 
@@ -77,7 +77,7 @@ echo "Debug log: ${DEBUG_OUTPUT}"
 echo ""
 
 /apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer exec \
-    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp:/workspace" \
+    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp:/workspace" \
     --bind "/data/gpfs/projects/punim2657/sfs_preprocessing/Tray-000_Dataset_20251021:/Dataset" \
     /data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif \
     bash -c "cd /workspace/build && ./Hierarchy-Clear-headless" 2>&1 | tee ${DEBUG_OUTPUT}

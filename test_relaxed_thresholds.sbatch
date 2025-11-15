@@ -20,7 +20,7 @@ echo "  - Normal threshold: 0.7 (46°) → 0.3 (73°)"
 echo "  - Rejection reason logging enabled"
 echo ""
 
-cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp
+cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp
 
 # Verify configuration
 echo "=== Verifying Configuration ==="
@@ -48,10 +48,10 @@ echo "✓ Cleaned result directory"
 echo ""
 
 echo "=== Running SFS++ with Relaxed Thresholds ==="
-cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp
+cd /data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp
 
 time /apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer exec \
-    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp/structure-from-sherds-pp:/workspace" \
+    --bind "/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_temp:/workspace" \
     --bind "/data/gpfs/projects/punim2657/sfs_preprocessing/Tray-000_Dataset_20251021/SfS_pp:/Dataset/SfS_pp" \
     /data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif \
     /workspace/build/Hierarchy-Clear-headless
