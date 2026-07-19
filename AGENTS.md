@@ -14,9 +14,9 @@ Follow the workspace root **`../AGENTS.md`** (laptop ↔ GitHub ↔ Spartan) for
 
 **Naming warning:** despite the folder name, `sfspreproc-docker` is the **assembly** code (SFS++ / `Hierarchy-Clear`), *not* preprocessing. Actual preprocessing lives in the separate `sfs_preprocessing` repo (`zeejaytan/SfSpp_preprocessing`).
 
-## Surrounding Spartan layout (HPC-only, not in this repo)
+## Surrounding Spartan layout
 
-- `sfs_main/` (parent dir) — unversioned working area: sbatch launchers, analysis scripts, results, tuning docs. Not yet in git.
+- `sfs_main/` (parent dir) — the launch/analysis working area. Its scripts, docs, tools, and patches are **versioned in this repo under `hpc/`** (see `hpc/README.md`); the live copies on Spartan stay untracked there and are launched from `sfs_main/` (their paths reference `sfspreproc-docker/` as a subdirectory). Edit in `hpc/`, push, sync the live copy. Results/logs/datasets in `sfs_main/` remain HPC-only.
 - `sfs_main/sfs_legacy_temp/` — second clone of this fork used for tray-000 threshold debugging. Leave alone.
 - `sfs_main/sfs_modified_src/` — pristine clone of upstream. Reference only.
 
