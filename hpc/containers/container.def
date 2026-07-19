@@ -1,0 +1,85 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%help
+  SfSpp_preprocessing container
+  – builds mesh-sampling and breakline-extraction tools
+  – suitable for Spartan/Apptainer
+
+%labels
+  Author    Your Name <you@unimelb.edu.au>
+  Version   1.0
+
+#############################################################################
+# 1)  Environment
+#############################################################################
+%environment
+  # keep non-interactive APT
+  export DEBIAN_FRONTEND=noninteractive
+  # convenient number of build threads
+  export NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 4)
+
+#############################################################################
+# 2)  System packages
+#############################################################################
+%post
+  # Avoid interactive prompts
+  export DEBIAN_FRONTEND=noninteractive
+  export TZ=UTC
+  
+  echo "[INSTALL] apt dependencies"
+  apt-get update -qq && apt-get install -y --no-install-recommends \
+        build-essential cmake git wget unzip \
+        libeigen3-dev libboost-all-dev libflann-dev libqhull-dev \
+        libopenblas-dev liblapack-dev gfortran \
+        libgoogle-glog-dev libgflags-dev libsuitesparse-dev \
+        libvtk9-dev libvtk9-qt-dev  libglew-dev freeglut3-dev \
+        libpcl-dev libusb-1.0-0-dev libceres-dev libcgal-dev && \
+      rm -rf /var/lib/apt/lists/*
+
+#############################################################################
+# 3)  Clone and build repo
+#############################################################################
+  echo "[CLONE] SfSpp_preprocessing"
+  cd /opt
+  git clone https://github.com/DominicoRyu/SfSpp_preprocessing.git
+  mkdir -p  /opt/SfSpp_preprocessing/build
+  cd        /opt/SfSpp_preprocessing/build
+
+  echo "[CMAKE] configure"
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  echo "[MAKE ] compile"
+  make -j${NPROC}
+
+  echo "[CLEAN] strip symbols to save space"
+  strip mesh_processing edgeline_extraction || true
+
+#############################################################################
+# 4) Default run behaviour
+#############################################################################
+%runscript
+  # Usage examples inside the container:
+  #   singularity run sfspreproc.sif mesh_processing /Dataset/Mesh /Dataset/surfaces
+  #   singularity run sfspreproc.sif edgeline_extraction /Dataset/surfaces /Dataset/Breakline
+  if [ -z "$1" ]; then
+      echo "USAGE:"
+      echo "  $(basename $0) <binary> [args …]"
+      echo "Where <binary> is one of:"
+      echo "  mesh_processing, edgeline_extraction"
+      exit 1
+  fi
+  exec /opt/SfSpp_preprocessing/build/$@
+
+#############################################################################
+# 5)  Test the image immediately after build
+#############################################################################
+%test
+  /opt/SfSpp_preprocessing/build/mesh_processing --help 2>&1 | grep -qi "usage" && \
+  echo "Mesh2Surface binary present ✓"
+
+#############################################################################
+# 6)  Custom (optional) binds you always want
+#############################################################################
+# %bind paths can be uncommented if you always mount these:
+# %bind /srv/Dataset:/Dataset
+

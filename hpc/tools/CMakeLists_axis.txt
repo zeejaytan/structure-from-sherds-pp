@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.10)
+project(AxisExtraction)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++17")
+
+# Use environment variables from loaded modules
+set(EIGEN3_INCLUDE_DIR "$ENV{EBROOTEIGEN}/include")
+set(CERES_ROOT "$ENV{EBROOTCERESSOLVER}")
+
+# Find Ceres
+find_package(Ceres REQUIRED HINTS ${CERES_ROOT})
+
+# Include directories
+include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${CERES_INCLUDE_DIRS})
+include_directories(sfspreproc-docker)
+
+# Add executable
+add_executable(edgeline_extraction
+    edgeline_extraction.cpp
+    sfspreproc-docker/class/axis_estimation.cpp
+    sfspreproc-docker/class/data_structure.cpp
+)
+
+# Link libraries
+target_link_libraries(edgeline_extraction 
+    ${CERES_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+)

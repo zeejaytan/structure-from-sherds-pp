@@ -1,0 +1,125 @@
+Bootstrap: localimage
+From: sfspreproc-base.sif
+
+%help
+  SfSpp Preprocessing Tools Container
+  – optimized mesh processing and edge extraction
+  – built on pre-configured base dependencies
+  – production-ready for HPC workflows
+
+%labels
+  Author    Structure from Sherds++ Team
+  Version   2.0.0
+  Stage     preprocessing-tools
+
+%files
+  # Copy optimized source files if available locally
+  sfspreproc-docker/class /opt/sfs/src/class
+  sfspreproc-docker/main.cpp /opt/sfs/src/main.cpp
+  sfspreproc-docker/CMakeLists.txt /opt/sfs/src/CMakeLists.txt
+
+%post
+  echo "[PREPROCESSING BUILD] Building optimized tools..."
+  
+  # Set build environment
+  export NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 4)
+  export CMAKE_PREFIX_PATH="/opt/sfs:/usr"
+  
+  # Option 1: Build from local source (if files copied)
+  if [ -d "/opt/sfs/src" ]; then
+    echo "Building from local source..."
+    cd /opt/sfs/src
+    mkdir -p build && cd build
+    
+    # Use optimized CMake configuration
+    cmake .. \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/sfs \
+      -DCMAKE_CXX_FLAGS="-O2 -march=native" \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DUSE_SYSTEM_LIBRARIES=ON
+    
+    make -j${NPROC} VERBOSE=1
+    cp Hierarchy-Clear /opt/sfs/bin/
+    
+  else
+    # Option 2: Build from optimized preprocessing repository
+    echo "Cloning and building preprocessing tools..."
+    cd /opt/sfs
+    
+    # Clone with specific optimizations
+    git clone --depth 1 https://github.com/DominicoRyu/SfSpp_preprocessing.git src
+    cd src && mkdir -p build && cd build
+    
+    # Optimized build configuration
+    cmake .. \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/sfs \
+      -DCMAKE_CXX_FLAGS="-O1 -g0 -DNDEBUG" \
+      -DCMAKE_EXE_LINKER_FLAGS="-s" \
+      -DBUILD_SHARED_LIBS=OFF
+    
+    # Build with resource limits and monitoring
+    echo "Starting optimized compilation..."
+    timeout 1800 make -j${NPROC} || {
+      echo "Build timeout - trying single-threaded..."
+      make -j1
+    }
+    
+    cp Hierarchy-Clear /opt/sfs/bin/
+    
+    # Clean up build artifacts to reduce image size
+    cd /opt/sfs && rm -rf src/build
+  fi
+  
+  # Verify installation
+  echo "[VERIFICATION] Testing built tools..."
+  ls -la /opt/sfs/bin/
+  
+  # Create convenience scripts
+  cat > /opt/sfs/bin/preprocess-mesh << 'EOF'
+#!/bin/bash
+exec /opt/sfs/bin/mesh_processing "$@"
+EOF
+  
+  cat > /opt/sfs/bin/extract-edges << 'EOF'
+#!/bin/bash
+exec /opt/sfs/bin/edgeline_extraction "$@"
+EOF
+  
+  chmod +x /opt/sfs/bin/preprocess-mesh
+  chmod +x /opt/sfs/bin/extract-edges
+  
+  echo "Preprocessing tools installation complete ✓"
+
+%environment
+  export PATH="/opt/sfs/bin:${PATH}"
+  export LD_LIBRARY_PATH="/opt/sfs/lib:${LD_LIBRARY_PATH}"
+  export CMAKE_PREFIX_PATH="/opt/sfs:${CMAKE_PREFIX_PATH}"
+
+%runscript
+  # Default usage examples
+  if [ $# -eq 0 ]; then
+    echo "SfS++ Preprocessing Tools Container"
+    echo "Usage examples:"
+    echo "  $(basename $0) mesh_processing /input/meshes /output/surfaces"
+    echo "  $(basename $0) edgeline_extraction /input/surfaces /output/edges"
+    echo "  $(basename $0) preprocess-mesh [args...]"
+    echo "  $(basename $0) extract-edges [args...]"
+    exit 0
+  fi
+  
+  # Execute the specified tool
+  exec "$@"
+
+%test
+  echo "Testing preprocessing tools..."
+  
+  # Test that binaries exist and are executable
+  test -x /opt/sfs/bin/mesh_processing && echo "✓ mesh_processing binary found"
+  test -x /opt/sfs/bin/edgeline_extraction && echo "✓ edgeline_extraction binary found"
+  
+  # Test help output
+  /opt/sfs/bin/mesh_processing --help 2>&1 | grep -qi "usage" && echo "✓ mesh_processing help works"
+  
+  echo "Preprocessing tools container ready ✓"

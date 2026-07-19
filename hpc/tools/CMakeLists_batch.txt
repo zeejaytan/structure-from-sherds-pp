@@ -1,0 +1,57 @@
+cmake_minimum_required(VERSION 3.11)
+project(SfS-Batch)
+
+# Ceres - try to find but make it optional for now
+find_package(Ceres CONFIG QUIET)
+set(USE_CERES FALSE)
+if(Ceres_FOUND)
+    set(USE_CERES TRUE)
+    message(STATUS "Ceres found - enabling optimization features")
+else()
+    message(WARNING "Ceres not found - building without optimization features")
+endif()
+
+# PCL - but without visualization components  
+find_package(PCL REQUIRED COMPONENTS common io features surface filters)
+
+#OpenMP
+find_package(OpenMP)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# Use batch main instead of regular main
+file(GLOB CLASS_SRC "sfspreproc-docker/class/*.cpp" "sfspreproc-docker/class/*.h")
+set(BATCH_SRC "main_batch.cpp" ${CLASS_SRC})
+
+add_executable(SfS-Batch ${BATCH_SRC})
+
+if (MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+  add_definitions(-D _CRT_SECURE_NO_WARNINGS)
+endif()
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(SfS-Batch 
+        PUBLIC 
+            OpenMP::OpenMP_CXX
+    )
+endif()
+
+target_link_libraries(SfS-Batch
+    PRIVATE
+        ${PCL_LIBRARIES}
+)
+
+if(USE_CERES)
+    target_link_libraries(SfS-Batch PRIVATE ${CERES_LIBRARIES})
+    target_compile_definitions(SfS-Batch PRIVATE USE_CERES)
+endif()
+
+target_include_directories(SfS-Batch
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/sfspreproc-docker/class
+        ${PCL_INCLUDE_DIRS}
+)
+
+# Add PCL definitions
+target_compile_definitions(SfS-Batch PRIVATE ${PCL_DEFINITIONS})

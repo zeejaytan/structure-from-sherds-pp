@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.12)
+project(TPS_Surface_Generator)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Optimization flags
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_BUILD_TYPE Release)
+
+# Find required packages
+find_package(PkgConfig REQUIRED)
+
+# Find Eigen3
+find_package(Eigen3 REQUIRED NO_MODULE)
+if(Eigen3_FOUND)
+    message(STATUS "Found Eigen3: ${Eigen3_DIR}")
+else()
+    message(FATAL_ERROR "Eigen3 not found")
+endif()
+
+# Include directories
+include_directories(/usr/include/eigen3)
+
+# Create executable
+add_executable(tps_surface_generator tps_surface_generator.cpp)
+
+# Link libraries
+target_link_libraries(tps_surface_generator
+    Eigen3::Eigen
+)
+
+# Install
+install(TARGETS tps_surface_generator DESTINATION bin)

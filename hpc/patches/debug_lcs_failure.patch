@@ -1,0 +1,58 @@
+--- Debug patch for LCS failure analysis ---
+
+1. FEATURE CORRESPONDENCE COUNT DEBUG (845 vs 124 issue):
+
+Add to FeatureComp function after line 1475:
+
+cout << "DEBUG: LCS call for pieces " << (j+1) << " and " << (i+1) 
+     << " (axis_x=" << axis_x << ", axis_y=" << axis_y << ")" << endl;
+cout << "DEBUG: LCS_tmp size before processing: " << LCS_tmp.size() << endl;
+
+Add after line 1489:
+cout << "DEBUG: Added " << LCS_tmp.size() << " matches from pieces " 
+     << (j+1) << " and " << (i+1) << endl;
+cout << "DEBUG: Total LCS_out size now: " << LCS_out.size() << endl;
+
+2. LCS VALIDATION DEBUG (0 LCS entries issue):
+
+Add to main_headless_correct.cpp after line 269:
+cout << "DEBUG: Feature matches breakdown by piece pairs:" << endl;
+map<pair<int,int>, int> pair_counts;
+for (auto& lcs : LCS_out) {
+    pair<int,int> p = make_pair(lcs.shard_x_, lcs.shard_y_);
+    pair_counts[p]++;
+}
+for (auto& pc : pair_counts) {
+    cout << "  Pieces " << pc.first.first << "-" << pc.first.second 
+         << ": " << pc.second << " matches" << endl;
+}
+
+3. PAIRWISE PRUNING DEBUG:
+
+Modify PairwisePruning to show what gets removed:
+Add before/after size logging and rejection reasons
+
+4. LCS QUALITY CHECK:
+
+Add LCS entry validation in SortRoot function:
+cout << "DEBUG: LCS entry details:" << endl;
+for (auto& lcs : lcs_out) {
+    cout << "  Entry: shard_x=" << lcs.shard_x_ << ", shard_y=" << lcs.shard_y_
+         << ", length=" << lcs.length_ << ", score=" << lcs.score_ << endl;
+}
+
+5. THRESHOLD ANALYSIS:
+
+Compare current thresholds vs Aug 26 successful run:
+- MINIMUM_NUMBER = 6 (check if this changed)
+- LCS window size = 25 (check if this changed) 
+- Quality thresholds in pairwise pruning
+
+ROOT CAUSE ANALYSIS STRATEGY:
+1. 845 matches suggests overly permissive feature detection
+2. 0 LCS entries suggests all matches fail validation
+3. Likely causes:
+   a) TPS surface quality degraded between Aug 26-29
+   b) Feature detection parameters became too loose
+   c) LCS validation became too strict
+   d) Data format/structure changed affecting feature extraction
