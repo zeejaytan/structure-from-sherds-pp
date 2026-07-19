@@ -1,0 +1,181 @@
+You’re right. A straight SfS++-style beam search will chase good local joins and can lock into the wrong pot layout. I’ve re-designed the pipeline so it reasons about the whole assemblage at once. The idea is simple: keep many pairwise hypotheses, prune them by global consistency, then solve for all shard poses together with robust costs and hard “no-penetration” constraints. I still keep a light search layer for coverage, but the final decision is a global optimisation, not a greedy chain.
+
+# Global-first reconstruction: plan and pseudocode
+
+I start by generating multiple plausible pairwise joins per fragment edge, not just the top one. I then build a compatibility graph and use cycle-consistency and collision checks to throw out nonsense. After that, I run a joint pose solve over all shards at once. It’s a factor-graph on SE(3) with robust losses, plus binary switches to select which hypothesised joins actually “turn on”. I alternate between selecting edges and refining poses until it settles. Finally, I check for loop closures and do a full global refinement.
+
+## A. Hypotheses, not singles
+
+I keep K hypotheses per neighbouring edge, each with its own relative transform and score. That stops me over-committing early.
+
+```python
+# For each compatible edge pair, keep top-K coarse+ICP alignments.
+def build_pairwise_hypotheses(shards, K=5):
+    H = []  # list of hypotheses h: (i, j, edge_i, edge_j, T_ij, scores)
+    for (i, j) in all_pairs(shards):
+        for (ei, ej) in edge_pairs_if_compatible(shards[i], shards[j]):
+            for T0 in generate_coarse_alignments(shards[i], ei, shards[j], ej):
+                T, err, meta = icp_refine_edge(shards[i], ei, shards[j], ej, T0)
+                if passes_local_checks(err, meta):
+                    H.append(hyp(i, j, ei.id, ej.id, T, local_score(err, meta)))
+        H = topK_per_pair(H, i, j, K)
+    return H
+```
+
+## B. Global compatibility pruning
+
+Before any solving, I remove hypotheses that cannot co-exist. I look for short cycles whose transforms don’t compose to identity, and I bin edges that imply obvious collisions.
+
+```python
+def prune_by_cycle_and_collision(H, shards):
+    G = build_multigraph(H)  # nodes: shards, edges: hypotheses
+    for cycle in simple_cycles(G, max_len=4):
+        T_comp, drift = compose_along_cycle(cycle)  # product of T's
+        if drift > 2*VOXEL:
+            mark_cycle_edges_as_inconsistent(G, cycle)
+    H = remove_marked(H)
+
+    # collision screening in world-free space via AABBs swept by hypotheses
+    H = [h for h in H if not implies_gross_overlap(h, shards)]
+    return H
+```
+
+## C. Joint pose solve with switchable constraints
+
+This is the heart. Every shard i has a pose $X_i \in SE(3)$. Every hypothesis $h_k: i\!\leftrightarrow\!j$ carries a measured relative transform $T_{ij}^{(k)}$. I introduce a binary (relaxed to \[0,1]) switch $y_k$ for “use this join”. The objective is a robust sum of residuals across all active joins, plus penalties for overlaps and rewards for smooth cylindrical profile. I solve it by alternating: fix poses, update switches; fix switches, update poses. The robustifier and reweighting push outliers off.
+
+```python
+class GlobalProblem:
+    def __init__(self, shards, H):
+        self.shards = shards
+        self.H = H
+        self.X = {s.id: IdentitySE3() for s in shards}  # current poses
+        self.y = {k: 0.0 for k in range(len(H))}         # switch weights
+
+def optimise_global(problem, iters=20):
+    for t in range(iters):
+        # 1) Pose step: minimise robust error over SE(3) with current switches
+        problem.X = pose_step(problem)
+
+        # 2) Switch step: soft select hypotheses with IRLS / sparse promoting prior
+        problem.y = switch_step(problem)
+
+        # 3) Hard constraints: project out overlaps and enforce cycle consistency
+        project_nonpenetration(problem)
+        enforce_short_cycle_consistency(problem)
+
+        if converged(problem):
+            break
+    return problem
+
+def pose_step(P):
+    # Build factor graph: variables X_i; factors for each hypothesis with weight y_k
+    factors = []
+    for k, h in enumerate(P.H):
+        i, j, T_ij, w = h.i, h.j, h.T, P.y[k]
+        if w < 1e-3: 
+            continue
+        factors.append(RelativePoseFactor(i, j, T_ij, weight=w, robust="GNC-TLS"))
+    # Add soft priors: symmetry axis smoothness, thickness continuity, rim circle
+    factors += axis_and_profile_factors(P)
+    # Add contact band constraints (point-to-plane at fracture edges)
+    factors += contact_band_factors(P, active_hypotheses(P))
+    # Solve with Gauss-Newton on Lie algebra se(3) using robust kernels
+    return solve_se3_gauss_newton(factors, init=P.X)
+
+def switch_step(P, lam=1.0):
+    # For each hypothesis, compute its current residual under poses, then soft-threshold.
+    y_new = {}
+    for k, h in enumerate(P.H):
+        i, j, T_ij = h.i, h.j, h.T
+        r_k = relative_pose_residual(P.X[i], P.X[j], T_ij)
+        c_k = collision_cost_if_active(P, h)
+        s_k = h.local_score
+        # Lower is better residual; convert to utility U_k
+        U_k = s_k - norm(r_k) - c_k
+        # Soft selection by sigmoid with sparsity (promotes a few active per pair)
+        y_new[k] = sigmoid(U_k / lam)
+    # Per (i,j) pair, normalise so competing hypotheses sum ≤ 1
+    return renormalise_within_pairs(P.H, y_new)
+```
+
+I treat non-penetration globally. I approximate each shard by a signed distance field on a coarse grid; then I add a hinge loss if any voxel flips sign twice (indicating interpenetration). It’s coarse but quick, and it kills obviously impossible packings.
+
+```python
+def project_nonpenetration(P):
+    for (i, Xi), (j, Xj) in close_pairs(P.X):
+        if sdfs_overlap(P.shards[i], Xi, P.shards[j], Xj):
+            # Nudge poses apart along local contact normals with a small step,
+            # then re-linearise in the next pose_step.
+            Xi, Xj = separate_along_normals(P, i, j, Xi, Xj)
+            P.X[i], P.X[j] = Xi, Xj
+```
+
+Short cycles get enforced so the solution can’t “drift” around a loop. I check 3- and 4-cycles built from currently active edges and penalise their closure error.
+
+```python
+def enforce_short_cycle_consistency(P, tau=1.0):
+    cycles = active_short_cycles(P, max_len=4)
+    for cyc in cycles:
+        Tcomp, drift = compose_world_space_cycle(P.X, cyc)
+        if drift > 0.5*VOXEL:
+            # Add a temporary factor to the next pose_step to close this loop
+            add_cycle_factor(P, cyc, weight=tau)
+```
+
+## D. Multi-pot clustering before the global solve
+
+To stop different pots contaminating each other, I split the hypotheses graph into communities first, then solve each cluster separately. Louvain or spectral clustering on an edge-affinity matrix (shared rim height/radius, high local score, short geodesic distance) works well.
+
+```python
+def cluster_hypotheses(H):
+    W = build_affinity_matrix(H)  # symmetric; larger if two edges likely belong to same pot
+    labels = louvain_communities(W)
+    return group_hypotheses_by_label(H, labels)
+```
+
+## E. Loop closures and final refinement
+
+After the alternating scheme picks a clean subset, I lock the active edges and run a final robust bundle over all contact bands and rim circle constraints. That tightens the whole fit and distributes error globally.
+
+```python
+def final_refinement(P):
+    active = active_hypotheses(P)
+    factors = contact_band_factors(P, active) + axis_and_profile_factors(P)
+    P.X = solve_se3_gauss_newton(factors, init=P.X, robust="Cauchy")
+    return P
+```
+
+# Full driver
+
+This is the end-to-end glue that uses the global method. I still reuse your earlier pre-processing and edge extraction.
+
+```python
+def reconstruct_pots_global(shard_files):
+    shards = [load_and_preprocess(f) for f in shard_files]
+    for s in shards:
+        estimate_axis(s)
+        extract_edges_and_features(s)
+
+    H_all = build_pairwise_hypotheses(shards, K=5)
+    H_all = prune_by_cycle_and_collision(H_all, shards)
+
+    pot_hyp_groups = cluster_hypotheses(H_all)
+
+    pots = []
+    for H in pot_hyp_groups:
+        P = GlobalProblem(shards_by_id(shards), H)
+        P = optimise_global(P, iters=30)
+        P = final_refinement(P)
+        pots.append(P)
+
+    return pots
+```
+
+# Why this fixes the local-optimum trap
+
+I’m no longer committing to a single best edge per neighbour and growing a chain. I keep several plausible joins, then pick a **globally consistent** subset by switching variables and cycle checks. The pose update sees **all active constraints at once**, so a wrong local edge will lose influence across the graph and get switched off during the next step. Collision penalties and short-cycle closure further block those “looks good locally, impossible globally” packings. The clustering step also isolates different vessels so one pot’s neat seam doesn’t drag a stray shard from another.
+
+If you want to push it further, two options are worth a try. First, swap the soft switch step for a small integer program per fragment pair (one-of-K selection), solved with a fast ILP or Hungarian-style assignment; then run the pose step. Second, add a simple A\* layer over assemblies but use this global objective as the heuristic, not a greedy edge score; that gives you search with an admissible guide tied to the full pose energy.
+
+If you want, I can drop this into a Python skeleton using Open3D for geometry, g2o/ceres-like wrappers for the SE(3) solve, and a tiny SDF module for the overlap penalties. It’s still geometry-only, and it gives you a genuine global connection rather than a tidy local path that goes nowhere.

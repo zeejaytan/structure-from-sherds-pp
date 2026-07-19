@@ -1,0 +1,239 @@
+﻿You’re absolutely right: if I fix collisions locally or “nudge” one bad join at a time, I’ll just chase my tail. I’ve re-framed the solver so all constraints live in one global problem over the poses of every sherd, with priorities, and I solve them together at each iteration. Under the hood it’s a sequential quadratic program (SQP) on SE(3) with an augmented-Lagrangian / interior-point flavour to handle hard inequalities (no interpenetration), soft equalities (contact fit), and cycle/profile terms. I keep the match switches continuous in \[0,1] so they can turn themselves on or off as the global state changes, which lets the solver avoid committing too early.
+
+Below is implementation-ready pseudocode you can translate into Python. It’s geometry-only. I’ve kept it readable: assemble residuals and constraints; linearise all of them at the current poses; build one sparse KKT system; solve for a single global pose update; update multipliers and switches; and repeat. This matches the six points you listed: multi-piece interactions, interdependence, global step, priorities, coupling, and fully iterative global updates.
+
+```python
+# ===============================
+# Variables and data structures
+# ===============================
+
+# Poses to solve for (world frame): one SE(3) per sherd
+X = {i: SE3.identity() for i in shards}      # i ∈ {1..N}
+
+# Pairwise match hypotheses (prepared earlier from geometry):
+# each h has endpoints (i,j), an estimated relative transform T_ij,
+# and precomputed contact samples (point pairs or point-to-plane sets)
+H = [Hyp(i, j, T_ij, contact_samples, local_score) for ...]    # len = M
+
+# Continuous "switch" per hypothesis in [0,1] (active weight)
+y = {k: 0.0 for k in range(len(H))}
+
+# Lagrange multipliers for equality and inequality constraints
+lambda_eq = {}   # for contact equalities and cycle equalities
+lambda_in = {}   # for non-penetration inequalities (g(x) >= 0)
+
+# Penalty / barrier parameters and priorities
+params = {
+    "w_fit": 1.0,              # soft geometric consistency (relative pose priors)
+    "w_contact": 10.0,         # equality weight for contact bands
+    "w_cycle": 1.0,            # cycle consistency weight
+    "w_profile": 0.5,          # axis/profile smoothness
+    "mu_barrier": 1e-2,        # interior barrier for inequalities
+    "rho_AL": 50.0,            # augmented Lagrangian penalty
+    "hard_no_penetration": True,  # treat overlap as hard (priority 0)
+}
+
+# Signed distance fields for each sherd for fast separation queries
+SDF = {i: precompute_sdf(shards[i]) for i in shards}
+```
+
+```python
+# ===============================
+# Main global solver
+# ===============================
+
+def solve_global(shards, H, X, y, SDF, params, max_outer=30, max_inner=8):
+    for outer in range(max_outer):
+        # 1) Global pose update with current switches (y) via one KKT solve
+        X = pose_update_sqp(X, y, H, SDF, params, max_inner)
+
+        # 2) Switch update: re-weigh edges globally using current residuals
+        y = update_switches(X, y, H, SDF, params)
+
+        # 3) Penalty/barrier schedule and convergence check
+        params = schedule_params(params, outer)
+        if converged(X, y, H, SDF, params):
+            break
+    return X, y
+```
+
+```python
+# ===============================
+# Build and solve one global SQP step (poses only)
+# ===============================
+
+def pose_update_sqp(X, y, H, SDF, params, max_inner):
+    # We optimise increments δξ_i ∈ se(3): X_i <- Exp(δξ_i) ∘ X_i
+    for inner in range(max_inner):
+        # Assemble all residuals and constraints linearised at current X
+        R, J = assemble_soft_residuals(X, y, H, params)           # stacking r_k and Jacobians
+        h, A = assemble_contact_equalities(X, y, H, params)       # h(x)=0
+        c, C = assemble_cycle_equalities(X, y, H, params)         # cycle closure
+        g, G = assemble_inequalities(X, SDF, params)              # g(x) >= 0 (separation)
+
+        # Augmented Lagrangian / interior-point weighting
+        # Soft objective: 0.5 * ||R + J δξ||^2
+        # Augmented equalities: h + A δξ driven to 0 with multipliers and ρ
+        # Inequalities: interior barrier + AL on active set
+        HtH = J.T @ J
+        g_eq = concatenate([h, c])
+        A_eq = block_diag(A, C)
+        aug_eq_rhs = -g_eq - (1/params["rho_AL"]) * get_lambda_eq(lambda_eq)
+
+        # Barrier gradient/Hessian for inequalities at current g
+        B_grad, B_hess = interior_barrier_terms(g, G, params["mu_barrier"])
+        # Linearised AL term on inequalities (optional active-set selection)
+        AL_in_grad, AL_in_hess = al_terms_inequalities(g, G, lambda_in, params["rho_AL"])
+
+        # KKT system for δξ and equality multipliers δλ
+        # [ J^T J + B_hess + AL_in_hess   A_eq^T ] [ δξ ] = [ -J^T R + B_grad + AL_in_grad ]
+        # [ A_eq                             0   ] [ δλ ]   [            aug_eq_rhs       ]
+        K11 = HtH + B_hess + AL_in_hess
+        K12 = A_eq.T
+        K21 = A_eq
+        rhs1 = -J.T @ R + B_grad + AL_in_grad
+        rhs2 = aug_eq_rhs
+        δξ, δλ = solve_sparse_KKT(K11, K12, K21, rhs1, rhs2)
+
+        # Retract poses on SE(3)
+        for i in X:
+            X[i] = retract_se3(X[i], δξ[i])
+
+        # Update multipliers (AL) for equalities and inequalities
+        lambda_eq = update_lambda_eq(lambda_eq, g_eq, params["rho_AL"])
+        lambda_in = update_lambda_in(lambda_in, g, params["rho_AL"])
+
+        if small_step(δξ) and small_violation(h, c, g):
+            break
+    return X
+```
+
+```python
+# ===============================
+# Soft residuals (geometry) assembled at once
+# ===============================
+
+def assemble_soft_residuals(X, y, H, params):
+    rows = []
+    J_blocks = []
+    for k, h in enumerate(H):
+        w = y[k] * params["w_fit"]
+        if w < 1e-4:
+            continue
+        i, j, T_ij = h.i, h.j, h.T
+        # Relative pose residual r_k(X) ~ Log( T_ij^{-1} * X_i^{-1} * X_j )
+        r_k, Ji, Jj = relative_pose_residual_and_jacobian(X[i], X[j], T_ij)
+        rows.append(sqrt(w) * r_k)
+        J_blocks.append(sqrt(w) * [Ji w.r.t δξ_i, Jj w.r.t δξ_j])
+        # Contact band (point-to-plane) residuals for this hypothesis
+        for (p_i, n_i, q_j) in h.contact_samples:
+            # After transforming, enforce n_i^T (X_i p_i - X_j q_j) = 0
+            r_c, Jci, Jcj = contact_point2plane_residual(X[i], X[j], p_i, n_i, q_j)
+            rows.append(sqrt(params["w_contact"] * y[k]) * r_c)
+            J_blocks.append(sqrt(params["w_contact"] * y[k]) * [Jci, Jcj])
+    # Axis/profile soft residuals (stacked for all pieces)
+    r_prof, J_prof = profile_residuals(X, params)
+    rows.extend(r_prof)
+    J_blocks.extend(J_prof)
+    R = stack(rows)
+    J = sparse_block(J_blocks)
+    return R, J
+```
+
+```python
+# ===============================
+# Equality constraints assembled globally
+# ===============================
+
+def assemble_contact_equalities(X, y, H, params):
+    # Equality flavour of the same contact band (if you want some as hard constraints)
+    h_rows, A_blocks = [], []
+    for k, h in enumerate(H):
+        if y[k] < 0.5:       # only for confident joins
+            continue
+        i, j = h.i, h.j
+        for (p_i, n_i, q_j) in h.contact_samples:
+            val, Ai, Aj = contact_point2plane_residual(X[i], X[j], p_i, n_i, q_j)
+            h_rows.append(val)            # want == 0
+            A_blocks.append([Ai, Aj])
+    return stack(h_rows), sparse_block(A_blocks)
+
+def assemble_cycle_equalities(X, y, H, params):
+    # Build cycles from currently strong edges and enforce closure
+    cycles = find_short_cycles(H, y, max_len=4)
+    h_rows, A_blocks = [], []
+    for cyc in cycles:
+        # Compose relative transforms along the loop minus identity in Lie algebra
+        val, A_loop = cycle_closure_residual_and_jacobian(X, cyc)
+        h_rows.append(val)
+        A_blocks.append(A_loop)
+    return stack(h_rows), sparse_block(A_blocks)
+```
+
+```python
+# ===============================
+# Inequalities (no penetration) assembled globally
+# ===============================
+
+def assemble_inequalities(X, SDF, params):
+    # For all close pairs (i,j), sample points on both and require signed distances >= 0
+    g_vals, G_blocks = [], []
+    for (i, j) in close_pairs(X, threshold=3.0):     # broad-phase via AABB/sweep
+        Pi = sample_surface_points(shards[i])
+        Pj = sample_surface_points(shards[j])
+        # Push i’s points through Xi and query SDF of j in Xj frame
+        for p in Pi:
+            pij_w = X[i] @ p
+            d = sdf_query_world_to_body(SDF[j], X[j], pij_w)   # positive outside
+            grad = sdf_grad_world_to_body(SDF[j], X[j], pij_w) # ∂d/∂p (world)
+            Gi, Gj = sdf_jacobians_wrt_poses(p, X[i], X[j], grad)
+            g_vals.append(d)               # want d >= 0
+            G_blocks.append([Gi, Gj])
+        # Symmetric test (optional): j points against i
+    return stack(g_vals), sparse_block(G_blocks)
+```
+
+```python
+# ===============================
+# Switch update (global, coupled)
+# ===============================
+
+def update_switches(X, y, H, SDF, params, lam=1.0):
+    y_new = {}
+    # Compute a global utility per hypothesis: fit − collision − barrier slack − softness
+    for k, h in enumerate(H):
+        i, j, T_ij = h.i, h.j, h.T
+        fit = relative_pose_misfit(X[i], X[j], T_ij)
+        cont = contact_band_misfit(X[i], X[j], h.contact_samples)
+        coll = local_overlap_cost(X, i, j, SDF)
+        # Lower is better; convert to utility (higher is better)
+        U = h.local_score - fit - cont - 2.0 * coll
+        # Soft selection with sparsity: sigmoid + per-pair normalisation
+        y_new[k] = sigmoid(U / lam)
+    # Compete within each (i,j) pair so total weight ≤ 1
+    return renormalise_within_pairs(H, y_new)
+```
+
+```python
+# ===============================
+# Priorities and scheduling
+# ===============================
+
+def schedule_params(params, outer_iter):
+    # Gradually harden inequalities and tighten equalities
+    params["mu_barrier"] *= 0.5          # stronger barrier (harder separation)
+    params["rho_AL"] *= 1.5              # stronger AL on equalities
+    # Optionally raise contact weight as y stabilises
+    params["w_contact"] = min(50.0, params["w_contact"] * 1.2)
+    return params
+```
+
+### What this buys you, in practice
+
+I’m computing every violation together, once per iteration, then taking a single global step that best reduces all of them at once. Overlaps are treated as inequalities across all nearby pairs, not pairwise fixes, so if I push sherd 2 away from 3, the KKT system “knows” that will also change its distances to 1, 4 and 5 and will steer the whole set of poses accordingly. Contact equalities and cycle closure are in the same system, so tightening a join that helps one edge won’t break loop consistency without the solver seeing the trade-off. If you want an even clearer priority split, run hierarchical QPs: first solve a feasibility QP for separation (no overlaps) to numerical tolerance, then in the nullspace of those hard constraints minimise contact and cycle errors. The augmented-Lagrangian variant above is often enough in practice and simpler to code.
+
+### Notes I’d keep in mind when I implement this
+
+I’d put all pose increments on se(3) and use Open3D for Jacobians where possible. I’d compute SDFs on modest grids per sherd so signed-distance and gradients are cheap. The KKT solve wants a sparse solver; scikit-sparse or a wrapper to SuiteSparse works, but even SciPy’s sparse Cholesky will do for medium N. Cycle building should be conservative: only include short, high-weight loops early. Switches stabilise faster if you add a tiny L1 penalty on y to push most edges to zero; that’s easy to fold into `update_switches` by subtracting a small constant.
+
+If you want me to stub this into a Python package layout with the linearisation and KKT blocks wired to Open3D and SciPy, I can do that now.
