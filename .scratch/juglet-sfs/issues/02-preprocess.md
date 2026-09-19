@@ -76,6 +76,20 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   2-digit PCDs at any depth, and the leftover backup dir is removed.
   Resubmitted as 30761823; polled.
 
+- 2026-09-19: job 30761823 FAILED after 2 min in Step 1b rebuild:
+  `CMake Error: source directory "/workspace/original_nurbs_preprocessing"
+  does not exist` — the Nov-2025 CMakeCache pins the source dir to
+  `/workspace/...`, shadowed in-container like everything else
+  (CMakeLists.txt itself is clean). Step 1b now drops the cache and
+  re-runs `cmake ..` before `make` (idempotent). Same failure also
+  exposed the watcher gap (see below). Resubmitted as 30762110.
+- Watcher fix: background polls launched via WSL `bash` never completed
+  (WSL ssh has no cluster key; old script also lacked BatchMode so a
+  keyless ssh could hang on a password prompt instead of failing).
+  `scripts/slurm_poll.sh` now passes `-o BatchMode=yes` (fail fast, never
+  hang); polls launched with Git Bash so they inherit the working Windows
+  ssh. Verified with a 10 s-interval poll of finished job 30761823.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
