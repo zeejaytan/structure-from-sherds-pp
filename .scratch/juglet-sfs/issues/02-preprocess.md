@@ -46,6 +46,26 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   (`original_nurbs_preprocessing/`, diverged tuning vs tracked root
   copies), so a rebuild needs care. Resubmitted as 30711534; polled.
 
+- 2026-09-19: job 30711534 FAILED after 4 min — naming workaround held
+  (all 9 pieces segmented, correct `Juglet_Piece_N` names), but Step 2
+  died on piece 1: `[pcl::PCDWriter::writeASCII] Input point cloud has
+  no data!`. Diagnosed, all ruler-side (measurement #2, not method):
+  (a) quarantine dirs sat INSIDE the recursive scans — `backup_02digit/`
+  under `Dataset/Point/Juglet/` got re-processed (18 PCDs, Surfaces: 20
+  with 2 stale `Juglet_Piece_0_*`); `Temp/stale_obj_backup/` would likewise
+  be re-scanned. Both moved under `${OUTPUT_BASE}/_quarantine/` (outside
+  every scanned tree, untracked, kept).
+  (b) boundary radius: `sqrt(1/N)` assumes points over 1 m^2, pinning r at
+  the 15 mm clamp; on the 65 mm / 1.8 mm-wall Juglet that swallows every
+  fracture edge (Pot_A is ~120 mm with 843k-point pieces, where 15 mm
+  resolves). Mesh sample verified clean (11028 pts, no NaN/inf, bbox
+  33x37x33 mm — the -494 Z is scan-table offset, scale is true mm).
+  Fix as versioned `SfSpp_preprocessing@patches/juglet_boundary_radius.patch`
+  (bbox sheet-area spacing, same 6x/clamp intent; also lowers Pot_A
+  re-runs 15 mm -> ~6 mm, noted): job applies it `--forward` to the
+  nested copy and rebuilds `EdgeLineExtractionHeadless` in-container.
+  Resubmitted as 30752971; polled.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
