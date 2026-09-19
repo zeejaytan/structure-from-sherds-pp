@@ -66,6 +66,16 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   nested copy and rebuilds `EdgeLineExtractionHeadless` in-container.
   Resubmitted as 30752971; polled.
 
+- 2026-09-19: job 30752971 FAILED after 5 min in the NEW Step 1b, on two
+  script bugs (patch itself applied cleanly, no .rej — verified in the
+  nested copy): (a) Step 1b `cd`s into the nested source dir, so the
+  relative container path no longer resolved (`pcl_191_nurbs.sif: no such
+  file`) — image path is now absolute; (b) the 2-digit-PCD quarantine
+  used a top-level glob, but 30711534's `backup_02digit/` subdir sat
+  inside the recursive scan (Surfaces: 20 again) — now a `find` catches
+  2-digit PCDs at any depth, and the leftover backup dir is removed.
+  Resubmitted as 30761823; polled.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
