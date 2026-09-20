@@ -169,6 +169,15 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   Standalone Step-3 rerun 30826030 (bundle already has 18/18 surfaces /
   breaklines); main job Step 3 updated identically.
 
+- 2026-09-20: axes rerun FAILED LOUD (the new exit check working):
+  `extract_single_axis` takes ONE arg (piece number) and hardcodes
+  Pot_A paths -- my 4-arg call never had a chance (and the same call in
+  the old Pot_A script must always have failed silently too; Pot_A axes
+  came from a different script). The PotSAC core itself is sound and
+  arity-flexible (`run_potsac` splits one input). New versioned
+  `extract_juglet_axis.m` = same core, paths from caller; driver
+  updated. Rerun as 30826090, ps1-watched.
+
 - 2026-09-20: job 30824422 was decisive negatively: NO "Segmentation
   thresholds" print in ANY log ever => the env override NEVER compiled
   in (patch applied hunk 1 then silently derailed -- likely a prompt
