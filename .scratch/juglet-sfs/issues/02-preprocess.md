@@ -189,6 +189,14 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   spaces, all three single-hunk files verified sequentially with all
   markers present. Probe resubmitted as 30825062, ps1-watched.
 
+- 2026-09-20: job 30825575 COMPLETED with Surfaces 18/18, Breaklines
+  18/18, Mesh 9, GT 10 — but Axes 0/9. Step 3 (MATLAB PotSAC) printed
+  nothing past its startup line: matlab started (java.log line) then
+  silent, exit unchecked. extract_single_axis.m exists; same
+  module+matlab pattern worked for Pot_A. Hello-probe 30825750 (which
+  matlab, module exit, disp test) submitted to discriminate
+  environment vs code failure before rerunning axes.
+
 - 2026-09-20: probe 30825062 verdicts: V2 P3-alone @defaults = 2
   clusters; V3 P2+P3 = P3 fine => P2 innocent; V5/V6 P9 @verified
   25/60 = 1x2094 over-merge. Round 2 (30825336): V7 {P1,P3} = P3 fails
