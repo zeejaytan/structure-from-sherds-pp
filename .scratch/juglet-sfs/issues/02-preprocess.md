@@ -160,6 +160,19 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   it (gate will fail on piece 9 as before; the diagnostic line is the
   product), ps1-watched.
 
+- 2026-09-20: job 30824422 was decisive negatively: NO "Segmentation
+  thresholds" print in ANY log ever => the env override NEVER compiled
+  in (patch applied hunk 1 then silently derailed -- likely a prompt
+  eating patch text as answers). All "25/45/60" conclusions are VOID:
+  piece 3's Step-1c "successes" ran at default 4.5 deg, i.e. piece 3
+  succeeds ISOLATED at defaults but fails IN-SEQUENCE (deterministic
+  1x492, 6/6 runs) => in-process cross-piece pollution, mechanism open
+  (tmp files are write-only: ruled out). Fixes: Step 1b now uses
+  --batch + marker verification (fail loud); empty-env guard added.
+  Bisect probe 30824714 (verified rebuild, then P3-alone / P2+P3 /
+  P9@25-verified / P9@60-verified) discriminates pollution vs
+  threshold. Threshold claims struck until re-earned.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
