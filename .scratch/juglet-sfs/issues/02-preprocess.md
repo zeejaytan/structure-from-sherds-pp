@@ -182,6 +182,13 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   (P3-alone / P2+P3 / P9@25-verified / P9@60-verified) resubmitted,
   ps1-watched.
 
+- 2026-09-20: probe 30824994 failed LOUD at the new marker check (as
+  designed): only the filter hunk applied. Deeper cause found: the diag
+  hunk was written with TABS but the region-growing block uses SPACES
+  (I misread an earlier dump; the bytes said spaces). Reverted to
+  spaces, all three single-hunk files verified sequentially with all
+  markers present. Probe resubmitted as 30825062, ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
