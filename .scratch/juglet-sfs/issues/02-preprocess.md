@@ -111,6 +111,22 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   (v1 is in the tree). Resubmitted full job as 30822389, watched with
   slurm_poll.ps1 (which doubles as the attempt-2 verification).
 
+- 2026-09-20: job 30822389 (v2 binary) got pieces 1-2 through Step 2
+  (12 breakline files) then died on piece 3 — but NOT the boundary:
+  piece 3's segmentation made 1 cluster (492/3490), skipped all writes,
+  and Step 1 silently copied piece 2's stale tmp files as piece 3's
+  surfaces (identical sizes; unclustered.ply missing). Rendered piece 3
+  vs 5 (flat, inconclusive), then topology: all meshes closed solids
+  (chi=2), so no tube story. Normals coherent, curvature low, neighbour
+  angles equal to working piece 9 — growing fragments past the 4.5 deg
+  gate on tight bends; survival is marginal luck. Fix: two-pass
+  segmentation — new `patches/juglet_mesh_piece_params.patch` makes the
+  dead single-file argv mode actually filter + adds SFS_SMOOTHNESS_DEG /
+  SFS_CURVATURE_THRESH env overrides (defaults unchanged); Step 1c
+  re-runs ONLY piece 3 at 25 deg (rim flips ~180 deg, safe); new Step-1
+  gate fails loud on any missing/stale piece output (unclustered.ply +
+  cmp check). Resubmitted as 30822854, ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
