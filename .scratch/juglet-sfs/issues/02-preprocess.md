@@ -148,6 +148,18 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   should grow while rim flips (~180 deg) still stop it. Step 1c now
   3:25, 9:60. Resubmitted as 30823739, ps1-watched.
 
+- 2026-09-20: job 30823739 — piece 9 still 1 cluster (92 pts) at 60 deg.
+  Smoothness escalation exhausted (4.5/25/45/60, identical symptom), so a
+  new cause is needed. Eliminated: NaN, duplicates, density, topology,
+  orientation patches (1 agree-component), curvature, stale files. Local
+  replication of region growing on the mesh gives ONE giant region at
+  25 deg+ — contradicting the binary's dust — so the binary's growing
+  inputs must differ from the model. Added a GROW-DIAG print (cloud /
+  normals sizes, true mean neighbour angle and max curvature of the exact
+  growing inputs) to the mesh patch. Resubmitted as 30824422 to capture
+  it (gate will fail on piece 9 as before; the diagnostic line is the
+  product), ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
