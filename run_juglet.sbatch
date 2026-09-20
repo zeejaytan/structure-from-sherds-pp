@@ -13,8 +13,9 @@
 # Dataset block: JUGLET in class/data_path.h (SHARD_NUMBER 9, absolute
 # bundle paths, REAL GT). Binary: Hierarchy-Clear (NOT -headless; the
 # Tray script's suffix is stale).
-# Container sfspreproc.sif takes :/workspace binds (verified 2026-09-20;
-# unlike the preprocessing image it has no shadowing GPFS mount there).
+# Container sfspreproc.sif does NOT take :/workspace binds -- /workspace is a
+# site GPFS mount inside it, shadowing any bind (verified 2026-09-20, same
+# failure mode as the preprocessing image). Bind /data:/data instead.
 # =====================================================================
 
 echo "========================================================================"
@@ -71,13 +72,18 @@ done
 echo ""
 
 echo "=== Building SFS++ (JUGLET) in container ==="
+# NOTE (verified 2026-09-20): do NOT bind anything to /workspace -- inside
+# this image it is already a site GPFS mount ("project"), so such binds are
+# shadowed (same failure as the preprocessing image, bit 30694326). Bind
+# /data:/data and address the checkout by its real path instead. The junk
+# in the site /workspace (stale Jul-2025 CMakeCache etc.) is left alone.
 APPTAINER="/apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer"
 SIF="/data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif"
 ROOT="/data/gpfs/projects/punim2657/sfs_main/sfspreproc-docker"
 time ${APPTAINER} exec \
-    --bind "${ROOT}:/workspace" \
+    --bind "/data:/data" \
     "${SIF}" \
-    bash -c "cd /workspace && rm -rf build && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j8 Hierarchy-Clear"
+    bash -c "cd ${ROOT} && rm -rf build && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j8 Hierarchy-Clear"
 [ $? -ne 0 ] && { echo "ERROR: build failed"; exit 1; }
 ls -lh build/Hierarchy-Clear || { echo "ERROR: binary missing"; exit 1; }
 echo ""
@@ -90,9 +96,9 @@ echo "Starting at: $(date)"
 echo ""
 
 time ${APPTAINER} exec \
-    --bind "${ROOT}:/workspace" \
+    --bind "/data:/data" \
     "${SIF}" \
-    bash -c "cd /workspace/build && ./Hierarchy-Clear"
+    bash -c "cd ${ROOT}/build && ./Hierarchy-Clear"
 RUN_STATUS=$?
 echo ""
 echo "Execution exit code: ${RUN_STATUS}"
