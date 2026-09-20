@@ -189,6 +189,16 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   spaces, all three single-hunk files verified sequentially with all
   markers present. Probe resubmitted as 30825062, ps1-watched.
 
+- 2026-09-20: probe 30825062 verdicts: V2 P3-alone @defaults = 2
+  clusters; V3 P2+P3 = P3 fine => P2 innocent; V5/V6 P9 @verified
+  25/60 = 1x2094 over-merge. Round 2 (30825336): V7 {P1,P3} = P3 fails
+  1x492 => P1 CONFIRMED polluter (only remaining difference; mechanism
+  open); V8 P9@12 = 2 clusters (1657+265) SUCCESS; V9 P9@18 = 1x2081
+  over-merge. Final config: all 9 pieces isolated (fresh process each,
+  quarantine + argv + tmp wipe), thresholds 4.5 except P9:12.
+  Restructured main job (Step 1 isolated loop replaces full scan + 1c;
+  1b rebuilds first). Resubmitted as 30825575, ps1-watched.
+
 - 2026-09-20: probe 30825062 COMPLETED, decisive (markers verified, env
   proven by thresholds prints): V2 P3-alone @defaults = 2 clusters
   (350+143); V3 P2+P3 = P3 still 2 clusters => P2 does NOT pollute P3;
