@@ -10,6 +10,21 @@ witnessed verdict both a conservator and S1 can use: connections found
 
 **Status:** ready-for-agent
 
+## Comments
+
+- 2026-09-20: research before acting (all verified in code, not assumed):
+  format checks (axes/breaklines/surfaces/GT all parse; missing
+  Surface_F + Breakline_1 inert: graceful loads, guarded use,
+  empty-safe tree/correspondence); no behavior branches on dataset
+  defines; container :/workspace bind verified for sfspreproc.sif;
+  binary is Hierarchy-Clear (Tray script's -headless suffix stale).
+  Deviations from the ticket text: REAL GT paths (derived ticket 01,
+  after that line was written -- scored assembly serves S1);
+  run_juglet.sbatch at repo root (matches 10 existing run scripts).
+  JUGLET block committed (absolute bundle paths, SHARD_NUMBER 9);
+  active define POT_A -> JUGLET. Submitted as 30829350 (6 h:
+  fresh build + 9-piece run); ps1-watched.
+
 **Needs-eye:** viewer bundle TBD at staging time (stage under
 `visual-qa/viewer/pairs/juglet_sfs.json`)
 
