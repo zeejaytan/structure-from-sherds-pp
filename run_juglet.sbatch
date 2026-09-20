@@ -48,12 +48,16 @@ BUNDLE="/data/gpfs/projects/punim2657/sfs_preprocessing/Juglet_Dataset_20260916/
 echo "Bundle: ${BUNDLE}"
 for kind in "Surfaces/*_Surface_0.xyz:9" "Surfaces/*_Surface_1.xyz:9" \
             "Breaklines/*_Breakline_0.pcd:9" "Axes/*_Axis.xyz:9" \
-            "Mesh/*.obj:9" "Ground Truth/*_T.txt:9"; do
+            "Mesh/*.obj:9"; do
     pat="${kind%%:*}"; exp="${kind##*:}"
     got=$(ls ${BUNDLE}/${pat} 2>/dev/null | wc -l)
     echo "  ${pat}: ${got} (expected ${exp})"
     [ "${got}" -ne "${exp}" ] && { echo "ERROR: bundle incomplete"; exit 1; }
 done
+# Ground Truth lives under a dir with a space: count with find, not ls+glob.
+got=$(find "${BUNDLE}/Ground Truth" -maxdepth 1 -name "*_T.txt" 2>/dev/null | wc -l)
+echo "  Ground Truth/*_T.txt: ${got} (expected 9)"
+[ "${got}" -ne 9 ] && { echo "ERROR: bundle incomplete"; exit 1; }
 [ -f "${BUNDLE}/Ground Truth/Juglet_simple_graph.txt" ] || { echo "ERROR: GT graph missing"; exit 1; }
 echo "  GT graph: present"
 echo ""
