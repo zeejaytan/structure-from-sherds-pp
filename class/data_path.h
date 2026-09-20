@@ -7,7 +7,8 @@
 #define _DATA_PATH_H_
 
 // Dataset selection
-#define POT_A
+// #define POT_A
+#define JUGLET
 // Use TRAY_000 to run full 40-piece Tray dataset
 // #define TRAY_000
 //#define POT_B
@@ -1478,7 +1479,122 @@ bool shard_on_off[SHARD_NUMBER] = {
 };
 #endif
 
-//############################################ ICCV Pottery B ############################################//
+//############################################ Juglet (65 mm Palestinian, 9 sherds) ############################################//
+// End-to-end test object (see .scratch/juglet-sfs/): hand-built meshes at vessel
+// scale, preprocessed by SfSpp_preprocessing into Juglet_Dataset_20260916.
+// Absolute bundle paths: do NOT touch the shared `path` global (NURBS pot).
+// Naming is single-digit (Juglet_Piece_1..9): the Nov-2025 binaries truncate
+// stems to 14 chars. GT is REAL (derived ticket 01) so the accuracy section
+// scores; Surface_F files were never produced -- verified inert (graceful
+// load, guarded use, empty-safe tree/correspondence). Breakline_1 likewise
+// unused anywhere (only _0 is ever read).
+#ifdef JUGLET
+#define SHARD_NUMBER 9
+#define NUM_MIXED_SHERD 1
+
+#define JUGLET_BASE "/data/gpfs/projects/punim2657/sfs_preprocessing/Juglet_Dataset_20260916/SfS_pp/"
+
+string file_path[SHARD_NUMBER] = {
+	JUGLET_BASE "Breaklines/Juglet_Piece_1_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_2_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_3_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_4_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_5_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_6_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_7_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_8_Breakline_0.pcd",
+	JUGLET_BASE "Breaklines/Juglet_Piece_9_Breakline_0.pcd"
+};
+
+string obj_path[SHARD_NUMBER] = {
+	JUGLET_BASE "Mesh/Juglet_Piece_1_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_2_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_3_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_4_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_5_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_6_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_7_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_8_Mesh.obj",
+	JUGLET_BASE "Mesh/Juglet_Piece_9_Mesh.obj"
+};
+
+string axis_path[SHARD_NUMBER] = {
+	JUGLET_BASE "Axes/Juglet_Piece_1_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_2_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_3_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_4_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_5_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_6_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_7_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_8_Axis.xyz",
+	JUGLET_BASE "Axes/Juglet_Piece_9_Axis.xyz"
+};
+
+string surface_in[SHARD_NUMBER] = {
+	JUGLET_BASE "Surfaces/Juglet_Piece_1_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_2_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_3_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_4_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_5_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_6_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_7_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_8_Surface_0.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_9_Surface_0.xyz"
+};
+
+string surface_out[SHARD_NUMBER] = {
+	JUGLET_BASE "Surfaces/Juglet_Piece_1_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_2_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_3_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_4_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_5_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_6_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_7_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_8_Surface_1.xyz",
+	JUGLET_BASE "Surfaces/Juglet_Piece_9_Surface_1.xyz"
+};
+
+string surface_fr[SHARD_NUMBER] = {
+	JUGLET_BASE "Surfaces/Juglet_Piece_1_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_2_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_3_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_4_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_5_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_6_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_7_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_8_Surface_F.pcd",
+	JUGLET_BASE "Surfaces/Juglet_Piece_9_Surface_F.pcd"
+};
+
+string gt_T_path[SHARD_NUMBER] = {
+	JUGLET_BASE "Ground Truth/Juglet_Piece_1_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_2_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_3_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_4_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_5_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_6_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_7_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_8_T.txt",
+	JUGLET_BASE "Ground Truth/Juglet_Piece_9_T.txt"
+};
+
+string gt_graph_path[1] = {
+	JUGLET_BASE "Ground Truth/Juglet_simple_graph.txt"
+};
+
+
+bool shard_on_off[SHARD_NUMBER] = {
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,	// 5
+	true,	// 6
+	true,	// 7
+	true,	// 8
+	true,	// 9
+};
+#endif
 #ifdef POT_B
 #define SHARD_NUMBER 9
 #define NUM_MIXED_SHERD 1
