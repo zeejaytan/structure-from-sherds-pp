@@ -83,12 +83,33 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   (CMakeLists.txt itself is clean). Step 1b now drops the cache and
   re-runs `cmake ..` before `make` (idempotent). Same failure also
   exposed the watcher gap (see below). Resubmitted as 30762110.
-- Watcher fix: background polls launched via WSL `bash` never completed
-  (WSL ssh has no cluster key; old script also lacked BatchMode so a
-  keyless ssh could hang on a password prompt instead of failing).
-  `scripts/slurm_poll.sh` now passes `-o BatchMode=yes` (fail fast, never
-  hang); polls launched with Git Bash so they inherit the working Windows
-  ssh. Verified with a 10 s-interval poll of finished job 30761823.
+- Watcher fix (attempt 1, FAILED): background polls launched via WSL `bash`
+  never completed (WSL ssh has no cluster key; old script also lacked
+  BatchMode so a keyless ssh could hang on a password prompt instead of
+  failing). `scripts/slurm_poll.sh` now passes `-o BatchMode=yes`; polls
+  launched with Git Bash — but Git Bash has a mangled HOME and its ssh
+  is denied too (proven: 170 consecutive ssh failures over 30 min, then
+  the shell was reaped). The "verified" claim below was premature.
+  Attempt 2: new `scripts/slurm_poll.ps1` runs in the Windows
+  ssh-agent context where `ssh spartan` provably works.
+
+- 2026-09-19/20: jobs 30762110 (full, rebuilt v1 binary) + 30762701
+  (piece-2 probe) FAILED identically — even at the corrected 2.0-2.8 mm
+  radius the boundary cloud is empty on pieces 1 AND 2: systemic, not
+  piece-specific. Root cause, one level deeper: the radius was in the
+  wrong UNITS, not just the wrong size. The cloud is millimetres, so PCL
+  reads 0.015 as 0.015 mm — below the ~0.3 mm point spacing, no neighbour
+  is ever found. (v1 "fixed" 15 mm -> 2 mm but kept the metre convention:
+  0.002, equally dead.) Same lie in the outlier filter (0.002-0.020),
+  which would have emptied the boundary one step later with the identical
+  message. Evidence the Nov-2025 adaptive code never succeeded on mm
+  data: sane Pot_A breaklines predate it (introduced wholesale in
+  nested@3737977). Patch v2 (`patches/juglet_boundary_radius.patch`,
+  dry-run verified): mm-unit radii from bbox sheet area + shared
+  `g_boundary_radius_mm` so the outlier stage matches the boundary
+  stage; Step 1b resets the nested copy to pristine before applying
+  (v1 is in the tree). Resubmitted full job as 30822389, watched with
+  slurm_poll.ps1 (which doubles as the attempt-2 verification).
 
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
