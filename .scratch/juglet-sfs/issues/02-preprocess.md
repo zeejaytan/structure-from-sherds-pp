@@ -127,6 +127,13 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   gate fails loud on any missing/stale piece output (unclustered.ply +
   cmp check). Resubmitted as 30822854, ps1-watched.
 
+- 2026-09-20: job 30822854 — Step 1c WORKED (piece 3: 2 clusters at 25
+  deg; single-file mode + env override proven), but the new gate caught
+  a second degenerate piece: piece 9 also makes 1 cluster at defaults
+  (missed earlier — only sampling stats were checked, never its
+  clusters). Step 1c now loops pieces 3 and 9 with everything else
+  quarantined. Resubmitted as 30822989, ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
