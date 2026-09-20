@@ -134,6 +134,12 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   clusters). Step 1c now loops pieces 3 and 9 with everything else
   quarantined. Resubmitted as 30822989, ps1-watched.
 
+- 2026-09-20: job 30822989 — piece 3 good at 25 deg, but piece 9 still
+  1 cluster at 25 deg. Angle CDF for piece 9: frac>25 = 0.33 (still
+  fragments), frac>45 = 0.08 (should grow); rim flips ~180 deg keep 45
+  deg safe. Step 1c takes per-piece thresholds (3:25, 9:45).
+  Resubmitted as 30823406, ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
