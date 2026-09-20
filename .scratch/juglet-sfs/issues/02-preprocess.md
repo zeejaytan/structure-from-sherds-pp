@@ -189,6 +189,17 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   spaces, all three single-hunk files verified sequentially with all
   markers present. Probe resubmitted as 30825062, ps1-watched.
 
+- 2026-09-20: probe 30825062 COMPLETED, decisive (markers verified, env
+  proven by thresholds prints): V2 P3-alone @defaults = 2 clusters
+  (350+143); V3 P2+P3 = P3 still 2 clusters => P2 does NOT pollute P3;
+  V5/V6 P9-alone @VERIFIED 25/60 deg = 1x2094 whole-cloud merge
+  (over-merge, not dust!). So P3 fails iff P1 ran before it in-process
+  (only remaining difference); P9 dusts at 4.5 but merges whole at 25+,
+  sweet spot between. Round 2 as 30825336: V7 {P1,P3} pollution
+  confirm, V8/V9 P9 at 12/18 deg. Design consequence: run all 9 pieces
+  as isolated single-piece invocations (fresh process, per-piece
+  thresholds), killing cross-piece state by construction.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
