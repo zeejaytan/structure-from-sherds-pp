@@ -160,6 +160,15 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   it (gate will fail on piece 9 as before; the diagnostic line is the
   product), ps1-watched.
 
+- 2026-09-20: Step 3 root-caused by bisection: single-line batch works,
+  two-line batch runs ONLY the first line (LINE-ONE printed, LINE-TWO
+  skipped, exit 0) -- so the multi-line Step-3 call never executed past
+  `disp`/nothing, and the missing exit check hid it (0 axes, job
+  "COMPLETED"). Fix: axes live in versioned `run_juglet_axes.m`, called
+  single-line, matlab exit checked, script errors if any axis missing.
+  Standalone Step-3 rerun 30826030 (bundle already has 18/18 surfaces /
+  breaklines); main job Step 3 updated identically.
+
 - 2026-09-20: job 30824422 was decisive negatively: NO "Segmentation
   thresholds" print in ANY log ever => the env override NEVER compiled
   in (patch applied hunk 1 then silently derailed -- likely a prompt
