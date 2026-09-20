@@ -46,7 +46,7 @@ echo ""
 echo "=== Verifying Juglet Bundle ==="
 BUNDLE="/data/gpfs/projects/punim2657/sfs_preprocessing/Juglet_Dataset_20260916/SfS_pp"
 echo "Bundle: ${BUNDLE}"
-for kind in "Surfaces/*_Surface_0.xyz:18" "Surfaces/*_Surface_1.xyz:18" \
+for kind in "Surfaces/*_Surface_0.xyz:9" "Surfaces/*_Surface_1.xyz:9" \
             "Breaklines/*_Breakline_0.pcd:9" "Axes/*_Axis.xyz:9" \
             "Mesh/*.obj:9" "Ground Truth/*_T.txt:9"; do
     pat="${kind%%:*}"; exp="${kind##*:}"
