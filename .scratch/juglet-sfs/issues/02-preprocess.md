@@ -173,6 +173,15 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   P9@25-verified / P9@60-verified) discriminates pollution vs
   threshold. Threshold claims struck until re-earned.
 
+- 2026-09-20: root-caused the silent drop: the mesh patch's hunks were in
+  DESCENDING line order (1997, 2041, then 1648 appended last) and GNU
+  patch silently ignores everything past the disorder ("trailing
+  garbage", exit 0). (Prompt-eating was the wrong theory; --batch never
+  mattered.) Fix: one hunk per patch file — all four apply sequentially
+  with markers present, verified locally. Bisect probe 30824994
+  (P3-alone / P2+P3 / P9@25-verified / P9@60-verified) resubmitted,
+  ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
