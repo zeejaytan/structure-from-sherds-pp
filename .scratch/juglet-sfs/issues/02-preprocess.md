@@ -8,7 +8,19 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
+
+## Result (2026-09-20)
+
+- Bundle `sfs_preprocessing/Juglet_Dataset_20260916/SfS_pp/`: 18 Surfaces,
+  18 Breaklines, 9 Axes, 9 Mesh, 10 GT files (9 T + graph) — job 30825575
+  (surfaces/breaklines) + 30826090 (axes, 9/9 PotSAC ok).
+- Axes coherent (closest-to-origin parametrization, 1 candidate each,
+  2 for piece 7); per-piece directions differ as scan poses differ.
+- Fixes banked in `SfSpp_preprocessing@patches/`: container bind,
+  14-char names, mm-unit radii, per-piece reruns, script-file axes.
+  Root causes + job log in Comments below; fine detail stays there.
+- Hands to ticket 03: bundle complete, assembly unblocked.
 
 ## Comments
 

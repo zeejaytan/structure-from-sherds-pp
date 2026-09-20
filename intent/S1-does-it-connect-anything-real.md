@@ -1,6 +1,7 @@
 # S1 — After the unit fixes, does it find any real joins?
 
-**Status:** open — the zero result predates the fixes · **Blocked by:** none
+**Status:** open — the zero result predates the fixes. **Two arms: the Juglet (running,
+input built) and Tray-000 (not re-run).** · **Blocked by:** none
 
 ## Why it matters
 
@@ -18,8 +19,56 @@ re-run since the ruler was fixed. Leaving it in the record as a capability findi
 be the same error as the one already logged in `docs/lessons.md`: fixing the ruler,
 re-reading the same run, and calling it proof.
 
+## What is in hand
+
+**A valid reference answer for the Juglet exists** (`.scratch/juglet-sfs/` ticket 01,
+resolved 2026-09-16). Nine sherd meshes in millimetres at vessel scale — 41 × 37 × 65 mm,
+wall about 1.8 mm — with ground-truth transforms in SfS++'s own 4-line format and an
+18-mate contact graph cross-checked against TORA's pair list and found identical. One global
+scale fits all nine pieces with **0.0000% spread** and residuals around 1e-14 mm, and the
+render shows the pieces closing into the vessel.
+
+**That settles nothing about capability, and is not meant to.** It removes the excuse: the
+input and the answer key are no longer in question, so whatever the assembly does next is
+about the method. Tickets 02 (preprocess) and 03 (assemble) are what produce a result.
+
+**2026-09-20: ticket 02 is done.** The preprocessing bundle exists on Spartan at
+`sfs_preprocessing/Juglet_Dataset_20260916/SfS_pp/`: 18 surfaces, 18 breaklines,
+9 axes (PotSAC found candidates on all 9 sherds), 9 meshes, ground truth. Along the
+way three Pot_A-era assumptions broke and were fixed with the Nov-2025 programs
+otherwise untouched (container mount, 14-char filename trim, millimetre search
+radii, per-sherd splitting strictness for sherds 3/9, script-file axis call).
+Ticket 03 (assembly + witnessed render) is unblocked; nothing here scores the
+method yet.
+
+**The arm that is running is the Juglet, not Tray-000.** That matters for reading the
+outcome — see the gate below.
+
+## The corpus this method was built for
+
+Conservator, 2026-09-18: **about 99% of the Rabati material is axially symmetric** — round in
+section, thrown or otherwise symmetric about a vertical axis.
+
+That is the most consequential fact about SfS++ in this folder, and it cuts against how the
+method has been treated here. SfS++ assumes axial symmetry and exploits it; that assumption
+has been written up as a *limitation* confining it to the role of comparison partner. On a
+corpus that is 99% axially symmetric it is not a limitation — it is a match. On the stated
+character of the target material, SfS++ is the method whose assumptions fit best, better than
+either diffusion system's.
+
+**The Juglet is the exception, not the sample.** Handmade and handled, it is the 1%. A Juglet
+outcome — success or failure — therefore says less about Rabati than a result on an ordinary
+round-sectioned body sherd would. That is not an argument against running it: it is the only
+object here with a trustworthy answer key, which is why it goes first. It is an argument
+against letting the Juglet stand in for the corpus when the finding is written up.
+
 ## Done when
 
+- [x] **A reference answer good enough to score against, for at least one real object** —
+      the Juglet, 2026-09-16, residuals ~0.0000 mm, render witnessed. Without this the
+      re-run would have had nothing to be right or wrong against
+- [ ] **The Juglet run end to end** (`.scratch/juglet-sfs/` 02 then 03), connections
+      reported and at least one proposed join rendered
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
       now in the same units as the point cloud — verified by printing both, not assumed
@@ -31,11 +80,26 @@ re-reading the same run, and calling it proof.
 
 ## Gate
 
-If it still finds nothing with correct units and complete inputs, **that** is a capability
-finding and can be reported as one. Until then it is an unmeasured system.
+**On Tray-000 or other axially symmetric material:** if it still finds nothing with correct
+units and complete inputs, **that** is a capability finding and can be reported as one.
+Until then it is an unmeasured system.
+
+**On the Juglet, the same outcome does not carry that reading.** The Juglet is handmade and
+handled — outside the axial-symmetry assumption SfS++ is built on (`.scratch/juglet-sfs/spec.md`).
+A failure there is **scope, not capability**, and must be reported as such. The Juglet arm
+can therefore prove the method works on hard real material, but it cannot prove the method
+does not work.
+
+**Only an axially symmetric arm can do that, and no object is currently assigned to it.**
+Tray-000 is parked (conservator, 2026-09-18 — see
+[U13](../../intent/U13-which-sherds-are-one-vessel.md)), which leaves the capability arm
+empty. That is a gap to fill, not a reason to stop: since ~99% of Rabati is axially symmetric,
+one ordinary vessel with a conservator-made answer would serve, and is far cheaper than
+establishing trust in a forty-piece tray.
 
 ## Source
 
 `ASSEMBLY_FAILURE_ROOT_CAUSE.md`, `ROOT_CAUSE_DIAGNOSIS.md` (2025-11-04),
 `BOUNDARY_RADIUS_FIX.md`, `PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05),
-`NURBS_FIX_RESULTS.md`, `STEP_BY_STEP_COMPARISON.md`.
+`NURBS_FIX_RESULTS.md`, `STEP_BY_STEP_COMPARISON.md`. Conservator, 2026-09-18: Rabati is
+~99% axially symmetric; Tray-000 set aside for now.
