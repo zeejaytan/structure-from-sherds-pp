@@ -140,6 +140,14 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
   deg safe. Step 1c takes per-piece thresholds (3:25, 9:45).
   Resubmitted as 30823406, ps1-watched.
 
+- 2026-09-20: job 30823406 — piece 3 good at 25 deg, but piece 9 still
+  1 cluster (92 pts) at 45 deg. Code read explains the 1-iteration exits:
+  an explicit `break` on `clusters.size() == 1` skips the built-in retry
+  loop (+2 deg/iter, cap 45) — only the 0-cluster case (piece 2) ever
+  retries. Piece 9 angle CDF: frac>45 = 0.08, frac>60 = 0.02, so 60 deg
+  should grow while rim flips (~180 deg) still stop it. Step 1c now
+  3:25, 9:60. Resubmitted as 30823739, ps1-watched.
+
 - [ ] Meshes on Spartan under `sfs_preprocessing/Dataset/Mesh/Juglet/`
 - [ ] OBJ→PCD (`ObjToPcd`), `MeshPreprocessingHeadless` → Surface_0/1 per piece
 - [ ] `EdgeLineExtractionHeadless` → Breakline_0/1 + Surface_F per piece
