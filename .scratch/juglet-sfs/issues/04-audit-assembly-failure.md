@@ -26,13 +26,23 @@ with a number attached)
 - Matcher: 12/18 true mates get zero feature matches (quantized
   cylindrical profiles in scattered frames; MINIMUM_NUMBER=1 already,
   base gate passes -- not threshold gates). Five true pairs reach ICP
-  with inliers (1-6: 84) yet none becomes a graph edge ("no more new
-  root" loop; exact sub-gate below merge-loop granularity: OPEN).
+  with inliers (1-6: 84) yet none becomes a graph edge. TRACE CLOSED
+  2026-09-21 (gates + thresholds from code): (i) RegistrationPruning
+  erases edges whose post-registration axis angle exceeds 0.436 rad =
+  25 deg (`feature_matching.cpp:2088`) -- with 51 deg-scattered input
+  axes, true mates routinely fail this; also erases score>10 and
+  overlap/intersection edges; (ii) RemoveEdgeUsingPCInlier erases on
+  overlap or CountPCInlier(7.0, 1.5) (`ranking_system.cpp:1442-1460`);
+  (iii) SortRoot excludes shards totaling 0 inliers from ever becoming
+  roots (`ranking_system.cpp:742`; measured: P2=0, P9=0) -- so sherds
+  2,9 can never join even though later ICP finds their inliers (2-6:
+  8, 7-9: 63). Residual micro-unknown (follow-up): which of the 5
+  inlier pairs dies at which sub-gate above (erasures print nothing).
 - Scorer fixed: restored the commented-out method-graph requirement;
   run 30895279 reports honest 0/9 sherds, 0/18 edges (was vacuous 100%).
   NOTE: future Pot_A/Tray re-scores will drop accordingly -- intended.
-- OPEN (follow-up, not this ticket): the exact line where inlier pairs
-  die between pruning and graph edges (LCS-kept list never printed).
+- OPEN (follow-up, not this ticket): per-pair sub-gate attribution via
+  instrumented prints; GT-alignment counterfactual as alternative proof.
 
 **Needs-eye:** viewer bundle TBD at staging time (any new geometry claim --
 e.g. a counterfactual assembly render -- is staged under

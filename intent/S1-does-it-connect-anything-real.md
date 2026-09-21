@@ -76,9 +76,12 @@ against letting the Juglet stand in for the corpus when the finding is written u
 - [x] **The Juglet audit end to end** (ticket 04, 2026-09-21): zero stable
       across 3 runs (membership jitters 7 vs 6 singletons -- nondeterminism
       noted); consistent-frame counterfactual still 0 joins (frames
-      insufficient; seat is matcher/merger); scorer restored to honest
-      0/9, 0/18. Residual open: exact sub-gate where inlier pairs die
-      (merge-loop granularity); S2 note stands.
+      insufficient; seat is matcher/merger); trace closed to named gates:
+      RegistrationPruning erases edges over 0.436 rad post-registration
+      axis angle, RemoveEdgeUsingPCInlier (overlap/CountPCInlier 7.0,1.5),
+      SortRoot excludes zero-inlier sherds from roots (P2, P9 out);
+      scorer restored to honest 0/9, 0/18. Residual: per-pair sub-gate
+      attribution (erasures print nothing) is follow-up work.
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
