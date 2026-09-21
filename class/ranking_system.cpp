@@ -1901,6 +1901,8 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 		}
 	}
 
+	cout << "*** PLAUSIBILITY *** " << (return_value ? "PASS" : ("FAIL: " + fail_reason))
+		<< " score=" << toprank_graph.graph_score_ << endl;
 	return return_value;
 }
 
