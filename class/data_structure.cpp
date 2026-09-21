@@ -1018,8 +1018,11 @@ tuple<int, int, int, int> CountResult(MatrixXd& GT_graph,
 		for (int j = 0; j < num_sherd; j++) {
 			if (GT_graph(i, j))
 				total++;
-			//if (!GT_graph(i, j) || !graph(i, j))
-			if (!GT_graph(i, j))
+			// Honest gate (Juglet ticket 04, 2026-09-21): an edge counts only
+			// if BOTH the answer key and the method propose it. The graph(i,j)
+			// half was commented out, so GT-initialized placements scored
+			// perfect without a single proposed join (run 30829588: 18/18).
+			if (!GT_graph(i, j) || !graph(i, j))
 				continue;
 			Matrix4d GT_T_a, GT_T_b, T_a, T_b, GT_T, T;
 			GT_trans[i].InvOut(GT_T_a);
