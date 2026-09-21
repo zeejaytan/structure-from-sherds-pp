@@ -12,7 +12,27 @@ with a number attached)
 **Blocked by:** 03 (resolved -- run outputs in
 `structure-from-sherds-pp/artifacts/juglet_run1/`, bundle + GT staged)
 
-**Status:** ready-for-agent
+**Status:** resolved
+
+## Verdict (2026-09-21, ticket 04 audit -- for S1)
+
+- Reproducibility: zero joins stable across 3 runs (baseline, frozen
+  rerun, counterfactual); singleton membership is NOT (7 vs 6 pieces,
+  different sets -- nondeterministic beam ties/ordering).
+- Counterfactual: consistent vessel-frame axes for all 9 sherds
+  (md5-verified swap in/out) still yields 0 joins. Frames contribute
+  (match patterns shift) but are INSUFFICIENT -- the seat is matcher
+  features + merge.
+- Matcher: 12/18 true mates get zero feature matches (quantized
+  cylindrical profiles in scattered frames; MINIMUM_NUMBER=1 already,
+  base gate passes -- not threshold gates). Five true pairs reach ICP
+  with inliers (1-6: 84) yet none becomes a graph edge ("no more new
+  root" loop; exact sub-gate below merge-loop granularity: OPEN).
+- Scorer fixed: restored the commented-out method-graph requirement;
+  run 30895279 reports honest 0/9 sherds, 0/18 edges (was vacuous 100%).
+  NOTE: future Pot_A/Tray re-scores will drop accordingly -- intended.
+- OPEN (follow-up, not this ticket): the exact line where inlier pairs
+  die between pruning and graph edges (LCS-kept list never printed).
 
 **Needs-eye:** viewer bundle TBD at staging time (any new geometry claim --
 e.g. a counterfactual assembly render -- is staged under

@@ -68,11 +68,17 @@ against letting the Juglet stand in for the corpus when the finding is written u
       the Juglet, 2026-09-16, residuals ~0.0000 mm, render witnessed. Without this the
       re-run would have had nothing to be right or wrong against
 - [x] **The Juglet run end to end** (`.scratch/juglet-sfs/` 02 then 03): 0/18
-      connections proposed (best state 7 singletons, score 0; sherds 2,9
+      connections proposed (best state singletons, score 0; sherds 2,9
       unplaced), strongest miss (sherds 1-6, 29 matches/84 inliers)
       rendered correct-vs-attempt and witnessed 2026-09-21 (eye and log
       agree: nothing joined). Null result, fully documented -- no proposed
       join exists to render, so the miss stands in for it.
+- [x] **The Juglet audit end to end** (ticket 04, 2026-09-21): zero stable
+      across 3 runs (membership jitters 7 vs 6 singletons -- nondeterminism
+      noted); consistent-frame counterfactual still 0 joins (frames
+      insufficient; seat is matcher/merger); scorer restored to honest
+      0/9, 0/18. Residual open: exact sub-gate where inlier pairs die
+      (merge-loop granularity); S2 note stands.
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
