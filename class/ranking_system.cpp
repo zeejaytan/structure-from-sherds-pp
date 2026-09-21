@@ -1,5 +1,6 @@
 #include "ranking_system.h"
 #include "connectivity_optimizer.h"
+#include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
 //############################## class RankingSubgraph ##############################//
 void RankingSubgraph::Copy(RankingSubgraph& input)
 {
@@ -1448,11 +1449,13 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
+				double pc_dist = 7.0, pc_norm = 1.5; // Juglet ticket 05: env-tunable
+				{ static bool gate_once2 = false; if (!gate_once2) { gate_once2 = true; const char* e = std::getenv("SFS_PC_DIST"); if (e && *e) pc_dist = std::stod(e); const char* e2 = std::getenv("SFS_PC_NORM"); if (e2 && *e2) pc_norm = std::stod(e2); std::cout << "[GATE] pc_dist=" << pc_dist << " pc_norm=" << pc_norm << std::endl; } }
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					graph[merge_index].node_,
 					shard,
-					7.0, 1.5);	//
+					pc_dist, pc_norm);	//
 
 				if (pc_out)
 					lcs_iter++;
@@ -1477,11 +1480,13 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
+				double pc_dist_b = 7.0, pc_norm_b = 1.5; // Juglet ticket 05: env-tunable
+				{ static bool gate_once3 = false; if (!gate_once3) { gate_once3 = true; const char* e = std::getenv("SFS_PC_DIST"); if (e && *e) pc_dist_b = std::stod(e); const char* e2 = std::getenv("SFS_PC_NORM"); if (e2 && *e2) pc_norm_b = std::stod(e2); std::cout << "[GATE] pc_dist=" << pc_dist_b << " pc_norm=" << pc_norm_b << std::endl; } }
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					shard,
 					c_node,
-					7.0, 1.5, false);
+					pc_dist_b, pc_norm_b, false);
 
 				if (pc_out)
 					lcs_iter++;

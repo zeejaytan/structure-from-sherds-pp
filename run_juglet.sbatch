@@ -97,6 +97,9 @@ echo ""
 
 time ${APPTAINER} exec \
     --bind "/data:/data" \
+    --env SFS_AXIS_ANGLE_MAX="${SFS_AXIS_ANGLE_MAX:-}" \
+    --env SFS_PC_DIST="${SFS_PC_DIST:-}" \
+    --env SFS_PC_NORM="${SFS_PC_NORM:-}" \
     "${SIF}" \
     bash -c "cd ${ROOT}/build && ./Hierarchy-Clear"
 RUN_STATUS=$?

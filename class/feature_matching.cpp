@@ -2084,8 +2084,10 @@ void RegistrationPruning(vector<Geom>& shard,
 	for (iter = LCS_out.begin(); iter != LCS_out.end(); ) {
 		bool s_x_base = shard[iter->shard_x_ - 1].edge_line_.is_seg_base_;
 		bool s_y_base = shard[iter->shard_y_ - 1].edge_line_.is_seg_base_;
-		
-		if (iter->axis_angle_ > 0.436) {
+	
+		double axis_angle_max = 0.436; // Juglet ticket 05: env-tunable gate
+		{ static bool gate_once = false; if (!gate_once) { gate_once = true; const char* e = getenv("SFS_AXIS_ANGLE_MAX"); if (e && *e) axis_angle_max = std::stod(e); std::cout << "[GATE] axis_angle_max=" << axis_angle_max << " rad" << std::endl; } }
+		if (iter->axis_angle_ > axis_angle_max) {
 			//if (s_x_base || s_y_base) 	// �̰� ���־����� �ʳ�??
 			{
 				iter = LCS_out.erase(iter);
