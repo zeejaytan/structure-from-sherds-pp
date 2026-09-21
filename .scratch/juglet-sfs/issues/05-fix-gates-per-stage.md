@@ -63,19 +63,13 @@ that only works here is a finding about scope, not a fix to ship.
   (prints sit inside per-edge loops; with no edges surviving to
   per-graph filtering there is nothing to print about -- itself a
   finding: per-graph LCS lists are empty).
-- Code-reading finds while E0 ran (all pinned version): per-graph
-  matching is a SECOND LCS variant (LCSGraphBuilding) differing by ONE
-  line -- matched_index exclusion; RegistrationPruning gates are
-  axis_angle 0.436 + score>10 + overlap/intersection; SortRoot excludes
-  zero-inlier shards from roots (measured P2=P9=0). E1 (axis 0.8,
-  30901668) running; E2 (1.2) follows sequentially (timestamped result
-  dirs would collide in parallel). (assembly
-  sources are tracked -- no patch files needed here): SFS_AXIS_ANGLE_MAX
-  (default 0.436), SFS_PC_DIST/NORM (7.0/1.5), each with a once-per-run
-  [GATE] print (verifiability rule); run scripts pass them through
-  (empty-safe). Slurm exports submit-env by default, so matrix runs set
-  vars inline at submit. E0 baseline (rebuild + defaults) as 30900057
-  to prove the rebuild changed nothing; then E1 axis 0.8, E2 axis 1.2
-  via the no-rebuild rerun script. Pot_A no-regression deferred to the
-  final config only (its dataset is unit-broken; check = identical
-  behavior, not improved).
+- Code reading (pinned version): per-graph matching is a SECOND LCS
+  variant (LCSGraphBuilding) differing by ONE line (matched_index
+  exclusion of already-matched points); RegistrationPruning gates are
+  axis_angle 0.436 + score>10 + overlap/intersection; RemoveEdgeUsing-
+  PCInlier gates overlap + CountPCInlier(7.0,1.5); SortRoot excludes
+  zero-inlier shards from roots (measured P2=P9=0).
+- 2026-09-21: E1 (axis gate 0.8) zero change: 0/18, 7 singletons. As
+  predicted by the empty-list reading -- the gate never fires because
+  per-graph match lists are empty before it. E2 (1.2) running as
+  30902120 to complete the sweep; expectation set accordingly.
