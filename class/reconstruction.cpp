@@ -2,6 +2,7 @@
 #include "../class/ranking_system.h"
 #include "ground_truth_debug.h"
 #include "robust_icp.h"
+#include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
 
 //############################## other function ##############################//
 bool isConverge(const Matrix4d& T,
@@ -1812,6 +1813,7 @@ void IcpIncGraphAxis(
 	double w_d(2.0), w_n(5.0), w_line(3.0);  // FIXED: Increased constraint weights
 	double w_r(1.0), w_h(1.0);
 	double w_a(1.0);  // FIXED: Increased axis weight from 0.1 to 1.0
+	{ static bool gate_once4 = false; if (!gate_once4) { gate_once4 = true; const char* e = std::getenv("SFS_AXIS_WEIGHT"); if (e && *e) w_a = std::stod(e); std::cout << "[GATE] axis_weight=" << w_a << std::endl; } }
 	bool cor_onetoone = true, point_to_line = true;
 	int max_iteration = 200, ceres_iteration = 200;  // FIXED: More iterations
 
