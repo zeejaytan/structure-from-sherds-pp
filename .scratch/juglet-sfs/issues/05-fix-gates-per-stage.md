@@ -54,7 +54,22 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
-- 2026-09-21 (executing): env-tunable gates committed DIRECTLY (assembly
+- 2026-09-21 (ticket 05 executing): env gates committed directly in
+  tracked code (no patch files needed here) + [GATE] once-per-run prints
+  (verifiability rule); run scripts pass SFS_* through (empty-safe).
+  E0 baseline (rebuild + defaults, 30900057): same zero (4 singletons
+  this time -- membership jitters again), honest 0/9 + 0/18 confirmed
+  working. NOTE: no [GATE] prints in E0 log is EXPECTED, not stale code
+  (prints sit inside per-edge loops; with no edges surviving to
+  per-graph filtering there is nothing to print about -- itself a
+  finding: per-graph LCS lists are empty).
+- Code-reading finds while E0 ran (all pinned version): per-graph
+  matching is a SECOND LCS variant (LCSGraphBuilding) differing by ONE
+  line -- matched_index exclusion; RegistrationPruning gates are
+  axis_angle 0.436 + score>10 + overlap/intersection; SortRoot excludes
+  zero-inlier shards from roots (measured P2=P9=0). E1 (axis 0.8,
+  30901668) running; E2 (1.2) follows sequentially (timestamped result
+  dirs would collide in parallel). (assembly
   sources are tracked -- no patch files needed here): SFS_AXIS_ANGLE_MAX
   (default 0.436), SFS_PC_DIST/NORM (7.0/1.5), each with a once-per-run
   [GATE] print (verifiability rule); run scripts pass them through
