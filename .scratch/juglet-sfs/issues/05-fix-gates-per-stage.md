@@ -54,6 +54,16 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
+- 2026-09-21: E3 (30902802) gives the operative gate: all 8 merge attempts
+  fail CheckGraphPlausibility FIRST gate (Score_, graph_score_=-1
+  sentinel). Traced -1 to IcpIncGraphAxis: NOT non-convergence (zero
+  "Not converge" prints) but isEdgeRemoved-true or inlierCalculate-false
+  (INLIER_THRESHOLD 3.0mm relaxed already; ANGLE 0.262). Instrumented
+  both -1 branches (2-line prints); run 30904044 discriminates.
+  Theory forming: Ceres joint refinement carries AxisConsistency at
+  weight 1.0 (10x original) against 51 deg-scattered axes -- the
+  refinement itself may scatter placements past CountInlier's 3mm.
+
 - 2026-09-21: E1/E2 VOID -- critical self-correction. RegistrationPruning
   and RemoveEdgeUsingPCInlier (the env-gated functions) run ONLY in the
   PrepareNextStep path, which our runs never reach (no extensions survive
