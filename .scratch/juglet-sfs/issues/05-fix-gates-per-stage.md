@@ -55,6 +55,18 @@ that only works here is a finding about scope, not a fix to ship.
 ## Comments
 
 - 2026-09-21: E3 (30902802) gives the operative gate: all 8 merge attempts
+  die at CheckGraphPlausibility FIRST gate (Score_, graph_score_=-1
+  sentinel). Traced -1 to IcpIncGraphAxis: NOT non-convergence (zero
+  "Not converge" prints) but isEdgeRemoved-true on the post-refinement
+  re-match table. MakeMultiCorres re-matches after Ceres moves pieces
+  and needs >8 survivors past RejectOutlier(2.0, 0.85) -- gets none.
+  Theory with teeth: Ceres carries AxisConsistency at weight 1.0 (10x
+  the original 0.1) against 51 deg-scattered axes -- refinement may
+  scatter placements past re-matching. Test: SFS_AXIS_WEIGHT=0.1
+  (original value) env knob committed (+print). E3a baseline rebuild
+  30905301 first; E3b (0.1, no rebuild) follows on the same binary.
+
+- 2026-09-21: E3 (30902802) gives the operative gate: all 8 merge attempts
   fail CheckGraphPlausibility FIRST gate (Score_, graph_score_=-1
   sentinel). Traced -1 to IcpIncGraphAxis: NOT non-convergence (zero
   "Not converge" prints) but isEdgeRemoved-true or inlierCalculate-false
