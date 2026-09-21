@@ -67,8 +67,13 @@ against letting the Juglet stand in for the corpus when the finding is written u
 - [x] **A reference answer good enough to score against, for at least one real object** —
       the Juglet, 2026-09-16, residuals ~0.0000 mm, render witnessed. Without this the
       re-run would have had nothing to be right or wrong against
-- [ ] **The Juglet run end to end** (`.scratch/juglet-sfs/` 02 then 03), connections
-      reported and at least one proposed join rendered
+- [x] **The Juglet run end to end** (`.scratch/juglet-sfs/` 02 then 03): 0/18
+      connections proposed (best state 7 singletons, score 0; sherds 2,9
+      unplaced), strongest miss (sherds 1-6, 29 matches/84 inliers)
+      rendered correct-vs-attempt and witnessed 2026-09-21 (eye and log
+      agree: nothing joined). Null result, fully documented -- no proposed
+      join exists to render, so the miss stands in for it.
+- [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
       now in the same units as the point cloud — verified by printing both, not assumed

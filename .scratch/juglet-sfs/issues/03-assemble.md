@@ -8,7 +8,13 @@ witnessed verdict both a conservator and S1 can use: connections found
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** resolved
+
+## Witness
+
+- 2026-09-21: conservator viewed the staged pair and confirmed: nothing
+  is joined on the attempt side. Agent reply: matches the log verdict
+  (best state 7 singletons, score 0) -- eye and numbers agree.
 
 ## Comments
 
@@ -64,6 +70,20 @@ witnessed verdict both a conservator and S1 can use: connections found
 - Witness needed: conservator look + note (does the LEFT pair read as
   the true 1-6 join? does RIGHT read as unjoined?), then agent reply
   per the issue-tracker convention.
+- 2026-09-21 DIAGNOSIS (answers "what is the problem", evidence-backed):
+  per-fragment PotSAC axes, mapped to the assembled frame with GT,
+  scatter 51 deg mean pairwise (9 pieces) -- far past handmade wobble.
+  Downstream matching runs in per-fragment axis frames: AxisAlignment
+  rotates each sherd's axis to z, then CalculateFeatureAxisless profiles
+  each breakline as cylindrical radius/height/angle curves in that frame
+  (`filter.cpp:161`). True mates can only match if both frames agree;
+  with 51 deg-scattered frames, 14/18 true mates get zero feature
+  matches. Five true pairs reached ICP with inliers (best 1-6: 84) but
+  the merge loop found no roots and the best state stayed 7 singletons
+  (sherds 2,9 never placed), score 0. Untested link (flagged, not
+  asserted): the counterfactual -- align by GT instead of PotSAC and
+  the mates should match; that experiment would promote the mechanism
+  from supported to proven. Proposed as follow-up, not run unasked.
 
 **Needs-eye:** viewer bundle TBD at staging time (stage under
 `visual-qa/viewer/pairs/juglet_sfs.json`)
