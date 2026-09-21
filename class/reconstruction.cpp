@@ -1956,10 +1956,13 @@ void IcpIncGraphAxis(
 				if (inlier_cal) {
 					FillMatchedPoints(cor_conv, graph.matched_index_);
 				}
-				else
+				else {
+					cout << "*** ICPINLIER *** inlierCalculate false" << endl;
 					inlier = -1;
+				}
 			}
 			else {
+				cout << "*** ICPINLIER *** isEdgeRemoved true" << endl;
 				inlier = -1;
 			}
 			break;
