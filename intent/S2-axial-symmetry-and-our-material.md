@@ -17,7 +17,6 @@ The Early Kurgan material may be a different answer from the Kura-Araxes materia
 average them.
 
 ## Done when
-
 - [ ] Departure from a surface of revolution measured on real scanned sherds, in
       **millimetres** of radial deviation at a given height — a physical number, not a
       fitted score
@@ -34,7 +33,16 @@ wheel-thrown comparison set only. Say that in the comparison table rather than s
 failing on material it was never meant for — that would be a wrong claim about the method,
 which is exactly the distinction this workspace exists to keep straight.
 
-## Source
+## Related finding (not this question's measure)
 
+2026-09-21, from the Juglet assembly (ticket 03, S1): per-fragment PotSAC
+axes, mapped into the assembled frame with ground truth, scatter 51 deg
+mean pairwise across the 9 sherds -- and all downstream matching runs in
+per-fragment axis frames (cylindrical profiles after AxisAlignment). This
+is consistent with the scope concern above (handmade fragments defeat
+vessel-axis estimation) but it is NOT the millimetre radial-deviation
+measure this question asks for; none of the boxes below are ticked by it.
+
+## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
 Workspace: `../../intent/U7-what-is-being-compared.md`.
