@@ -47,6 +47,12 @@ measure this question asks for; none of the boxes below are ticked by it.
 vessel-frame axis still yield 0 joins. So frames alone do not explain the
 failure -- matcher features and merge also do not fire on this material.
 Sharpens, not settles, the scope reading above.
+2026-09-21, ticket 04 trace closed: the merge-stage gates are named --
+RegistrationPruning drops edges over 0.436 rad post-registration axis
+angle, RemoveEdgeUsingPCInlier (overlap/CountPCInlier 7.0,1.5), SortRoot
+excludes zero-inlier sherds from roots. All three are axial-assumption
+machinery (per-fragment axis frames, vessel-profile checks); each is a
+concrete place where handmade ware exits the pipeline.
 
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
