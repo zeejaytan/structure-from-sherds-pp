@@ -43,6 +43,11 @@ is consistent with the scope concern above (handmade fragments defeat
 vessel-axis estimation) but it is NOT the millimetre radial-deviation
 measure this question asks for; none of the boxes below are ticked by it.
 
+2026-09-21, ticket 04 counterfactual: all 9 sherds given ONE consistent
+vessel-frame axis still yield 0 joins. So frames alone do not explain the
+failure -- matcher features and merge also do not fire on this material.
+Sharpens, not settles, the scope reading above.
+
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
 Workspace: `../../intent/U7-what-is-being-compared.md`.
