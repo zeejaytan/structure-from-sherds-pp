@@ -1,0 +1,64 @@
+# 04: Audit the Juglet assembly failure and diagnose the mechanism
+
+**What to build:** a verdict on WHY job 30829588 proposed zero joins that
+distinguishes, with a test behind each: (a) per-fragment axis frames too
+scattered to match in, (b) matcher thresholds blind to short handmade
+breaklines, (c) merge gate dropping inlier pairs -- plus an honest scorer
+(the current one starts from the answer key, so it cannot fail).
+
+**Answers:** S1 (touches S2: the axis-frame finding is S2's scope question
+with a number attached)
+
+**Blocked by:** 03 (resolved -- run outputs in
+`structure-from-sherds-pp/artifacts/juglet_run1/`, bundle + GT staged)
+
+**Status:** ready-for-agent
+
+**Needs-eye:** viewer bundle TBD at staging time (any new geometry claim --
+e.g. a counterfactual assembly render -- is staged under
+`visual-qa/viewer/pairs/` and witnessed before it counts)
+
+## Starting evidence (all in `artifacts/juglet_run1/` + ticket 03 comments)
+
+- Best state 7 singletons (sherds 1,3,4,5,6,7,8), score 0; sherds 2,9 never
+  placed. 0/18 joins proposed. Eye and log agree (witnessed 2026-09-21).
+- 4/18 true mates had feature matches (1-6: 29; 4-5, 3-7, 7-9: 3-4);
+  14/18 true mates had ZERO matches. ICP gave inliers on five true pairs
+  (1-6: 84, 7-9: 63, 4-5: 22, 3-7: 4, 6-8: 2); none merged ("no more new
+  root" x8).
+- Per-fragment PotSAC axes, mapped to the assembled frame with GT, scatter
+  51 deg mean pairwise; matching profiles breaklines as cylindrical
+  radius/height/angle curves AFTER per-fragment AxisAlignment
+  (`class/filter.cpp:161`, called `main_headless_correct.cpp:295`).
+- Counters in the log read 100%: vacuous by construction -- accuracy
+  seeds `T_result` from `GT_trans` (`main_headless_correct.cpp:776`) and
+  unplaced pieces keep GT values, so nothing-assembled scores perfect.
+  Disregard; do not "fix" the finding by re-reading the counter.
+
+## Audit checklist
+
+- [ ] Reproducibility: rerun the identical binary+inputs once (no rebuild);
+  zero joins + same 7 singletons required before any mechanism work --
+  a flaky zero is a different ticket (nondeterminism, e.g. CGAL
+  concurrency) from a stable zero (method/scope)
+- [ ] Trace the five inlier pairs (1-6, 7-9, 4-5, 3-7, 6-8) to the exact
+  stage that drops each (LCS/pruning scores? merge-gate "root" test?) --
+  name the gate and its threshold from code at the pinned version
+- [ ] Axis-frame test: per-sherd axis scatter re-measured from the bundle
+  alone (no GT in the loop); then the counterfactual -- align by GT
+  instead of PotSAC and rerun matching only. Joins appear => frames were
+  the whole problem; nothing appears => the matcher itself cannot do
+  this material even given perfect frames. Either outcome is the answer
+- [ ] Matcher blindness: for 3 zero-match true mates, say whether the
+  curves ever clear the feature thresholds (length/curvature gates) or
+  never correspond in any frame -- threshold problem vs frame problem
+- [ ] Honest scorer: seed accuracy from identity/unknown instead of GT so
+  unplaced pieces count as unplaced; re-score run 30829588 with it and
+  confirm 0/18 (the number must come from the method, never the key).
+  Small code change in this repo; keep the old path behind a flag, do
+  not rewrite the assembly
+- [ ] Result written back into `intent/S1-does-it-connect-anything-real.md`
+  (and the S2 note if the axis finding firms up or falls): which of (a)
+  frames / (b) matcher / (c) merge gate, with the test behind each
+
+## Comments
