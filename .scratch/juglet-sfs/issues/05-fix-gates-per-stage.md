@@ -53,3 +53,14 @@ that only works here is a finding about scope, not a fix to ship.
   what transferred to axial ware and what did not
 
 ## Comments
+
+- 2026-09-21 (executing): env-tunable gates committed DIRECTLY (assembly
+  sources are tracked -- no patch files needed here): SFS_AXIS_ANGLE_MAX
+  (default 0.436), SFS_PC_DIST/NORM (7.0/1.5), each with a once-per-run
+  [GATE] print (verifiability rule); run scripts pass them through
+  (empty-safe). Slurm exports submit-env by default, so matrix runs set
+  vars inline at submit. E0 baseline (rebuild + defaults) as 30900057
+  to prove the rebuild changed nothing; then E1 axis 0.8, E2 axis 1.2
+  via the no-rebuild rerun script. Pot_A no-regression deferred to the
+  final config only (its dataset is unit-broken; check = identical
+  behavior, not improved).
