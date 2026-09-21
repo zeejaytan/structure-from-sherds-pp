@@ -54,6 +54,20 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
+- 2026-09-21: E1/E2 VOID -- critical self-correction. RegistrationPruning
+  and RemoveEdgeUsingPCInlier (the env-gated functions) run ONLY in the
+  PrepareNextStep path, which our runs never reach (no extensions survive
+  to select). The 0.8/1.2 sweeps tested dead code; the "no change" result
+  proves nothing about the axis gate. Lesson logged: verify the gate
+  EXECUTES (prints fire) before varying it -- the [GATE] silence was the
+  signal, misread as "empty lists" (also true, but downstream).
+- 2026-09-21 redirect: merges ARE attempted (8x "Graph merging step") and
+  die inside BuildState's merge path, which ends in CheckGraphPlausibility
+  (score<0 / overlap / profile gates -- ALL SILENT: fail_reason recorded
+  but never printed). Instrumented it (verdict + score print, 2 lines).
+  E3 (rebuild + run, 30902802) reads WHY each merge fails; that names the
+  operative gate instead of the candidate list.
+
 - 2026-09-21 (ticket 05 executing): env gates committed directly in
   tracked code (no patch files needed here) + [GATE] once-per-run prints
   (verifiability rule); run scripts pass SFS_* through (empty-safe).
