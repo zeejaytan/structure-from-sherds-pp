@@ -62,3 +62,22 @@ e.g. a counterfactual assembly render -- is staged under
   frames / (b) matcher / (c) merge gate, with the test behind each
 
 ## Comments
+
+- 2026-09-21: reproducibility rerun 30893352 MIXED -- zero joins stable
+  across runs (headline reproduces) but singleton membership doesn't
+  (7 pieces: 1,3,4,5,6,7,8 vs rerun's 6: 1,2,4,5,6,8). Nondeterministic
+  membership further discredits the 9/9 counter.
+- 2026-09-21: counterfactual (consistent PCA-vessel-frame axes swapped
+  in with md5s, restored byte-identical after) still 0 joins, 7
+  singletons. FRAMES ALONE INSUFFICIENT: match pattern shifted (8-6:
+  3->14 matches) but nothing merged. Seat of failure is matcher
+  features and/or merge, not frames.
+- 2026-09-21: matcher gates read -- MINIMUM_NUMBER=1 already (length
+  gate not the blocker); base-classification gate passes (info 0, no
+  rim/base to skip on); blindness is quantized cylindrical profiles
+  computed in scattered frames. Axis scatter robust: 27 deg large
+  pieces, 65 deg small (both far past matchable).
+- 2026-09-21: honest scorer committed (restore commented-out
+  method-graph requirement in CountResult). Rebuild+rerun 30895279;
+  expect honest 0/9 sherds, 0/18 edges. NOTE: this also lowers any
+  future Pot_A/Tray re-scores -- flagged, intended.
