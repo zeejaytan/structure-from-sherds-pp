@@ -1343,12 +1343,13 @@ void Icp(vector<BreakLine>& L,
 		}
 		shard_A = m_LCS[cycle.edges[0]].shard_y_ - 1;
 		shard_B = m_LCS[cycle.edges[0]].shard_x_ - 1;
-		Matrix4d T1 = Matrix4d::Identity(), T2 = Matrix4d::Identity();
+		Matrix4d T = Matrix4d::Identity(), T2 = Matrix4d::Identity();
 		for (int j = 0; j < 3; j++) {
 			T1.row(j) << R_i[shard_A].row(j), t_i[shard_A][j];
 			T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
 		}
 		Matrix4d T = T1.inverse() * T2;
+		{ double ttot = 0; for (int qi = 0; qi < num_shard; qi++) ttot += t[qi].norm(); cout << "*** ICPITER *** iter=" << iter << " acc_t_norm=" << ttot << endl; }
 
 		bool isfinish = false;
 		// If all transformation matries are not chaged then stop the iteration
