@@ -1286,6 +1286,8 @@ void Icp(vector<BreakLine>& L,
 		if (miss_cor)
 			break;
 
+		{ int ccn = 0; for (size_t cqi = 0; cqi < COR.size(); cqi++) ccn += (int)COR[cqi].cor.size(); cout << "*** ICPCOR *** pair " << cycle.nodes[0] << "-" << cycle.nodes[1] << " iter=" << iter << " objs=" << COR.size() << " pts=" << ccn << endl; }
+
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
 		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// RELAXED: More permissive distance outlier detection (was 3.0, original 5.0)
