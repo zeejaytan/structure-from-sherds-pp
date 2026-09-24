@@ -54,6 +54,16 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
+- 2026-09-24: E3b REFUTES the axis-weight theory -- w_a=0.1 (verified
+  print) still 0/18. Kill the "refinement scatters placements" story as
+  the sole cause. Remaining fork: (a) Ceres placements genuinely far
+  apart (something else diverges them: strict CauchyLoss/tolerances?),
+  vs (b) re-match thresholds (RejectOutlier 2.0/0.85 + >8) too strict
+  for handmade curves. Instrumented MakeMultiCorres to print raw vs
+  kept counts per pair (diagnostic run 31200856 rebuilding now): large
+  raw + ~0 kept => RejectOutlier is the killer (tune it); ~0 raw =>
+  placements scattered (dig refinement inputs).
+
 - 2026-09-21: E3 (30902802) gives the operative gate: all 8 merge attempts
   die at CheckGraphPlausibility FIRST gate (Score_, graph_score_=-1
   sentinel). Traced -1 to IcpIncGraphAxis: NOT non-convergence (zero
