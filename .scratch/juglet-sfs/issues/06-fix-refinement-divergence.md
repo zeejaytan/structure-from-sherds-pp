@@ -58,6 +58,14 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-24: the LCS-only change went into the WRONG overload (6-arg
+  Registration; the pruning path uses the 5-arg one with MakeSingleCorres
+  -- caught because the confirmation print never appeared, exactly the
+  discipline that caught the silent-patch saga). Same treatment applied
+  to the 5-arg else branch. Running as 31206929 with SFS_LCS_ONLY=1
+  (rebuild + run). If pair 1-6 merges: first Juglet join, mechanism and
+  fix proven together.
+
 - 2026-09-24: feedback theory + first fix attempt. After axis-alignment
   centers ALL sherds at origin, dense nearest-neighbor re-matching
   manufactures false correspondences everywhere; refitting them each
