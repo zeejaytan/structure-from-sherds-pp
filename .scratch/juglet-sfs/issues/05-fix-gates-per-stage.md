@@ -80,6 +80,17 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
+- 2026-09-24: MERGEINIT verdict (run 31204332): merge initial placements
+  ALREADY e5 (all 8 attempts) -- TransAverage of pairwise LCS transforms.
+  So the divergence is UPSTREAM of IcpIncGraphAxis: in Registration()
+  (Ceres), which OVERWRITES trans_ during pruning (line 1995). Chain:
+  legacy ICP finds 84 inliers on 1-6 (sane) -> Ceres Registration
+  diverges -> TransAverage e5 -> merge starts lost. Note Registration
+  already runs w_a=0.1, so axis weight is exonerated twice over. Next:
+  print Registration() input-COR size + output trans magnitude per edge
+  (ticket 06 first experiment) to see if it diverges on all edges or
+  only some, then ablate (rim terms? Cauchy strictness? tolerances?).
+
 - 2026-09-24: MERGETABLE verdict (run 31200856): 7/8 merges re-match ZERO
   post-refinement (isEdgeRemoved on empty table); 1 merge (pair 1-6: 27
   raw, 14 kept, Table set) dies at Overlap_67.3/score 28 instead. So two

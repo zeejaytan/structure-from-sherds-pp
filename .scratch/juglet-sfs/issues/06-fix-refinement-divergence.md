@@ -36,9 +36,18 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Checklist
 
-- [ ] Characterize: initial placements pre-refinement per merge (sane?)
-  vs post-refinement (e5?) -- print TransAverage inputs, one run, no
-  behavior change. Decides bad-init vs divergence-during-optimization
+- [x] Characterize: MERGEINIT prints (run 31204332) show initial
+  placements ALREADY e5 -- divergence is UPSTREAM of IcpIncGraphAxis,
+  in Registration() (Ceres), which overwrites trans_ during pruning.
+  Legacy ICP finds 84 inliers on 1-6 (sane); Ceres Registration on the
+  same pair diverges.
+- [ ] Registration I/O per edge: print input-COR size + output trans
+  magnitude (all edges or only some diverge?). One instrumented run,
+  no behavior change
+- [ ] Ablate Registration objective terms one at a time (rim terms off?
+  looser CauchyLoss/tolerance? axis term already exonerated: runs
+  w_a=0.1 inside Registration too): which single change stops the
+  runaway, per true/false pair effects
 - [ ] Ablate objective terms one at a time (axis term OFF entirely, rim
   terms off, looser CauchyLoss/tolerance): which single change stops
   the runaway, per true/false pair effects
