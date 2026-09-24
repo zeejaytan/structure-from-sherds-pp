@@ -54,6 +54,16 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Comments
 
+- 2026-09-24: MERGETABLE verdict (run 31200856): 7/8 merges re-match ZERO
+  post-refinement (isEdgeRemoved on empty table); 1 merge (pair 1-6: 27
+  raw, 14 kept, Table set) dies at Overlap_67.3/score 28 instead. So two
+  death modes: scattered-after-refinement vs interpenetrating-after-
+  refinement. Both indict the Ceres placements, not the thresholds.
+  (w_a=0.1 already refuted as sole cause.) Next discriminator running
+  as 31203789: per-piece refined placements printed at merge end, to be
+  compared against GT relatives locally -- sane-but-strict-gates vs
+  genuinely-wrong placements.
+
 - 2026-09-24: E3b REFUTES the axis-weight theory -- w_a=0.1 (verified
   print) still 0/18. Kill the "refinement scatters placements" story as
   the sole cause. Remaining fork: (a) Ceres placements genuinely far
