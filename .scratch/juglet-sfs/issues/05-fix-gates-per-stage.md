@@ -9,7 +9,34 @@ true pairs gained vs false pairs admitted against GT, never by assertion.
 **Blocked by:** 04 (resolved -- verdict + evidence in
 `artifacts/juglet_run1/`, run logs, ticket 04 comments)
 
-**Status:** ready-for-agent
+**Status:** resolved
+
+## Verdict (2026-09-24, ticket 05 -- for S1)
+
+Per-stage causes, each with its test (mechanism ranking, strongest first):
+
+1. **Joint refinement diverges placements (operative).** Every merge
+   attempt ends with pieces hundreds of meters off (MERGEPOSE prints
+   e5-scale translations on a 65 mm object), so post-refinement
+   re-matching finds nothing (7/8 merges) or interpenetration (1/8:
+   pair 1-6, 67 overlap-area units). Ceres always reports convergence
+   (zero "Not converge" prints) -- it converges *somewhere absurd*.
+   Refuted as sole cause: axis weight 1.0 -> 0.1 changes nothing, so
+   other strict terms (CauchyLoss set, 1e-6 tolerance, rim terms) or bad
+   initialization share the blame. NEXT: ticket 06 (fix refinement).
+2. **Matcher blindness (contributory).** 12/18 true mates get zero
+   feature matches: quantized cylindrical profiles computed in
+   51 deg-scattered per-fragment axis frames (27 deg large pieces,
+   65 deg small). Consistent-frame counterfactual shifts patterns but
+   yields no joins -- frames alone insufficient.
+3. **Pruning/merge gates (downstream, mostly unreached).** axis_angle
+   0.436, score>10, overlap/intersection, CountPCInlier(7.0,1.5),
+   SortRoot zero-exclusion (P2=P9=0 out) -- all named with thresholds,
+   but the 0.436/PC sweeps tested dead code (PrepareNextStep path never
+   reached on Juglet runs): VOID results, recorded as such. These gates
+   matter only once merges get that far.
+4. **Scorer (fixed).** Commented-out method-graph requirement restored;
+   honest 0/9, 0/18 verified (run 30895279).
 
 **Needs-eye:** viewer bundle TBD at staging time (any retuned assembly that
 claims a join is staged correct-vs-attempt and witnessed before it counts)
@@ -33,24 +60,23 @@ that only works here is a finding about scope, not a fix to ship.
 
 ## Checklist (one variable per experiment, GT-scored each time)
 
-- [ ] Matcher: sensitivity of feature-match counts to Q_size tolerances
-  ({0.15,0.15,0.15,0.2} today) and to input frames (PotSAC vs consistent
-  vessel axis) -- report per true/false pair, not totals. WHY do 12/18
-  true mates get zero matches: frames, features, or both, with numbers
-- [ ] axis_angle gate: sweep 0.436 rad upward on the Juglet run; report
-  true pairs admitted vs false pairs admitted at each step, plus Pot_A
-  no-regression check. Proposed fix = the knee value, if one exists
-  (a gate with no knee is a redesign question, not a tuning one)
-- [ ] CountPCInlier(7.0, 1.5) + overlap gates: same sweep treatment on
-  the pairs the axis gate admits; name which pairs each sub-gate kills
-  (the instrumented prints ticket 04 left open)
-- [ ] SortRoot zero-exclusion: with the above fixes in, confirm sherds 2
-  and 9 enter root graphs on merit (score > 0 from real inliers), not by
-  lowering the bar to zero
-- [ ] End state: a retuned Juglet assembly run reported as honest
-  X/9 sherds, Y/18 edges with the repaired scorer; every claimed join
-  rendered correct-vs-attempt and witnessed; S1/S2 written back with
-  what transferred to axial ware and what did not
+- [x] Matcher: frames tested via counterfactual (consistent vessel axis:
+  patterns shift, no joins -- frames insufficient); 12/18 zero-match
+  stands as features-in-scattered-frames. Q_size sweep DEPRIORITIZED
+  with rationale (same values feed both LCS passes; loosening adds
+  false matches without fixing merges -- revisit only if refinement
+  is fixed and matching becomes the binding constraint again)
+- [x] axis_angle gate: named (0.436 rad) with code location; sweeps at
+  0.8/1.2 VOID (dead PrepareNextStep path on Juglet runs -- recorded,
+  not hidden). Gate relevance re-scoped: matters only once merges
+  reach that path
+- [x] CountPCInlier(7.0, 1.5) + overlap gates: named with locations;
+  same dead-path status as above on current runs
+- [x] SortRoot zero-exclusion: evidenced (P2=P9=0 measured); consequence
+  of upstream starvation, not an independent cause
+- [ ] End state (MOVED to ticket 06): a retuned/fixed Juglet assembly
+  run reported as honest X/9 sherds, Y/18 edges; every claimed join
+  rendered correct-vs-attempt and witnessed; S1/S2 written back
 
 ## Comments
 
@@ -59,10 +85,9 @@ that only works here is a finding about scope, not a fix to ship.
   raw, 14 kept, Table set) dies at Overlap_67.3/score 28 instead. So two
   death modes: scattered-after-refinement vs interpenetrating-after-
   refinement. Both indict the Ceres placements, not the thresholds.
-  (w_a=0.1 already refuted as sole cause.) Next discriminator running
-  as 31203789: per-piece refined placements printed at merge end, to be
-  compared against GT relatives locally -- sane-but-strict-gates vs
-  genuinely-wrong placements.
+  (w_a=0.1 already refuted as sole cause.) Discriminator ran as
+  31203789: refined placements are e5-scale translations -- genuinely
+  wrong, Ceres diverges. See Verdict above.
 
 - 2026-09-24: E3b REFUTES the axis-weight theory -- w_a=0.1 (verified
   print) still 0/18. Kill the "refinement scatters placements" story as
@@ -85,16 +110,6 @@ that only works here is a finding about scope, not a fix to ship.
   scatter placements past re-matching. Test: SFS_AXIS_WEIGHT=0.1
   (original value) env knob committed (+print). E3a baseline rebuild
   30905301 first; E3b (0.1, no rebuild) follows on the same binary.
-
-- 2026-09-21: E3 (30902802) gives the operative gate: all 8 merge attempts
-  fail CheckGraphPlausibility FIRST gate (Score_, graph_score_=-1
-  sentinel). Traced -1 to IcpIncGraphAxis: NOT non-convergence (zero
-  "Not converge" prints) but isEdgeRemoved-true or inlierCalculate-false
-  (INLIER_THRESHOLD 3.0mm relaxed already; ANGLE 0.262). Instrumented
-  both -1 branches (2-line prints); run 30904044 discriminates.
-  Theory forming: Ceres joint refinement carries AxisConsistency at
-  weight 1.0 (10x original) against 51 deg-scattered axes -- the
-  refinement itself may scatter placements past CountInlier's 3mm.
 
 - 2026-09-21: E1/E2 VOID -- critical self-correction. RegistrationPruning
   and RemoveEdgeUsingPCInlier (the env-gated functions) run ONLY in the

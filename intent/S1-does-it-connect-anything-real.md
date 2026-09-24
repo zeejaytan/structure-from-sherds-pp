@@ -82,6 +82,13 @@ against letting the Juglet stand in for the corpus when the finding is written u
       SortRoot excludes zero-inlier sherds from roots (P2, P9 out);
       scorer restored to honest 0/9, 0/18. Residual: per-pair sub-gate
       attribution (erasures print nothing) is follow-up work.
+- [x] **Ticket 05 verdict** (2026-09-24): E1/E2 sweeps VOID (dead
+      PrepareNextStep path -- recorded, not hidden); merge death pinned
+      to Ceres refinement DIVERGENCE (e5 placements, converges-nowhere);
+      w_a=0.1 refutes axis-weight-as-sole-cause; thresholds exonerated
+      (re-match finds nothing because placements are kilometers off, not
+      because gates are strict). Fix direction = refinement robustness:
+      ticket 06 opened. S2 note stands.
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
