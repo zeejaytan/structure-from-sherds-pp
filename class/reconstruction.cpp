@@ -1472,7 +1472,13 @@ void Registration(vector<BreakLine>& L,
 		}
 
 		else {
-			MakeSingleCorres(COR, L, true_node, c_node, onetoone);
+			// Juglet ticket 06: SFS_LCS_ONLY=1 reuses the LCS
+			// pre-correspondences every iteration instead of dense
+			// re-matching (see the 6-arg overload below for rationale).
+			static bool dense_init_b = false; static bool use_dense_b = true;
+			if (!dense_init_b) { dense_init_b = true; const char* e = std::getenv("SFS_LCS_ONLY"); if (e && *e && string(e) != "0") use_dense_b = false; std::cout << "[GATE] dense_rematch_5arg=" << use_dense_b << std::endl; }
+			if (use_dense_b) { MakeSingleCorres(COR, L, true_node, c_node, onetoone); }
+			else { Corres cor_s5; cor_s5.index_A = shard_A, cor_s5.index_B = shard_B; BreakLine p_sA = L[shard_A - 1], p_sB = L[shard_B - 1]; UsePreCorres(cor_s5, L, p_sA, p_sB, lcs, c_node, true); COR.push_back(cor_s5); }
 		}
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
