@@ -1430,6 +1430,7 @@ void Registration(vector<BreakLine>& L,
 		c_node = lcs.shard_y_;
 		set_node = lcs.shard_x_;
 	}
+	{ double tin = 0; for (size_t rgi = 0; rgi < R.size(); rgi++) tin += t[rgi].norm(); cout << "*** REGIN *** Pieces " << lcs.shard_y_ << "-" << lcs.shard_x_ << " in_t_norm=" << tin << endl; }
 
 	// Iterate until R_i and t_i are not changed
 	bool point_to_line = false;
