@@ -89,6 +89,11 @@ against letting the Juglet stand in for the corpus when the finding is written u
       (re-match finds nothing because placements are kilometers off, not
       because gates are strict). Fix direction = refinement robustness:
       ticket 06 opened. S2 note stands.
+- 2026-09-24, ticket 06 characterization: merge INITIAL placements are
+  already e5 -- divergence sits UPSTREAM of joint refinement, in the
+  per-edge Ceres Registration that overwrites pairwise transforms
+  during pruning (legacy ICP on the same pair finds 84 sane inliers).
+  Ticket 06 proceeds there (per-edge I/O print, then term ablation).
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is

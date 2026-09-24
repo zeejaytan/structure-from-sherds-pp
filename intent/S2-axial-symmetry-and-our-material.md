@@ -58,6 +58,9 @@ concrete place where handmade ware exits the pipeline.
 since re-matching finds nothing to be strict about. The divergence is
 the seat; ticket 06 takes the fix. S2's scope reading unchanged, mechanism
 deepened by one level.
+2026-09-24, ticket 06 characterization: divergence sits UPSTREAM of the
+joint step, in per-edge Ceres Registration (initial merge placements
+already e5, while legacy ICP on the same pair is sane). S2 unchanged.
 
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
