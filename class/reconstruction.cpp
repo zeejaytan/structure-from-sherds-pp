@@ -1664,7 +1664,16 @@ void Registration(vector<BreakLine>& L,
 		}
 
 		else {
-			MakeMergeCorres(COR, L, true_node, merge_node, onetoone);
+			// Juglet ticket 06: SFS_LCS_ONLY=1 reuses the LCS
+			// pre-correspondences every iteration instead of dense
+			// re-matching. Dense re-matching manufactures false matches
+			// between co-centered sherds; refitting them feeds the Ceres
+			// runaway (e5 placements). LCS index pairs track the moving
+			// pieces, so this stays a proper fixed-correspondence fit.
+			static bool dense_init = false; static bool use_dense_rematch = true;
+			if (!dense_init) { dense_init = true; const char* e = std::getenv("SFS_LCS_ONLY"); if (e && *e && string(e) != "0") use_dense_rematch = false; std::cout << "[GATE] dense_rematch=" << use_dense_rematch << std::endl; }
+			if (use_dense_rematch) { MakeMergeCorres(COR, L, true_node, merge_node, onetoone); }
+			else { Corres cor_dense_off; cor_dense_off.index_A = shard_A, cor_dense_off.index_B = shard_B; BreakLine p_dA = L[shard_A - 1], p_dB = L[shard_B - 1]; UsePreCorres(cor_dense_off, L, p_dA, p_dB, lcs, c_node, true); COR.push_back(cor_dense_off); }
 		}
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
