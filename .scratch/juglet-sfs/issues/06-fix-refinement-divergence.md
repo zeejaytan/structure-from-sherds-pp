@@ -58,6 +58,20 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-24, scale mismatch (user's point, verified): Pot_A piece 1 =
+  843k points; Juglet pieces 2k-24k (30-300x sparser). Paper + upstream
+  tuned on Pot_A-scale dense data; the fork TIGHTENED fixed thresholds
+  (see three-way table in ticket comments/thread) instead of scaling
+  them. Adaptivity exists ONLY in preprocessing segmentation
+  (Nov-2025 dynK/dynMinCluster -- fork-only, absent upstream); assembly
+  gates stayed fixed. So thresholds assume dense data the Juglet
+  doesn't have. Fix direction implication: scale-aware gates (or
+  upstream restores), not blind loosening.
+- Fork-vs-pristine scope: only 10 tracked files differ
+  (data_path/data_structure/feature_matching/ranking_system/
+  reconstruction + headers, main.cpp); rest is NEW fork subsystems
+  (agglomerative, physics, GGCE, validators) not on the Juglet path.
+
 - 2026-09-24: the LCS-only change went into the WRONG overload (6-arg
   Registration; the pruning path uses the 5-arg one with MakeSingleCorres
   -- caught because the confirmation print never appeared, exactly the
