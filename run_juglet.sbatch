@@ -101,6 +101,7 @@ time ${APPTAINER} exec \
     --env SFS_PC_DIST="${SFS_PC_DIST:-}" \
     --env SFS_PC_NORM="${SFS_PC_NORM:-}" \
     --env SFS_AXIS_WEIGHT="${SFS_AXIS_WEIGHT:-}" \
+    --env SFS_LCS_ONLY="${SFS_LCS_ONLY:-}" \
     "${SIF}" \
     bash -c "cd ${ROOT}/build && ./Hierarchy-Clear"
 RUN_STATUS=$?
