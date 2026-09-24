@@ -1741,6 +1741,7 @@ void PrepareGraphBuildinginMerge(vector<Geom>& shard,
 
 	//########## In this Algorithm, pieces are always axis aligned initial state
 	TransAverage(merge_graph.node_, edges, R_p, t_p);
+	cout << "*** MERGEINIT *** t=[" << t_p.transpose() << "]" << endl;
 
 	//########## Make ICP initial condiiton
 	for (int i = 0; i < merge_graph.node_.size(); i++) {
