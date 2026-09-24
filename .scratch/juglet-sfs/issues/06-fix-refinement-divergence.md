@@ -58,6 +58,15 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-24: trajectory verdict (run 31209597): accumulated motion is
+  e5 ALREADY at iteration 0, then wanders (652K->622K; 571K->460K over
+  23 iters, never converging sanely). Not gradual drift: a first-step
+  explosion. Trans/s zeroed per iteration, so each solve leaps from
+  zero to hundreds of meters with true correspondences present.
+  Suspect: unit-mixed residuals or unconstrained directions in the
+  Ceres problem, NOT thresholds/weights. Running per-edge COR counts
+  (31209882) to see input sizes at explosion time.
+
 - 2026-09-24, scale mismatch (user's point, verified): Pot_A piece 1 =
   843k points; Juglet pieces 2k-24k (30-300x sparser). Paper + upstream
   tuned on Pot_A-scale dense data; the fork TIGHTENED fixed thresholds
