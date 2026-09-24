@@ -635,11 +635,16 @@ void MakeMultiCorres(vector<Corres>& COR,
 		int i_A = pair_index[i].first, i_B = pair_index[i].second;
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
+		int pre_reject_n = cor_line.cor.size();
 		RejectOutlier(cor_line, 2.0, 0.85);  // FIXED: Much stricter outlier rejection for pottery
 
 		cor_line.index_A = i_A + 1;
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
+		if (pre_reject_n > 0) {
+			cout << "*** MAKEMULTI *** pair " << i_A + 1 << "-" << i_B + 1
+				<< " raw=" << pre_reject_n << " kept=" << cor_line.cor.size() << endl;
+		}
 		// If the number of breakline correspondence is over 6, fill out the table
 		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
 			cor_counter++;
