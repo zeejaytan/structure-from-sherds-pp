@@ -1818,6 +1818,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double axis_angle = acos(dot_product);
 		axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
+		{ double tmn = t_p[index_m].norm(); cout << "*** REGOUT *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ << " t_norm=" << tmn << " axis_angle=" << axis_angle << endl; }
 		EdgeLineMove(L[index_f], R_fix_i_1, t_fix_i_1);
 		EdgeLineMove(L[index_m], R_fix_i_1, t_fix_i_1);
 
@@ -2005,6 +2006,7 @@ void RegistrationPruning(vector<Geom>& shard,
 		double axis_angle = acos(dot_product);
 		axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
+		{ double tmn = t_p[index_m].norm(); cout << "*** REGOUT *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ << " t_norm=" << tmn << " axis_angle=" << axis_angle << endl; }
 
 		//#################### Post-Registration Intersection Detection ####################//
 		bool has_intersection = false;
