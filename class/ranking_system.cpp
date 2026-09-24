@@ -1069,6 +1069,8 @@ bool StateManager::BuildState(State& state,
 		if (state.graph_[graph_index].node_[i]) {
 			state.graph_[graph_index].T_[i].InvOut(R_i, t_i);
 			shard_[i].Move(R_i, t_i);
+			{ Matrix4d Tm; state.graph_[graph_index].T_[i].Output(Tm);
+			cout << "*** MERGEPOSE *** piece " << i + 1 << " R=[" << Tm(0,0) << "," << Tm(0,1) << "," << Tm(0,2) << ";" << Tm(1,0) << "," << Tm(1,1) << "," << Tm(1,2) << ";" << Tm(2,0) << "," << Tm(2,1) << "," << Tm(2,2) << "] t=[" << Tm(0,3) << "," << Tm(1,3) << "," << Tm(2,3) << "]" << endl; }
 		}
 	}
 	shard_[state.graph_[graph_index].root_node_ - 1].edge_line_.axis_point_[0] = axis_point_log;
