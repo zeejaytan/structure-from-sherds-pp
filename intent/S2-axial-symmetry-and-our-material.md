@@ -53,6 +53,11 @@ angle, RemoveEdgeUsingPCInlier (overlap/CountPCInlier 7.0,1.5), SortRoot
 excludes zero-inlier sherds from roots. All three are axial-assumption
 machinery (per-fragment axis frames, vessel-profile checks); each is a
 concrete place where handmade ware exits the pipeline.
+2026-09-24, ticket 05 verdict: the joint refinement itself diverges
+(e5-scale placements, converging nowhere) -- thresholds exonerated,
+since re-matching finds nothing to be strict about. The divergence is
+the seat; ticket 06 takes the fix. S2's scope reading unchanged, mechanism
+deepened by one level.
 
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
