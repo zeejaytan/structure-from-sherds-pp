@@ -1958,6 +1958,9 @@ void IcpIncGraphAxis(
 				Table, 
 				cor_onetoone);
 
+			{ int mre_n = 0; for (size_t mci = 0; mci < cor_conv.size(); mci++) mre_n += (int)cor_conv[mci].cor.size();
+			cout << "*** MERGETABLE *** edges=" << edges.size() << " corObjs=" << cor_conv.size() << " corPts=" << mre_n << " tablesum=" << Table.sum() << endl; }
+
 			if (!isEdgeRemoved(Table, edges)) {
 				bool inlier_cal = inlierCalculate(inlier, graph.node_, cor_conv, shard);
 				if (inlier_cal) {
