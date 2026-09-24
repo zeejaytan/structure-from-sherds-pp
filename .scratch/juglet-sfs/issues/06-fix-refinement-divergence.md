@@ -58,6 +58,17 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-24: feedback theory + first fix attempt. After axis-alignment
+  centers ALL sherds at origin, dense nearest-neighbor re-matching
+  manufactures false correspondences everywhere; refitting them each
+  Ceres iteration feeds divergence (e5 endpoints vary run to run =
+  random walk, not a wrong minimum). SFS_LCS_ONLY=1 reuses the LCS
+  index pairs every iteration instead (fixed pairings tracking moving
+  pieces -- proper coarse-to-fine). Submitted 31206521 WITHOUT the
+  container passthrough (would have run at defaults); caught,
+  cancelled, fixed scripts, resubmitted as 31206551. If 1-6 merges:
+  first Juglet join ever, mechanism proven.
+
 - 2026-09-24, three-way audit (paper + upstream pristine + our fork)
   pinpoints the tampering. Paper: P2P-then-P2L ICP, Cauchy kernels,
   30-deg normal pruning, grouping at 25 deg / 20 mm. Upstream code:
