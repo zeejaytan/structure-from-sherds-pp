@@ -58,6 +58,23 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: Test-1 CORRECTIONS (pipeline-faithful _0-only rerun,
+  gate_probe_b0.py): the pipeline reads ONLY Breakline_0 per piece,
+  so _1-inclusive numbers overstated. True inputs: Pot_A-orig 15/15
+  strict at GT (6-49 inliers, traces 0.09-1.30 mm, normals agree);
+  Juglet 0/18 (raw=0 everywhere; best trace gaps 0.17-30 mm, normals
+  opposed; abs rescues only 2-9:6pts, 6-7:19pts). The "6-7 passes"
+  claim is WITHDRAWN (its passing segments live in _1 files the binary
+  never reads). Second correction: NURBS Pot_A breaklines are NOT in
+  GT frame (59-pt files, coords ~(-195,-68,-1644) vs orig (65,-52,401);
+  0/15 with km-scale gaps) -- NURBS bundle skipped; control uses
+  original_samples via new POT_A_ORIG block. Test-2 harness built
+  (commit 69925b9): TAXIS print (main.cpp), SFS_ORACLE_PAIR/M override
+  at MERGEINIT (Tp = W_f M W_m^-1, M^-1 on role swap, fires only on
+  single-edge cross merges, full downstream unmodified), sbatch
+  passthrough. TAXIS harvest running in holder 31295030; then oracle
+  run on 6-7 (predicts Score_-1 from truth at default raw gate).
+
 - 2026-09-25: conclusion SUSPENDED by user challenge (rightly: tuning
   failures argue, they don't prove). Two-test design to PROVE
   non-viability and say why, given Pot_A works. TEST 1 (static,
