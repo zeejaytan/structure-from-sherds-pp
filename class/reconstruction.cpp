@@ -1885,10 +1885,15 @@ void IcpIncGraphAxis(
 		COR.clear();
 		MakeMultiCorres(COR, shard, graph.node_, dummy_table, dummy_table, cor_onetoone);
 
-		//############### Set nonlinear equation ###############// 
+		//############### Set nonlinear equation ###############//
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(1.0);	// FIXED: Stricter distance constraint
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(0.5);	// FIXED: Stricter normal constraint
+		// Juglet ticket 06: robust-kernel scales env-tunable. Init error on
+		// handmade ware (~10-15 mm) exceeds the fork-tightened capture
+		// range (1.0 mm dist); upstream used 5.0/2.0. One print per run.
+		static bool cauchy_init = false; static double cauchy_dist = 1.0, cauchy_norm = 0.5;
+		if (!cauchy_init) { cauchy_init = true; const char* e = std::getenv("SFS_CAUCHY_DIST"); if (e && *e) cauchy_dist = std::stod(e); const char* e2 = std::getenv("SFS_CAUCHY_NORM"); if (e2 && *e2) cauchy_norm = std::stod(e2); std::cout << "[GATE] cauchy_dist=" << cauchy_dist << " cauchy_norm=" << cauchy_norm << std::endl; }
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(cauchy_dist);	// FIXED: Stricter distance constraint
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(cauchy_norm);	// FIXED: Stricter normal constraint
 		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.0);	// FIXED: Stricter axis constraint
 		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.0);		// FIXED: Stricter rim constraint
 
