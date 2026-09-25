@@ -1782,6 +1782,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 	for (int i = 0; i < num_shard; i++) {
 		L[i] = shard[i].edge_line_;
 	}
+	{ for (int i = 0; i < num_shard; i++) { double cn = 0; for (int k = 0; k < L[i].point_.cols(); k++) cn += L[i].point_.col(k).norm(); cout << "*** PRUNEENTRY *** piece " << i + 1 << " npts=" << L[i].point_.cols() << " meannorm=" << (L[i].point_.cols() ? cn / L[i].point_.cols() : -1) << endl; } }
 
 	while (iter != LCS_out.end()) {
 		lcsout.push_back(*iter);
