@@ -102,6 +102,8 @@ time ${APPTAINER} exec \
     --env SFS_PC_NORM="${SFS_PC_NORM:-}" \
     --env SFS_AXIS_WEIGHT="${SFS_AXIS_WEIGHT:-}" \
     --env SFS_LCS_ONLY="${SFS_LCS_ONLY:-}" \
+    --env SFS_REJECT_DIST="${SFS_REJECT_DIST:-}" \
+    --env SFS_REJECT_NORM="${SFS_REJECT_NORM:-}" \
     --env SFS_CAUCHY_DIST="${SFS_CAUCHY_DIST:-}" \
     --env SFS_CAUCHY_NORM="${SFS_CAUCHY_NORM:-}" \
     "${SIF}" \

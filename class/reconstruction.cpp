@@ -636,7 +636,12 @@ void MakeMultiCorres(vector<Corres>& COR,
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
 		int pre_reject_n = cor_line.cor.size();
-		RejectOutlier(cor_line, 2.0, 0.85);  // FIXED: Much stricter outlier rejection for pottery
+		// Juglet ticket 06: re-match gate env-tunable. Upstream used
+		// (20, 0.7); fork tightened to (2.0, 0.85). On handmade ware the
+		// refined placements sit ~10 mm off, inside upstream capture.
+		static bool rej_init = false; static double rej_dist = 2.0, rej_norm = 0.85;
+		if (!rej_init) { rej_init = true; const char* e = std::getenv("SFS_REJECT_DIST"); if (e && *e) rej_dist = std::stod(e); const char* e2 = std::getenv("SFS_REJECT_NORM"); if (e2 && *e2) rej_norm = std::stod(e2); std::cout << "[GATE] reject_dist=" << rej_dist << " reject_norm=" << rej_norm << std::endl; }
+		RejectOutlier(cor_line, rej_dist, rej_norm);
 
 		cor_line.index_A = i_A + 1;
 		cor_line.index_B = i_B + 1;
