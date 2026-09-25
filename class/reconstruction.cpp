@@ -1093,6 +1093,8 @@ void UsePreCorres(Corres& cor_in,
 	bool fix)
 {
 	MakeSection(L, p_A, p_B, lcs);
+	{ int nA = (int)p_A.point_.cols(), nB = (int)p_B.point_.cols(); cout << "*** USEPRE *** pair " << lcs.shard_y_ << "-" << lcs.shard_x_ << " ranges Ax[" << lcs.start_.y << "," << lcs.end_.y << "]/" << nA << " Bx[" << lcs.start_.x << "," << lcs.end_.x << "]/" << nB << endl; }
+	MakeSection(L, p_A, p_B, lcs);
 	for (int j = 0; j < p_A.point_.cols(); j++) {
 		CorPair dummy;
 		dummy.p_A = p_A.point_.col(j);
