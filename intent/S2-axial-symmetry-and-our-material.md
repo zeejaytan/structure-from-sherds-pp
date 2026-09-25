@@ -61,6 +61,10 @@ deepened by one level.
 2026-09-24, ticket 06 characterization: divergence sits UPSTREAM of the
 joint step, in per-edge Ceres Registration (initial merge placements
 already e5, while legacy ICP on the same pair is sane). S2 unchanged.
+2026-09-25, ticket 07 (real curves): matcher floods rather than starves
+(all 18 mates with inliers, most false pairs too) yet joins still 0/18.
+Handmade curves match anything against anything: no starvation, no
+discrimination. Scope reading holds; failure moved downstream to merge.
 
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
