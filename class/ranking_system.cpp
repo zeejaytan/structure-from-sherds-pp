@@ -1,6 +1,8 @@
 #include "ranking_system.h"
 #include "connectivity_optimizer.h"
 #include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
+#include <cstdio>   // Juglet ticket 06 Test 2: sscanf for oracle pair
+#include <sstream>  // Juglet ticket 06 Test 2: parse oracle matrix
 //############################## class RankingSubgraph ##############################//
 void RankingSubgraph::Copy(RankingSubgraph& input)
 {
@@ -1742,6 +1744,54 @@ void PrepareGraphBuildinginMerge(vector<Geom>& shard,
 
 	//########## In this Algorithm, pieces are always axis aligned initial state
 	TransAverage(merge_graph.node_, edges, R_p, t_p);
+	// Ticket 06 Test 2 (oracle init): hand one pair its TRUE relative
+	// placement. SFS_ORACLE_PAIR="a,b" (1-based ids); SFS_ORACLE_M = 12
+	// numbers (row-major R + t) = M_ab := A_a P_a^-1 P_b A_b^-1, the
+	// fresh-state correction placing b relative to a (A = TAXIS axis
+	// alignment, P = GT vessel matrices, both printed/passed offline).
+	// At fire time Tp = W_f M W_m^-1 (M^-1 under role swap) is composed
+	// from the graphs' current T_, so beam order does not matter. Fires
+	// only on single-edge merges directly connecting a,b with the fixed
+	// endpoint outside the moving graph. Everything downstream
+	// (refinement, gates, scorer) runs unmodified FROM truth.
+	if (edges.size() == 1) {
+		const char* opair = std::getenv("SFS_ORACLE_PAIR");
+		const char* om = std::getenv("SFS_ORACLE_M");
+		if (opair && *opair && om && *om) {
+			int oa = 0, ob = 0;
+			if (std::sscanf(opair, "%d,%d", &oa, &ob) == 2 && oa >= 1 && ob >= 1) {
+				int ex = edges[0].shard_x_, ey = edges[0].shard_y_;
+				if ((ex == oa && ey == ob) || (ex == ob && ey == oa)) {
+					int m_id = merge_graph.node_[ex - 1] ? ex : (merge_graph.node_[ey - 1] ? ey : -1);
+					int f_id = (m_id == ex) ? ey : ex;
+					if (m_id > 0 && !merge_graph.node_[f_id - 1]) {
+						double v[12]; int nv = 0;
+						{ std::stringstream ss(om); double d; while (nv < 12 && (ss >> d)) v[nv++] = d; }
+						if (nv == 12) {
+							Matrix4d M = Matrix4d::Identity();
+							for (int r = 0; r < 3; r++) for (int c = 0; c < 3; c++) M(r, c) = v[r * 3 + c];
+							M(0, 3) = v[9]; M(1, 3) = v[10]; M(2, 3) = v[11];
+							if (f_id == ob) M = M.inverse();  // role swap: M_ba = M_ab^-1
+							Matrix4d Wf, Wm;
+							base_graph.T_[f_id - 1].Output(Wf);
+							merge_graph.T_[m_id - 1].Output(Wm);
+							Matrix4d Tp = Wf * M * Wm.inverse();
+							for (int r = 0; r < 3; r++) {
+								for (int c = 0; c < 3; c++) R_p(r, c) = Tp(r, c);
+								t_p[r] = Tp(r, 3);
+							}
+							cout << "*** ORACLE *** pair " << f_id << "-" << m_id
+								<< " fired t=[" << t_p.transpose() << "]"
+								<< " Wf_tnorm=" << Vector3d(Wf(0,3),Wf(1,3),Wf(2,3)).norm()
+								<< " Wm_tnorm=" << Vector3d(Wm(0,3),Wm(1,3),Wm(2,3)).norm() << endl;
+						}
+						else cout << "*** ORACLE *** SKIP: SFS_ORACLE_M parsed " << nv << "/12 numbers" << endl;
+					}
+					else cout << "*** ORACLE *** SKIP: pair proposed but not as fixed-moving cross edge" << endl;
+				}
+			}
+		}
+	}
 	cout << "*** MERGEINIT *** t=[" << t_p.transpose() << "]" << endl;
 
 	//########## Make ICP initial condiiton

@@ -206,6 +206,20 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// Ticket 06 Test 2: provenance print of per-piece axis alignment
+	// (working-frame = A_i * local). Parsed offline to build oracle inits.
+	for (int i = 0; i < SHARD_NUMBER; i++) {
+		if (shard[i].is_matching_) {
+			Matrix3d R_ai; Vector3d t_ai;
+			T_axis[i].Output(R_ai, t_ai);
+			cout << "*** TAXIS *** piece " << i + 1 << " R=["
+				<< R_ai(0,0) << "," << R_ai(0,1) << "," << R_ai(0,2) << ";"
+				<< R_ai(1,0) << "," << R_ai(1,1) << "," << R_ai(1,2) << ";"
+				<< R_ai(2,0) << "," << R_ai(2,1) << "," << R_ai(2,2) << "] t=["
+				<< t_ai.transpose() << "]" << endl;
+		}
+	}
+
 	cout << "#################### Feature matching ####################" << endl;
 	////#################### Feature matching ####################//
 	list<LCSIndex> LCS_out;

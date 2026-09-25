@@ -1595,6 +1595,109 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 9
 };
 #endif
+//############################################ POT_A_ORIG (oracle control) ############################################//
+// Ticket 06 Test 2 control: the sample the method worked on, from the
+// self-consistent original_samples bundle (NURBS_Dataset Pot_A breaklines
+// are NOT in GT frame -- verified 2026-09-25, skip). Absolute paths like
+// JUGLET_BASE; do NOT touch the shared `path` global.
+#ifdef POT_A_ORIG
+#define SHARD_NUMBER 8
+#define NUM_MIXED_SHERD 1
+
+#define POTA_ORIG_BASE "/data/gpfs/projects/punim2657/sfs_main/original_samples/SfS_pp/"
+
+string file_path[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_01_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_02_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_03_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_04_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_05_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_06_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_07_Breakline_0.pcd",
+	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_08_Breakline_0.pcd"
+};
+
+string obj_path[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_01_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_02_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_03_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_04_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_05_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_06_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_07_Mesh.obj",
+	POTA_ORIG_BASE "Mesh/Pot_A_Piece_08_Mesh.obj"
+};
+
+string axis_path[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_01_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_02_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_03_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_04_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_05_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_06_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_07_Axis.xyz",
+	POTA_ORIG_BASE "Axes/Pot_A_Piece_08_Axis.xyz"
+};
+
+string surface_in[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_01_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_02_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_03_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_04_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_05_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_06_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_07_Surface_0.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_08_Surface_0.xyz"
+};
+
+string surface_out[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_01_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_02_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_03_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_04_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_05_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_06_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_07_Surface_1.xyz",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_08_Surface_1.xyz"
+};
+
+string surface_fr[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_01_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_02_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_03_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_04_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_05_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_06_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_07_Surface_F.pcd",
+	POTA_ORIG_BASE "Surfaces/Pot_A_Piece_08_Surface_F.pcd"
+};
+
+string gt_T_path[SHARD_NUMBER] = {
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_1_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_2_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_3_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_4_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_5_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_6_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_7_T.txt",
+	POTA_ORIG_BASE "Ground Truth/Pot_A_Piece_8_T.txt"
+};
+
+string gt_graph_path[1] = {
+	POTA_ORIG_BASE "Ground Truth/Pot_A_simple_graph.txt"
+};
+
+bool shard_on_off[SHARD_NUMBER] = {
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,	// 5
+	true,   // 6
+	true,	// 7
+	true,	// 8
+};
+#endif
 #ifdef POT_B
 #define SHARD_NUMBER 9
 #define NUM_MIXED_SHERD 1

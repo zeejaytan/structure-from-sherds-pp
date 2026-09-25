@@ -35,6 +35,8 @@ time ${APPTAINER} exec \
     --env SFS_NORMAL_ABS="${SFS_NORMAL_ABS:-}" \
     --env SFS_CAUCHY_DIST="${SFS_CAUCHY_DIST:-}" \
     --env SFS_CAUCHY_NORM="${SFS_CAUCHY_NORM:-}" \
+    --env SFS_ORACLE_PAIR="${SFS_ORACLE_PAIR:-}" \
+    --env SFS_ORACLE_M="${SFS_ORACLE_M:-}" \
     --env OMP_NUM_THREADS="${OMP_NUM_THREADS:-}" \
     "${SIF}" \
     bash -c "cd ${ROOT}/build && ./Hierarchy-Clear"
