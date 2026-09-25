@@ -1286,7 +1286,7 @@ void Icp(vector<BreakLine>& L,
 		if (miss_cor)
 			break;
 
-		{ int ccn = 0; for (size_t cqi = 0; cqi < COR.size(); cqi++) ccn += (int)COR[cqi].cor.size(); cout << "*** ICPCOR *** pair " << cycle.nodes[0] << "-" << cycle.nodes[1] << " iter=" << iter << " objs=" << COR.size() << " pts=" << ccn << endl; }
+		{ int ccn = 0; double cdist = 0; for (size_t cqi = 0; cqi < COR.size(); cqi++) { ccn += (int)COR[cqi].cor.size(); for (size_t cki = 0; cki < COR[cqi].cor.size(); cki++) cdist += (COR[cqi].cor[cki].p_A - COR[cqi].cor[cki].p_B).norm(); } cout << "*** ICPCOR *** pair " << cycle.nodes[0] << "-" << cycle.nodes[1] << " iter=" << iter << " objs=" << COR.size() << " pts=" << ccn << " meandist=" << (ccn ? cdist / ccn : -1) << endl; }
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
