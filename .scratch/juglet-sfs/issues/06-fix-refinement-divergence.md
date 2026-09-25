@@ -58,6 +58,14 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: upstream widths (5.0/2.0, verified print) still 0/18.
+  Refined reading of the evidence: on real curves there is NO e5
+  divergence (that was dot-era); inits sit ~10 mm off and never close
+  to <2 mm. So: non-convergence, not divergence. E3b (axis weight) was
+  also dot-era and therefore VOID for real curves -- retesting w_a=0.1
+  now as 31290875 (no rebuild needed). If that fails, next: w_a=0,
+  then init quality (why 10 mm off when GT gap is 3.6 mm?).
+
 - 2026-09-25: cause NARROWED to capture range. MERGEINIT translations
   sane (2-15 mm); MERGEPOSE finals drifted tens of mm off; post-refinement
   re-match ~empty. Init error (~10 mm from LCS feature matches) EXCEEDS
