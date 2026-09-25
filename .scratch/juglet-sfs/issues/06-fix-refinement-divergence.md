@@ -58,6 +58,17 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: w_a=0 (verified print) still 0/18. Axis term FULLY
+  exonerated (1.0 / 0.1 / 0 identical) -- remove it from the suspect
+  list, not just demote it. Remaining: init quality (~10 mm off vs
+  3.6 mm true gap), rim terms (already off by flags), Cauchy scales
+  (5.0 tested, negative).
+- 2026-09-25: iterative diagnosis moves to a held CPU allocation
+  (holder 31291185, sapphire 8cpu/32G, 3h -- NOT the GPU script, which
+  would waste a GPU on CPU work). Batch turnaround was the bottleneck:
+  every one-line probe cost a queue wait. Ad-hoc holder (documented
+  here); file as cpu_session.sh if the pattern repeats.
+
 - 2026-09-25: upstream widths (5.0/2.0, verified print) still 0/18.
   Refined reading of the evidence: on real curves there is NO e5
   divergence (that was dot-era); inits sit ~10 mm off and never close
