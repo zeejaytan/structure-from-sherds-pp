@@ -89,6 +89,13 @@ against letting the Juglet stand in for the corpus when the finding is written u
       (re-match finds nothing because placements are kilometers off, not
       because gates are strict). Fix direction = refinement robustness:
       ticket 06 opened. S2 note stands.
+- 2026-09-25 AMENDMENT (breaklines degenerate -- ticket 02 reopened):
+  bundle breaklines are sub-mm dots at x1000 offsets (vs Pot_A's real
+  rim curves); the 60 matches / 84 "inliers" are dot-noise overlaps.
+  The 03/04/05 "0/18" verdicts stand CONDITIONALLY as dot-input results
+  (assembly genuinely found nothing on THESE inputs; scorer fix,
+  patch-ordering, axis-scatter on independent axes all stand). Must be
+  re-earned on real rim curves; mechanism ranking may shift.
 - 2026-09-24, ticket 06 characterization: merge INITIAL placements are
   already e5 -- divergence sits UPSTREAM of joint refinement, in the
   per-edge Ceres Registration that overwrites pairwise transforms

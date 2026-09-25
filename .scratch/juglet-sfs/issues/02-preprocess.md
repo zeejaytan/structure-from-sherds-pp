@@ -8,7 +8,31 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
 
 **Blocked by:** 01
 
-**Status:** resolved
+**Status:** ready-for-agent
+
+## Reopened 2026-09-25: breaklines are degenerate dots, not rims
+
+- Scale-then-shape verdict (measured, `sfs_preprocessing` shell):
+  Juglet Breakline_0 files span ~600x370x90 units at e5 offsets;
+  Pot_A's span 103x114x56 mm at vessel offsets. Read as mm, ours are
+  9x the vessel; read /1000, ours are 0.6x0.37x0.09 mm dots with 200
+  points on them. EITHER reading is fatal: no fracture-rim curve
+  exists in these files (compare Pot_A: real rim curves). The 60
+  feature matches / 84 "inliers" downstream are dot-noise overlaps
+  (dense dots within thresholds by chance), not curve alignments.
+- Consequence: tickets 03-06 ran on dot inputs. Their verdicts stand
+  CONDITIONALLY (assembly genuinely found nothing on THESE inputs;
+  scorer fix + patch-ordering + axis-frame measurements stand
+  independently), but "0/18" must be re-earned on real curves.
+  S1 amended accordingly; 06 parked pending fixed breaklines.
+- Gate failure (mine, lesson recorded): ticket-02 verification counted
+  files (200 pts ✓) and spot-checked units on SURFACES only -- never
+  breakline extents. A count is not a shape.
+- Next: trace the x1000 insertion + segment collapse in
+  EdgeLineExtractionHeadless (sphere-marching radius? B-spline units?
+  density gates on mis-scaled coords?). Suspect single root cause:
+  mm-tuned internal gates seeing x1000 coords select dot-sized
+  regions (units AND degeneracy from one stray x1000).
 
 ## Result (2026-09-20)
 
