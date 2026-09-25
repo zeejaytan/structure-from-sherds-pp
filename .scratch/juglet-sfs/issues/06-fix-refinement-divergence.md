@@ -58,6 +58,13 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: redirected by ticket-07 evidence. The refinement does NOT
+  start lost (MERGEINIT sane, 2-15 mm) -- it drifts: 200 iterations
+  from ~10 mm-off inits with 1.0 mm robust kernels (upstream: 5.0 mm)
+  never capture. Next experiment: restore upstream Cauchy scales
+  (5.0/2.0/2.0/2.0) via env knob, one variable, GT-scored; Pot_A
+  no-regression per guardrail.
+
 - 2026-09-24: trajectory verdict (run 31209597): accumulated motion is
   e5 ALREADY at iteration 0, then wanders (652K->622K; 571K->460K over
   23 iters, never converging sanely). Not gradual drift: a first-step

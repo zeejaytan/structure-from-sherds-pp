@@ -96,11 +96,10 @@ against letting the Juglet stand in for the corpus when the finding is written u
   (assembly genuinely found nothing on THESE inputs; scorer fix,
   patch-ordering, axis-scatter on independent axes all stand). Must be
   re-earned on real rim curves; mechanism ranking may shift.
-- 2026-09-24, ticket 06 characterization: merge INITIAL placements are
-  already e5 -- divergence sits UPSTREAM of joint refinement, in the
-  per-edge Ceres Registration that overwrites pairwise transforms
-  during pruning (legacy ICP on the same pair finds 84 sane inliers).
-  Ticket 06 proceeds there (per-edge I/O print, then term ablation).
+- 2026-09-24, ticket 06 characterization (SUPERSEDED 09-25, kept for
+  the trail): merge INITIAL placements looked e5 -- later shown to be
+  stale readings; current understanding below. Ticket 06 proceeds on
+  refinement capture range.
 - 2026-09-25 AMENDMENT (breaklines degenerate -- ticket 02 reopened,
   then RE-RESOLVED same day): bundle breaklines were sub-mm dots at
   x1000 offsets (meter-assumed sphere radii 100-1000x too small, padded
@@ -111,6 +110,14 @@ against letting the Juglet stand in for the corpus when the finding is written u
   for the rerun); standing independently: scorer fix, patch discipline,
   axis scatter on independent axes, lessons.md entry ("a count is not
   a shape").
+- 2026-09-25, ticket 07 verdict (REAL rim curves, run 31282932): 0/18
+  again, but a DIFFERENT zero -- matcher floods (36/36 pairs match,
+  all 18 mates with inliers) instead of starving; merges start sane
+  (2-15 mm inits) and drift (200 refinement iterations vs 1.0 mm
+  robust kernels vs ~10 mm init error: saturated losses, weak
+  gradients, no convergence). Fix direction: restore upstream kernel
+  scales and/or bound the walk (ticket 06). Existing pair-16 staging
+  + witness stand (meshes/GT/scan poses byte-identical, claim null).
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
