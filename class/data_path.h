@@ -8,6 +8,7 @@
 
 // Dataset selection
 // #define POT_A
+// #define POT_A_ORIG   (ticket 06 control: self-consistent original_samples Pot_A)
 #define JUGLET
 // Use TRAY_000 to run full 40-piece Tray dataset
 // #define TRAY_000
