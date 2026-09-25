@@ -58,6 +58,32 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: conclusion SUSPENDED by user challenge (rightly: tuning
+  failures argue, they don't prove). Two-test design to PROVE
+  non-viability and say why, given Pot_A works. TEST 1 (static,
+  DONE): same gate probe, both bundles, GT placements. Pot_A: 15/15
+  true mates pass the strict gate at GT (12-50 inliers, traces
+  0.09-0.95 mm apart, raw==abs: normals genuinely agree).
+  Juglet: 1/18 (only 6-7). Same instrument, same gate, opposite
+  outcomes -- the gate assumes mating traces coincide <2 mm with
+  agreeing surface normals; wheel-thrown thin clean breaks satisfy it
+  15/15, handmade thick eroded breaks violate it 17/18 (opposite-face
+  traces ~1.7 mm apart, normals 67-129 deg opposed; 8/18 GT edges not
+  even physical contacts). Probes: artifacts/juglet_run1/
+  gt_gate_probe.py + pot_a_gate_probe.py. TEST 2 (dynamic, designed,
+  not yet built): oracle-init merge through the real binary. New knobs
+  SFS_ORACLE_PAIR + SFS_ORACLE_P (the two GT vessel-frame matrices);
+  at the MERGEINIT site (ranking_system.cpp:1744) replace TransAverage
+  output with W_b^-1 * W_a * P_a^-1 * P_b for single-edge merges of the
+  named pair only (W from the graphs' T_, all in scope). Refinement,
+  gates, scorer run unmodified FROM truth. Predictions: 6-7 should
+  keep ~45 pts and merge if downstream viable (blame falls on
+  matcher/init alone); 2-9 should keep ~0 even from truth (gate-level
+  proof). If Ceres walks AWAY from oracle init (MERGEPOSE final vs
+  GT), the objective itself rejects truth -- full incompatibility
+  proof. Control: identical harness on a Pot_A pair must merge+score,
+  else the harness (not the method) is broken and the test is void.
+
 - 2026-09-25: SFS_NORMAL_ABS=1 REFUTED at runtime (holder run,
   verified print, strict 2.0/0.85): 8 attempts, all pair 6-7, all
   tables empty, Score_ -1, still 0 joins. abs() only matters at GT
