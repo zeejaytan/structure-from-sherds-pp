@@ -8,9 +8,24 @@ the fixed (post-Nov-2025) pipeline, ready for the assembler to consume.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-## Reopened 2026-09-25: breaklines are degenerate dots, not rims
+## Result (2026-09-25, real fix verified by the extent gate)
+
+- Root causes (both meter-assumptions on mm data): sphere-marching
+  radii 0.005-0.015 applied raw (100-1000x too small -> dot-sized
+  clusters padded to 200 by the densifier, which is why counts always
+  looked right); writer x1000 on mm clouds (e5 offsets). Fixed via
+  versioned patches (mm radii + honest log labels + no-convert write);
+  Pot_A files predate this code path (provenance gap noted, not assumed).
+- Bundle `Juglet_Dataset_20260916/SfS_pp/` now: 18 surfaces, 18
+  breaklines spanning 10.3-26.8 mm at vessel scale (extent gate OK on
+  all 9), 9 axes, 9 meshes, GT. Job 31281384 COMPLETED.
+- Hands to re-assembly: all 03-06 verdicts were dot-input results and
+  must be re-earned (see ticket 07). Standing evidence (scorer fix,
+  patch-ordering, axis scatter on independent axes) is unaffected.
+
+## Diagnosis history (how the defect was found; superseded by the Result above)
 
 - Scale-then-shape verdict (measured, `sfs_preprocessing` shell):
   Juglet Breakline_0 files span ~600x370x90 units at e5 offsets;

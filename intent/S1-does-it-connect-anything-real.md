@@ -101,6 +101,16 @@ against letting the Juglet stand in for the corpus when the finding is written u
   per-edge Ceres Registration that overwrites pairwise transforms
   during pruning (legacy ICP on the same pair finds 84 sane inliers).
   Ticket 06 proceeds there (per-edge I/O print, then term ablation).
+- 2026-09-25 AMENDMENT (breaklines degenerate -- ticket 02 reopened,
+  then RE-RESOLVED same day): bundle breaklines were sub-mm dots at
+  x1000 offsets (meter-assumed sphere radii 100-1000x too small, padded
+  to 200 by the densifier; writer x1000 on mm clouds). Fixed via
+  versioned patches; extent gate (rim scale + vessel scale) green on
+  all 9 (10.3-26.8 mm). ALL downstream assembly findings (03-06) were
+  dot-input results: the "0/18" must be re-earned (ticket 07 opened
+  for the rerun); standing independently: scorer fix, patch discipline,
+  axis scatter on independent axes, lessons.md entry ("a count is not
+  a shape").
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
