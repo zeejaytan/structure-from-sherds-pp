@@ -419,8 +419,6 @@ int main(int argc, char** argv)
 					inj.size_ = (int)shard[ia - 1].edge_line_.point_.cols();
 					inj.start_.x = 1; inj.start_.y = 1;
 					inj.end_.x = inj.size_; inj.end_.y = inj.size_;
-					inj.index_.resize(3, 1);
-					inj.index_(0, 0) = 1; inj.index_(1, 0) = inj.size_; inj.index_(2, 0) = 0;
 					inj.trans_.Set(Matrix4d::Identity(), ib, ia);
 					inj.score_ = 1e6;   // head of the priority list
 					inj.inliner_ = 0;
