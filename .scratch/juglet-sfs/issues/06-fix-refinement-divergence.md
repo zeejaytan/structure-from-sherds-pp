@@ -58,12 +58,15 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
-- 2026-09-25: redirected by ticket-07 evidence. The refinement does NOT
-  start lost (MERGEINIT sane, 2-15 mm) -- it drifts: 200 iterations
-  from ~10 mm-off inits with 1.0 mm robust kernels (upstream: 5.0 mm)
-  never capture. Next experiment: restore upstream Cauchy scales
-  (5.0/2.0/2.0/2.0) via env knob, one variable, GT-scored; Pot_A
-  no-regression per guardrail.
+- 2026-09-25: cause NARROWED to capture range. MERGEINIT translations
+  sane (2-15 mm); MERGEPOSE finals drifted tens of mm off; post-refinement
+  re-match ~empty. Init error (~10 mm from LCS feature matches) EXCEEDS
+  the fork-tightened robust kernels (Cauchy 1.0/0.5 vs upstream 5.0/2.0):
+  saturated losses, weak gradients, 200 iterations of drift instead of
+  convergence. Upstream scales restored behind SFS_CAUCHY_DIST/NORM
+  (defaults keep current behavior; +print). Running 5.0/2.0 as 31290446
+  (rebuild): joins forming = capture range was the binding constraint;
+  still zero = drift has another driver (rim terms? init quality?).
 
 - 2026-09-24: trajectory verdict (run 31209597): accumulated motion is
   e5 ALREADY at iteration 0, then wanders (652K->622K; 571K->460K over
