@@ -19,10 +19,13 @@ echo "=== STEP 1: switch dataset to POT_A_ORIG, rebuild, harvest TAXIS ==="
 # POT_A_ORIG is a separate dataset block in class/data_path.h. Swap the
 # define on the Spartan checkout only (never edit tracked files there);
 # restore JUGLET in the trap so the next Juglet run is not poisoned.
-sed -i 's/^#define JUGLET$/\/\/ #define JUGLET/; s|^// *#define POT_A_ORIG$|#define POT_A_ORIG|' class/data_path.h
-restore() { sed -i 's/^#define POT_A_ORIG$/\/\/ #define POT_A_ORIG/; s|^\/\/ *#define JUGLET$|#define JUGLET|' class/data_path.h; }
+sed -i 's|^#define JUGLET\b|// #define JUGLET|; s|^// *#define POT_A_ORIG\b|#define POT_A_ORIG|' class/data_path.h
+restore() { sed -i 's|^#define POT_A_ORIG\b|// #define POT_A_ORIG|; s|^\/\/ *#define JUGLET\b|#define JUGLET|' class/data_path.h; }
 trap restore EXIT
-grep -nE '^\s*#define (JUGLET|POT_A_ORIG)\s*$' class/data_path.h
+grep -nE '^\s*#define (JUGLET|POT_A_ORIG)\b' class/data_path.h
+if ! grep -qE '^\s*#define POT_A_ORIG\b' class/data_path.h; then
+    echo "FATAL: POT_A_ORIG not enabled -- aborting before build"; exit 1
+fi
 
 srun --jobid="${JOBID}" --overlap --cpus-per-task=8 bash -lc "
     ${APPTAINER} exec --bind /data:/data ${SIF} bash -c \
