@@ -1990,7 +1990,8 @@ void IcpIncGraphAxis(
 				cor_onetoone);
 
 			{ int mre_n = 0; for (size_t mci = 0; mci < cor_conv.size(); mci++) mre_n += (int)cor_conv[mci].cor.size();
-			cout << "*** MERGETABLE *** edges=" << edges.size() << " corObjs=" << cor_conv.size() << " corPts=" << mre_n << " tablesum=" << Table.sum() << endl; }
+			string mepairs; for (size_t mei = 0; mei < edges.size(); mei++) { mepairs += to_string(edges[mei].shard_y_) + "-" + to_string(edges[mei].shard_x_) + " "; }
+			cout << "*** MERGETABLE *** edges=" << edges.size() << " [" << mepairs << "] corObjs=" << cor_conv.size() << " corPts=" << mre_n << " tablesum=" << Table.sum() << endl; }
 
 			if (!isEdgeRemoved(Table, edges)) {
 				bool inlier_cal = inlierCalculate(inlier, graph.node_, cor_conv, shard);
