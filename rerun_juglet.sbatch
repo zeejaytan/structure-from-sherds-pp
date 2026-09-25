@@ -30,6 +30,7 @@ time ${APPTAINER} exec \
     --env SFS_PC_NORM="${SFS_PC_NORM:-}" \
     --env SFS_AXIS_WEIGHT="${SFS_AXIS_WEIGHT:-}" \
     --env SFS_LCS_ONLY="${SFS_LCS_ONLY:-}" \
+    --env OMP_NUM_THREADS="${OMP_NUM_THREADS:-}" \
     "${SIF}" \
     bash -c "cd ${ROOT}/build && ./Hierarchy-Clear"
 echo "Execution exit code: $?"
