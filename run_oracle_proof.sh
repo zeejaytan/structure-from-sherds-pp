@@ -26,11 +26,17 @@ run_arm() {   # $1=tag $2=pair $3=M
     srun --jobid="${JOBID}" --overlap --cpus-per-task=8 bash -lc "
         ${APPTAINER} exec --bind /data:/data \
             --env SFS_ORACLE_PAIR='${pair}' --env SFS_ORACLE_M='${m}' \
+            --env SFS_ORACLE_INJECT=1 \
             ${SIF} bash -c 'cd ${ROOT}/build && ./Hierarchy-Clear' \
             > ${ROOT}/oracle_${tag}.out 2>&1"
     echo "--- ${tag} verdict ---"
-    grep -a -E 'ORACLE|Best assembly|Edge accuracy|Shard accuracy' \
-        "${ROOT}/oracle_${tag}.out" | head -n 8 || true
+    # ORACLE-count 0 means the arm is VOID (override never fired) and the
+    # run says nothing about the method. Never report a null from these.
+    local fired
+    fired=$(grep -a -c 'ORACLE \*\*\* pair' "${ROOT}/oracle_${tag}.out" || true)
+    echo "ORACLE fired ${fired} time(s)$([ "${fired}" = "0" ] && echo '  <-- VOID ARM')"
+    grep -a -E 'ORACLE|MERGETABLE|PLAUSIBILITY|Best assembly|Edge accuracy|Shard accuracy' \
+        "${ROOT}/oracle_${tag}.out" | head -n 14 || true
 }
 
 run_arm juglet67 "${ORACLE_PAIR_67:-6,7}" "${M_JUGLET_67}"

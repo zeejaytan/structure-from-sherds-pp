@@ -1,6 +1,8 @@
 #include <iostream>
 #include "glog/logging.h"
 #include <time.h>
+#include <cstdlib>  // ticket 06 Test 2: SFS_ORACLE_INJECT / SFS_ORACLE_PAIR
+#include <cstdio>
 #include <vector>
 #include <fstream>
 #include <algorithm>
@@ -386,6 +388,50 @@ int main(int argc, char** argv)
 	for (auto& connection : LCS_out) {
 		cout << "  Pieces " << connection.shard_y_ << "-" << connection.shard_x_
 		     << ": survived (area=" << connection.area_ << ")" << endl;
+	}
+
+	// Ticket 06 Test 2 (pair injection): the oracle override can only
+	// fire if the beam actually PROPOSES the pair, and on the Juglet the
+	// beam proposes a different (false) pair every run -- so a hand-true
+	// placement alone yielded ORACLE-count 0 (void arms, 2026-09-25).
+	// SFS_ORACLE_INJECT=1 prepends the SFS_ORACLE_PAIR edge to the
+	// candidate list so the true pair is on the table. The injected edge
+	// gets a neutral transform (overridden downstream at MERGEINIT) and
+	// a full-range segment span, i.e. it proposes the pair and nothing
+	// else -- it does NOT hand over the answer. Everything after
+	// injection (registration, refinement, gates, plausibility, scorer)
+	// runs unmodified.
+	{
+		const char* oin = std::getenv("SFS_ORACLE_INJECT");
+		const char* opair2 = std::getenv("SFS_ORACLE_PAIR");
+		if (oin && (*oin == '1' || *oin == 't') && opair2 && *opair2) {
+			int ia = 0, ib = 0;
+			if (std::sscanf(opair2, "%d,%d", &ia, &ib) == 2 &&
+				ia >= 1 && ib >= 1 && ia <= SHARD_NUMBER && ib <= SHARD_NUMBER && ia != ib) {
+				bool already = false;
+				for (auto& c : LCS_out) {
+					if ((c.shard_x_ == ia && c.shard_y_ == ib) ||
+						(c.shard_x_ == ib && c.shard_y_ == ia)) { already = true; break; }
+				}
+				if (!already) {
+					LCSIndex inj;
+					inj.shard_x_ = ib; inj.shard_y_ = ia;   // moving, fixed
+					inj.size_ = (int)shard[ia - 1].edge_line_.point_.cols();
+					inj.start_.x = 1; inj.start_.y = 1;
+					inj.end_.x = inj.size_; inj.end_.y = inj.size_;
+					inj.index_.resize(3, 1);
+					inj.index_(0, 0) = 1; inj.index_(1, 0) = inj.size_; inj.index_(2, 0) = 0;
+					inj.trans_.Set(Matrix4d::Identity(), ib, ia);
+					inj.score_ = 1e6;   // head of the priority list
+					inj.inliner_ = 0;
+					inj.c_plausibility_ = true;
+					LCS_out.push_front(inj);
+					cout << "*** ORACLE-INJECT *** pair " << ia << "-" << ib
+						<< " prepended (size=" << inj.size_ << ")" << endl;
+				}
+				else cout << "*** ORACLE-INJECT *** pair " << ia << "-" << ib << " already proposed" << endl;
+			}
+		}
 	}
 	result_log << "Feature matches after pruning: " << LCS_out.size() << endl;
 
