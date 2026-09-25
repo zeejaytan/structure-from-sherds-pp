@@ -11,15 +11,17 @@ SIF=/data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif
 
 cd "${ROOT}"
 restore() {
-    sed -i 's/^#define POT_A_ORIG$/\/\/#define POT_A_ORIG/; s/^\/\/#define JUGLET$/#define JUGLET/' class/data_path.h
+    sed -i 's/^#define POT_A_ORIG$/\/\/ #define POT_A_ORIG/; s|^\/\/ *#define JUGLET$|#define JUGLET|' class/data_path.h
     echo "--- restored defines ---"
-    grep -n '^#define JUGLET\|^#define POT_A_ORIG' class/data_path.h || true
+    grep -nE '^\s*#define (JUGLET|POT_A_ORIG)\s*$' class/data_path.h || true
 }
 trap restore EXIT
 
-sed -i 's/^#define JUGLET$/\/\/#define JUGLET/; s/^\/\/#define POT_A_ORIG$/#define POT_A_ORIG/' class/data_path.h
+# Toggle the two dataset defines. The selection list uses '// #define X'
+# (slash-slash-SPACE); handle both spaced and unspaced comment forms.
+sed -i 's/^#define JUGLET$/\/\/ #define JUGLET/; s|^// *#define POT_A_ORIG$|#define POT_A_ORIG|' class/data_path.h
 echo "--- active defines ---"
-grep -n '^#define JUGLET\|^#define POT_A_ORIG' class/data_path.h || true
+grep -nE '^\s*#define (JUGLET|POT_A_ORIG)\s*$' class/data_path.h || true
 
 srun --jobid="${JOBID}" --overlap --cpus-per-task=8 bash -lc "
 set -o pipefail
