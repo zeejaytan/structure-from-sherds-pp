@@ -58,6 +58,16 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: the ONE passed merge dissected (wide-gate run): pair 2-9
+  (TRUE mates) placed 110 deg / ~200+ mm off GT relatives -- right pair,
+  wrong pose. GT gap 0.02 mm (touching) vs proposed 11.45 mm (floating):
+  a near-miss the gates correctly reject. Refinement starts ~10 mm off
+  and never closes (1.0 mm kernels vs upstream 5.0). The Cauchy
+  restore (5.0/2.0) was only ever tested on DOTS -- retesting on real
+  curves now as 31291925 (knobs already in binary, verified prints).
+  If it closes: capture range was binding. Staged pair 2-9
+  (correct-touching vs proposed-floating) as juglet_sfs29 for the eye.
+
 - 2026-09-25: w_a=0 (verified print) still 0/18. Axis term FULLY
   exonerated (1.0 / 0.1 / 0 identical) -- remove it from the suspect
   list, not just demote it. Remaining: init quality (~10 mm off vs
