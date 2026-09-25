@@ -58,6 +58,29 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: SFS_NORMAL_ABS=1 REFUTED at runtime (holder run,
+  verified print, strict 2.0/0.85): 8 attempts, all pair 6-7, all
+  tables empty, Score_ -1, still 0 joins. abs() only matters at GT
+  placements, which refinement never reaches -- at refined placements
+  (~10 mm off) the 2.0 mm DISTANCE gate keeps nothing regardless of
+  normal direction. Distance binds first; normals second. Consolidated
+  mechanism for 06: (1) LCS inits land ~10 mm off; (2) refinement never
+  closes to <2 mm; (3) re-match keeps nothing; (4) wide gates admit
+  points but placements interpenetrate/wrong-pose (2-9 passed at 110
+  deg off) and overlap/score kill them; (5) at GT itself 17/18 true
+  mates fail the strict gate (normals opposed across wall faces +
+  traces floating 0.2-1.8 mm off-seam). No assembly gate setting passes
+  truth AND filters falsehood -- the fix lives UPSTREAM in breakline
+  extraction (same-face traces, seam-covering segments) and/or LCS
+  init quality, both bigger than one variable. GT-gate probe saved as
+  artifacts/juglet_run1/gt_gate_probe.py: acceptance test for any new
+  bundle (true mates must pass the gate at GT). No Pot_A rerun owed:
+  all knobs default to legacy behavior (abs off = raw dot, identical
+  code path). Second measurement caveat: scorer denominator 18 counts
+  8 GT edges whose meshes never touch at GT (gaps 3.3-18.9 mm, zero
+  pts <3 mm) -- honest joinable set is ~10, still 0/10. Holder 31291185
+  released after this run.
+
 - 2026-09-25: STRUCTURAL finding -- truth itself fails the re-match
   gate, so no tuning of it can ever join. GT-placed breaklines of TRUE
   mates: best segment pair (2-9 seg4 vs seg5) sits 1.68 mm apart with
