@@ -1303,6 +1303,7 @@ void TransAverage(const vector<bool>& merge_node,
 	Matrix3d R_ref, R_avg;
 	Vector3d t_ref = { 0, 0, 0 };
 	int e_index = edges[0].trans_.index_ - 1;
+	{ for (size_t te = 0; te < edges.size(); te++) { Matrix4d Tte; edges[te].trans_.Output(Tte); cout << "*** TRANSAVG *** edge " << edges[te].shard_y_ << "-" << edges[te].shard_x_ << " t_norm=" << Vector3d(Tte(0,3),Tte(1,3),Tte(2,3)).norm() << endl; } }
 	if (merge_node[e_index]) {
 		edges[0].trans_.InvOut(T_ref_inv);
 		edges[0].trans_.Output(R_ref, t_ref);
