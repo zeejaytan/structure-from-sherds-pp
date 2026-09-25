@@ -32,6 +32,7 @@ time ${APPTAINER} exec \
     --env SFS_LCS_ONLY="${SFS_LCS_ONLY:-}" \
     --env SFS_REJECT_DIST="${SFS_REJECT_DIST:-}" \
     --env SFS_REJECT_NORM="${SFS_REJECT_NORM:-}" \
+    --env SFS_NORMAL_ABS="${SFS_NORMAL_ABS:-}" \
     --env SFS_CAUCHY_DIST="${SFS_CAUCHY_DIST:-}" \
     --env SFS_CAUCHY_NORM="${SFS_CAUCHY_NORM:-}" \
     --env OMP_NUM_THREADS="${OMP_NUM_THREADS:-}" \

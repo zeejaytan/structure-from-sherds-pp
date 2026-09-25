@@ -58,6 +58,26 @@ labeled Juglet-only. One variable per experiment, GT-scored.
 
 ## Comments
 
+- 2026-09-25: STRUCTURAL finding -- truth itself fails the re-match
+  gate, so no tuning of it can ever join. GT-placed breaklines of TRUE
+  mates: best segment pair (2-9 seg4 vs seg5) sits 1.68 mm apart with
+  surface normals 67+ deg opposed (means 129 deg apart: [0.68,0.43,0.6]
+  vs [-0.66,0.43,-0.62] -- opposite wall faces, ~wall-thickness offset).
+  Gate demands <2 mm AND normals agreeing within ~32 deg (0.85) or
+  ~46 deg (0.7): 0 inliers at every segment pair of 2-9, and 0/18 mates
+  at 3mm/15deg whole-file. At 10mm/30deg false pairs score max 19 mean
+  2.5 vs true max 24 mean 1.3 -- no discrimination left either.
+  Two internal inconsistencies found: (1) UnifiedPotteryValidation uses
+  raw dot (agree-only) while robust_icp's identical check uses abs(dot)
+  (robust_icp.cpp:396) -- the pipeline disagrees with itself on
+  opposing normals; (2) with abs(), true 2-9 admits 6 inliers at strict
+  (2.0/0.85) vs false 1-2 admitting 0 -- discrimination EXISTS under
+  abs. Single variable next: SFS_NORMAL_ABS=1 (abs the fallback dot,
+  matching robust_icp), strict gate, holder run. Pot_A no-regression
+  check still owed before any fix claim. (31291925 Cauchy-restore on
+  real curves also completed: verified 5.0/2.0 prints, still 0/18 --
+  capture range exonerated on real curves, closing the dot-era thread.)
+
 - 2026-09-25: the ONE passed merge dissected (wide-gate run): pair 2-9
   (TRUE mates) placed 110 deg / ~200+ mm off GT relatives -- right pair,
   wrong pose. GT gap 0.02 mm (touching) vs proposed 11.45 mm (floating):

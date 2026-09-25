@@ -161,8 +161,17 @@ void UnifiedPotteryValidation(Corres& cor, double dist_TH, double angle_TH = 0.6
 				cor.index_A, cor.index_B, cor.cor[i].p_A, cor.cor[i].n_A, cor.cor[i].p_B, cor.cor[i].n_B, dist_TH);
 		} else {
 			// FALLBACK: Legacy distance + normal validation for non-pottery
+			// Juglet ticket 06: normal-agreement direction env-tunable.
+			// robust_icp's identical check uses abs(dot) (opposing normals
+			// pass); this gate used raw dot (agree-only). GT-placed TRUE
+			// mates show ~129-deg-opposed means (opposite wall faces), so
+			// raw dot rejects truth itself. SFS_NORMAL_ABS=1 aligns this
+			// gate with robust_icp. Default 0 preserves behavior.
+			static bool nabs_init = false; static bool nabs = false;
+			if (!nabs_init) { nabs_init = true; const char* e = std::getenv("SFS_NORMAL_ABS"); nabs = (e && (*e == '1' || *e == 't')); std::cout << "[GATE] normal_abs=" << (nabs ? 1 : 0) << std::endl; }
 			bool dist_ok = (std::abs(distance[i]) < dist_TH);
-			bool normal_ok = (Norm[i] > angle_TH);
+			double ndot = nabs ? std::abs(Norm[i]) : Norm[i];
+			bool normal_ok = (ndot > angle_TH);
 			correspondence_valid = dist_ok && normal_ok;
 		}
 
