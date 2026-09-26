@@ -1,7 +1,52 @@
 # S1 — After the unit fixes, does it find any real joins?
 
-**Status:** open — the zero result predates the fixes. **Two arms: the Juglet (running,
-input built) and Tray-000 (not re-run).** · **Blocked by:** none
+**Status:** open — the Juglet arm is now **settled at 0**, with the cause
+proven rather than assumed (2026-09-26). **The Tray-000 arm is still
+unmeasured and is the one that can answer the capability half.** ·
+**Blocked by:** none
+
+**2026-09-26, Juglet arm settled (0 joins, cause proven, not a
+measurement error).** Two tests, one static and one dynamic, agree:
+
+- **Static:** placing the sherds at their true ground-truth positions and
+  running the pipeline's own join test, **Pot_A passes 15/15 and the
+  Juglet passes 0/18.** The gate rejects the truth itself.
+- **Dynamic:** handing the real binary the *exact* ground-truth placement
+  of a genuinely-touching pair (6-7, seam 0.92 mm) and letting
+  registration, refinement, gates and scoring run unmodified, the join is
+  **rejected with zero matching points** — twice. The identical harness
+  on Pot_A (pair 2-5) **accepts and keeps** the join (score 732→735).
+
+So this is **case 1, the method failing on this material** — not a broken
+ruler, not a wrong answer key. Both were already excluded (ticket 01
+residuals ~1e-14 mm; the scorer fix in ticket 04), and the Pot_A control
+now rules out a broken instrument as well.
+
+**Why, in the method's own terms.** The join test needs a point on one
+sherd's breakline within 2 mm of a point on its neighbour's, with
+surface normals agreeing. The Juglet's wall is ~1.8 mm, so extraction
+traces the *inner* face on one sherd and the *outer* face on its
+neighbour — 1.7 mm apart with normals 67–129° opposed. Two different
+surfaces are being compared as though they were the same. Pot_A's thin
+wheel-thrown breaks put both traces on one face, 0.09–1.30 mm apart,
+with normals genuinely agreeing.
+
+**Consequence for this question:** the honest Juglet score is **0/10**,
+not 0/18 — eight of the answer key's 18 edges are not physical contacts
+at all (3.3–18.9 mm apart at ground truth). The denominator itself was
+partly broken.
+
+**What it does NOT settle.** The gate blocks this object from ever
+proposing a join, so the Juglet arm can prove the method works on
+suitable material (Pot_A control) but **cannot** prove it does not work
+in general — the gate finding is a statement about breakline extraction
+on thick, handmade, eroded sherds, not about SfS++ on all handmade ware.
+**The capability half of S1 still needs the symmetric arm below.**
+
+**Also unresolved:** the matcher proposes a *different* pair on every
+run over identical input (6-7, 5-7, 3-7, 7-9) — ticket 08. Until that
+is attributed, any single-run join count on this corpus is a sample from
+a distribution, not a measurement.
 
 ## Why it matters
 
@@ -118,8 +163,21 @@ against letting the Juglet stand in for the corpus when the finding is written u
   gradients, no convergence). Fix direction: restore upstream kernel
   scales and/or bound the walk (ticket 06). Existing pair-16 staging
   + witness stand (meshes/GT/scan poses byte-identical, claim null).
-- [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
-- [ ] Tray-000 re-run end to end **after** both fixes, from the fixed preprocessing output
+- [x] **Juglet arm settled with cause proven** (2026-09-26, ticket 06):
+      **0/10** joinable edges (0/18 nominal — 8 answer-key edges are not
+      physical contacts). Two tests agree: static GT-placement gate probe
+      (Pot_A 15/15 vs Juglet 0/18) and dynamic oracle-init through the
+      real binary (Juglet 6-7 rejected from truth with 0 inliers; Pot_A
+      2-5 accepted, kept, score 732→735). **The method fails on this
+      material, and the harness that showed it is validated by its own
+      control.** Cause: breaklines trace opposite wall faces ~1.7 mm
+      apart with opposed normals; the gate compares them as one surface.
+- [ ] **A new breakline extraction that pairs across the wall and covers
+      the seam** — the actual fix, in preprocessing. Acceptance test:
+      `python artifacts/juglet_run1/gate_probe_b0.py <bundle>` must show
+      true mates passing the gate at ground truth. Until this passes, no
+      further assembly tuning is worth attempting.
+- [ ] **Tray-000 re-run end to end** **after** both fixes, from the fixed preprocessing output
 - [ ] Connection count reported, and if it is still zero, a check that the search radius is
       now in the same units as the point cloud — verified by printing both, not assumed
 - [ ] At least one proposed join **rendered**: the two sherds, at a view that shows whether

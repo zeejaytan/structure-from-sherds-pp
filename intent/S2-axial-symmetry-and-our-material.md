@@ -65,6 +65,34 @@ already e5, while legacy ICP on the same pair is sane). S2 unchanged.
 (all 18 mates with inliers, most false pairs too) yet joins still 0/18.
 Handmade curves match anything against anything: no starvation, no
 discrimination. Scope reading holds; failure moved downstream to merge.
+2026-09-26, ticket 06 verdict -- **this narrows the scope boundary to a
+measurable line, and the line is NOT axial symmetry.** The axial term is
+exonerated three times over (w_a 1.0 / 0.1 / 0, all identical), and the
+PotSAC axis scatter (51 deg) turns out not to be what stops the Juglet.
+The binding constraint is the **breakline gate**: a point on one sherd's
+breakline within 2 mm of a point on its neighbour's with agreeing surface
+normals. Pot_A (thin, wheel-thrown) passes 15/15; the Juglet (1.8 mm
+wall) passes 0/18 because extraction traces the inner face on one sherd
+and the outer face on the other -- 1.7 mm apart, normals 67-129 deg
+opposed. Proven dynamically too: ground-truth placement of a true pair
+is REJECTED by the real binary (0 inliers), while the same harness
+accepts Pot_A's.
+
+**So the honest scope statement is narrower and more useful than "not
+axially symmetric":** SfS++'s join gate assumes mating breaklines
+coincide within ~2 mm **on the same face of the wall**. That is
+satisfied by thin wheel-thrown ware and violated by thick handmade ware,
+independent of axial symmetry. Rabati material is handmade and
+thick-walled, which puts it on the wrong side of that line -- but the
+reason is breakline geometry, and it is fixable in preprocessing, not
+inherent to the method's symmetry assumption. **None of the boxes in
+"Done when" are ticked by this**: it is still not the millimetre
+radial-deviation measure this question asks for, and it must not be
+reported as one.
+
+**Standing caveat (unchanged, now load-bearing):** one object, one
+failure mode. A thick wall on an otherwise clean break is untested, and
+this says nothing about the Early Kurgan material.
 
 ## Source
 Upstream: Yoo and Liu et al., *Structure-From-Sherds++*; [`../README.md`](../README.md).
