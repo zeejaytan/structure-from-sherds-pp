@@ -50,16 +50,22 @@ material.**
 point on one sherd's breakline within 2 mm of a point on its neighbour's,
 with surface normals agreeing (dot > 0.85). On the Juglet:
 
-- **Wall thickness, not wear.** Wall ≈1.8 mm. Extraction traces the
-  **inner** face on one sherd and the **outer** face on its neighbour:
-  1.7 mm apart, normals **67-129 deg opposed** (means 129 deg apart,
-  [0.68,0.43,0.6] vs [-0.66,0.43,-0.62]). Two different surfaces are
-  being compared as if they were the same. Pot_A's thin wheel-thrown
-  breaks put both traces on one face, 0.09-1.30 mm apart, normals
-  genuinely agreeing.
-- **Wear: traces miss the seam.** Best per-pair trace gaps 0.17-30 mm
-  where mating edges touch at 0.02 mm; 8/18 answer-key edges are not
+- **The extractor traces ONE wall face per sherd, arbitrarily** (inner:
+  1, 5, 9; outer: 2, 3, 4, 6, 7, 8 — 97-100% confident, 34.7% of points
+  ambiguous). So **10 of 18 true mates are inner-vs-outer** and no 2 mm
+  comparison can see them. Uninformative split: 10/18 non-mate pairs are
+  same-face too, so face agreement does not predict a real join.
+- **CORRECTION (2026-09-26, preprocessing ticket 01): normal agreement is
+  NOT the problem.** The "67-129 deg opposed" figure came from pair 2-9,
+  an *opposite-face* pair; on the 8 same-face mates the normals agree at
+  **0.92-1.00 (6-23 deg)** and pass the gate easily. Opposed normals were
+  the *signature* of tracing two different wall faces.
+- **The dominant cause is coverage** — the segment does not span the
+  seam. Only **1/8** same-face mates is within 2 mm at ground truth; the
+  rest sit 5-30 mm from the 0.02 mm truth. 8/18 answer-key edges are not
   physical contacts at all (3.3-18.9 mm mesh gaps).
+- Pot_A's thin wheel-thrown breaks put both traces on one face,
+  0.09-1.30 mm apart, normals genuinely agreeing — hence 15/15.
 
 **Why no threshold fixes it:** the gate rejects truth itself. Widening
 (20 mm/0.7) admits points on 110-deg-wrong poses; narrowing keeps

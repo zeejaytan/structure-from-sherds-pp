@@ -71,12 +71,24 @@ exonerated three times over (w_a 1.0 / 0.1 / 0, all identical), and the
 PotSAC axis scatter (51 deg) turns out not to be what stops the Juglet.
 The binding constraint is the **breakline gate**: a point on one sherd's
 breakline within 2 mm of a point on its neighbour's with agreeing surface
-normals. Pot_A (thin, wheel-thrown) passes 15/15; the Juglet (1.8 mm
-wall) passes 0/18 because extraction traces the inner face on one sherd
-and the outer face on the other -- 1.7 mm apart, normals 67-129 deg
-opposed. Proven dynamically too: ground-truth placement of a true pair
-is REJECTED by the real binary (0 inliers), while the same harness
-accepts Pot_A's.
+normals. Pot_A (thin, wheel-thrown) passes 15/15; the Juglet passes 0/18.
+Proven dynamically too: ground-truth placement of a true pair is REJECTED
+by the real binary (0 inliers), while the same harness accepts Pot_A's.
+
+2026-09-26, preprocessing ticket 01 -- **and the cause is our own
+extraction, measured.** The extractor traces ONE wall face per sherd,
+arbitrarily (inner 1, 5, 9; outer 2, 3, 4, 6, 7, 8), putting 10/18 true
+mates inner-vs-outer; and only 1/8 same-face mates is within 2 mm at
+ground truth (others 5-30 mm off) because the segments do not span the
+seam. **This narrows the scope statement further and in a useful
+direction:** the failure is not "handmade material defeats axial
+symmetry" but "our breakline extraction on thick-walled ware produces
+fragments the gate cannot use" -- a fixable preprocessing defect, not an
+inherent property of SfS++'s symmetry assumption. Note the distinction
+this workspace exists to keep: a *method* claim and an *extraction*
+claim are different, and this is the latter. (And the earlier "normals
+67-129 deg opposed" reading is withdrawn as a headline: it came from an
+opposite-face pair; on same-face pairs normals agree at 0.92-1.00.)
 
 **So the honest scope statement is narrower and more useful than "not
 axially symmetric":** SfS++'s join gate assumes mating breaklines

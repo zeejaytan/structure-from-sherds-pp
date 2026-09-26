@@ -24,12 +24,21 @@ now rules out a broken instrument as well.
 
 **Why, in the method's own terms.** The join test needs a point on one
 sherd's breakline within 2 mm of a point on its neighbour's, with
-surface normals agreeing. The Juglet's wall is ~1.8 mm, so extraction
-traces the *inner* face on one sherd and the *outer* face on its
-neighbour — 1.7 mm apart with normals 67–129° opposed. Two different
-surfaces are being compared as though they were the same. Pot_A's thin
+surface normals agreeing. Measured in the preprocessing repo (its ticket
+01, 2026-09-26), the Juglet fails on two counts: the extractor traces
+**one** wall face per sherd and which one is arbitrary (inner for 1, 5, 9;
+outer for 2, 3, 4, 6, 7, 8), so **10 of 18 true mates are inner-vs-outer
+and invisible to any 2 mm comparison**; and only **1 of the 8 same-face
+mates** has traces within 2 mm at ground truth, the rest sitting 5–30 mm
+from the 0.02 mm truth — the segments do not span the seam. Pot_A's thin
 wheel-thrown breaks put both traces on one face, 0.09–1.30 mm apart,
-with normals genuinely agreeing.
+with normals agreeing.
+
+*Correction to an earlier statement here:* the "normals 67–129° opposed"
+figure came from pair 2-9, which is one of the opposite-face pairs. On
+same-face pairs the normals agree at 0.92–1.00 and pass the gate easily.
+The opposed normals were a **symptom** of the face confusion, not a
+separate defect.
 
 **Consequence for this question:** the honest Juglet score is **0/10**,
 not 0/18 — eight of the answer key's 18 edges are not physical contacts
