@@ -52,10 +52,22 @@ int main(int argc, char** argv)
 	cout << "#################### Pottery Data load ####################" << endl;
 	//#################### Pottery Data load ####################//
 	int max_breakline_points(0);
+	// Shards silently excluded from matching, with the reason. Ticket 09 in
+	// ../SfSpp_preprocessing: a sherd dropped here disappears from the
+	// result with nothing to show for it, so a degraded bundle can be read
+	// as a clean one. In the Nov-2025 Pot_A bundle, pieces 6 and 8 had 30
+	// breakline points each and would have been dropped without a word --
+	// the pot would have assembled from 6 of its 8 sherds.
+	int dropped_empty_axis = 0;
+	int dropped_short_breakline = 0;
+	std::vector<int> dropped_short_detail;
     for (int i = 0; i < SHARD_NUMBER; i++) {
         shard[i].edge_line_.ReadAxis(axis_path[i]);
         if (shard[i].edge_line_.axis_point_.empty()) {
             shard_on_off[i] = false;
+            dropped_empty_axis++;
+            cout << "  [DROPPED] shard " << i
+                 << ": no axis data in " << axis_path[i] << endl;
             continue;
         }
         if(!shard_on_off[i]) continue;
@@ -63,6 +75,12 @@ int main(int argc, char** argv)
         shard[i].edge_line_.ReadPCDFileWithInfo(file_path[i]);
         if (shard[i].edge_line_.point_.cols() < 50) {
             shard_on_off[i] = false;
+            // Record the count BEFORE Remove(), which clears it.
+            const int npts = shard[i].edge_line_.point_.cols();
+            dropped_short_breakline++;
+            dropped_short_detail.push_back(npts);
+            cout << "  [DROPPED] shard " << i << ": breakline has " << npts
+                 << " points, minimum is 50 -- " << file_path[i] << endl;
             shard[i].edge_line_.Remove();
             continue;
         }
@@ -107,6 +125,30 @@ int main(int argc, char** argv)
         int breakline_points = shard[i].edge_line_.point_.cols();
         max_breakline_points = max(max_breakline_points, breakline_points);
         shard[i].sur_frac_.CalculateLineNormal();
+    }
+
+    // ---- shard accounting ------------------------------------------------
+    // Loudly, because a pot can assemble "successfully" from a subset of its
+    // sherds and nothing else in the log would reveal it.
+    {
+        int active = 0;
+        for (int i = 0; i < SHARD_NUMBER; i++) if (shard_on_off[i]) active++;
+        cout << "  ---- shard accounting ----" << endl;
+        cout << "  requested " << SHARD_NUMBER << ", active " << active
+             << ", dropped " << (SHARD_NUMBER - active) << endl;
+        cout << "    dropped for no axis data:      " << dropped_empty_axis << endl;
+        cout << "    dropped for <50 breakline pts: " << dropped_short_breakline;
+        if (!dropped_short_detail.empty()) {
+            cout << "  (counts:";
+            for (size_t k = 0; k < dropped_short_detail.size(); k++)
+                cout << " " << dropped_short_detail[k];
+            cout << ")";
+        }
+        cout << endl;
+        if (SHARD_NUMBER - active > 0) {
+            cout << "  ** THIS RUN IS USING A SUBSET OF THE SHARDS. A result from"
+                 << " it is not a result for the whole pot." << endl;
+        }
     }
 
 #ifdef NO_RIM_INFO
