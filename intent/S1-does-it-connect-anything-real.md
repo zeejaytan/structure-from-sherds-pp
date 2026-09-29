@@ -220,3 +220,16 @@ establishing trust in a forty-piece tray.
 `BOUNDARY_RADIUS_FIX.md`, `PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05),
 `NURBS_FIX_RESULTS.md`, `STEP_BY_STEP_COMPARISON.md`. Conservator, 2026-09-18: Rabati is
 ~99% axially symmetric; Tray-000 set aside for now.
+
+## 2026-09-29 — smoother A/B: scores move, joins don't
+
+Paper-compliance ticket 01 (assembly side): the descriptor smoother differs
+from the paper (Lanczos+Gaussian vs Savitzky-Golay+Gaussian(7,2.0)),
+2.6–20% descriptor differences measured on a real rim. Full matching A/B on
+the authors' Pot_A sample, deterministic matcher verified by control rerun:
+same 9 pairs survive both arms, values move ±1–2, assembly score 0→36 with
+accuracy 0/6 both arms. No pair gained or lost. Closed as cosmetic for
+joins. Found along the way and fixed: d2445d8's host-absolute dataset paths
+broke every fresh build's file loads (reverted to container-visible).
+Found and recorded: teardown segfault after full output (robustness item,
+not a measurement blocker).
