@@ -14,8 +14,14 @@ set -uo pipefail
 
 ASM=/data/gpfs/projects/punim2657/sfs_main/sfspreproc-docker
 APPTAINER=/apps/easybuild-2022/easybuild/software/Compiler/GCCcore/11.3.0/Apptainer/1.3.3/bin/apptainer
-SIF=/data/gpfs/projects/punim2657/sfs_preprocessing/pcl_191_nurbs.sif
+# sfspreproc.sif carries the full toolchain (Ceres, cmake). The PCL
+# container used for preprocessing does NOT -- a first version of this
+# script used it and failed on find_package(Ceres).
+SIF=/data/gpfs/projects/punim2657/sfs_main/sfspreproc.sif
 LOG=/tmp/hierarchy_build.log
+# Built aside, never over the production binary: Hierarchy-Clear at the repo
+# root is what running jobs launch. Same sources, suffixed copy.
+OUTBIN="${ASM}/Hierarchy-Clear-SGtest"
 
 cd "${ASM}" || { echo "ERROR: ${ASM} missing"; exit 1; }
 git pull --ff-only 2>&1 | tail -n 2
@@ -44,5 +50,8 @@ if [ "${rc}" -ne 0 ]; then
     tail -n 10 "${LOG}"
     exit 1
 fi
-ls -lh "${ASM}/Hierarchy-Clear" | awk '{print "  built:", $5, $6, $7, $8, $9}'
+ls -lh "${ASM}/build/Hierarchy-Clear" | awk '{print "  built:", $5, $6, $7, $8, $9}'
+[ -x "${ASM}/build/Hierarchy-Clear" ] || { echo "ERROR: binary not where expected"; exit 1; }
+cp "${ASM}/build/Hierarchy-Clear" "${OUTBIN}"
+echo "    copied aside as: ${OUTBIN} (production binary untouched)"
 echo "    dataset: ${SEL}"
