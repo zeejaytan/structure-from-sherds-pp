@@ -38,7 +38,11 @@ using namespace std;
 string data_type = "SfS_pp/"; // Or BreakingBad/Objects
 //string pot_type = "Other/";
 
-string path = "/data/gpfs/projects/punim2657/sfs_preprocessing/NURBS_Dataset_20251103/" + data_type;
+// Container-visible base: every sbatch binds <dataset>/SfS_pp to /Dataset.
+// d2445d8 changed this to a host-absolute path, under which NO data file
+// opens in-container (all loads fail silently, zero connections survive,
+// segfault at ranking_system.cpp:770 on ext_state_[0]). Reverted 2026-09-29.
+string path = "/Dataset/" + data_type;
 //string path = "C:/Pottery/Pottery Data/" + pot_type;
 
 
