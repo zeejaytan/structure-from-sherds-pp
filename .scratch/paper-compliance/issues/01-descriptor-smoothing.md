@@ -42,7 +42,26 @@ enough to change matches, not whether descriptors exist.
 - Thickness handling stays as-is unless the spike implicates it (the paper
   also leaves thickness unfiltered — that part already matches).
 
-## Acceptance criteria
+## SPIKE RESULT 2026-09-29: DIFFERS — gate measurement required
+
+Replicated the code's filters exactly (`LanczosDiffLow(7)`, Gaussian
+sigma-2 k10 circular) and compared against the paper recipe (finite diffs
+→ Savitzky-Golay(7, wrap) → Gaussian(7, σ=2.0)) on Pot_A piece-1's rim
+Dist/Height/Theta series (`smoother_spike.py`):
+
+| series | max abs diff | range | relative |
+|---|---|---|---|
+| Dist | 1.66 | 63.75 | **2.6%** |
+| Height | 1.38 | 54.88 | **2.5%** |
+| Theta | 1.26 | 6.25 | **20.2%** |
+
+All three exceed the 1% bar, so the smoother changes descriptors and the
+ticket proceeds to gate measurement per the acceptance criteria: implement
+the paper's smoother behind the same interface, rebuild the assembly side,
+and re-score matching (not the probe — the probe does not use descriptors;
+the LCS/beam-search matcher does). Caveats on record: the paper's SG window
+is unspecified (7 used to match); Theta's 20% needs care as an angle series
+(the diffs are what match on, and the comparison is diffs-vs-diffs).
 
 - [ ] Spike: both smoothers on the same series, difference distribution,
       and the verdict on whether any match changes
