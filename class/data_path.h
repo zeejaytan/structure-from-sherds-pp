@@ -7,8 +7,9 @@
 #define _DATA_PATH_H_
 
 // Dataset selection
-#define POT_A
-// #define POT_A_ORIG   (ticket 06 control: self-consistent original_samples Pot_A)
+// #define POT_A
+#define POT_A_ORIG   (smoother A/B 2026-09-29: self-consistent authors sample;
+// POT_A restored after)
 // #define JUGLET (paper-compliance smoother A/B, 2026-09-29: Pot_A selected;
 // JUGLET restored after)
 // Use TRAY_000 to run full 40-piece Tray dataset
