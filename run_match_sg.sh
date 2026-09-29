@@ -17,8 +17,14 @@
 
 set -uo pipefail
 
-TAG="${1:?usage: run_match_sg.sh <control|sg>}"
+TAG="${1:?usage: run_match_sg.sh <control|sg> [dataset-src]}"
 [ "${TAG}" = "control" ] || [ "${TAG}" = "sg" ] || { echo "ERROR: tag must be control or sg"; exit 1; }
+# Dataset source on the HOST, bound to /Dataset/SfS_pp in the container.
+# Defaults to the Nov-2025 Pot_A dataset; pass the authors' sample dir for
+# self-consistent runs. Absolute host paths do NOT work inside the container
+# (verified 2026-09-29: ls returns "No such file"), so everything the binary
+# reads must arrive via this bind.
+DS="${2:-/data/gpfs/projects/punim2657/sfs_preprocessing/NURBS_Dataset_20251103/SfS_pp}"
 
 M=/data/gpfs/projects/punim2657/sfs_main
 ASM="${M}/sfspreproc-docker"

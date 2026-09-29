@@ -1611,7 +1611,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 #define SHARD_NUMBER 8
 #define NUM_MIXED_SHERD 1
 
-#define POTA_ORIG_BASE "/data/gpfs/projects/punim2657/sfs_main/original_samples/SfS_pp/"
+#define POTA_ORIG_BASE "/Dataset/SfS_pp/"
 
 string file_path[SHARD_NUMBER] = {
 	POTA_ORIG_BASE "Breaklines/Pot_A_Piece_01_Breakline_0.pcd",
