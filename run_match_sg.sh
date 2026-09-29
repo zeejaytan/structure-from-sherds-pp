@@ -42,9 +42,9 @@ fi
 ( cd "${WORK}" && ${APPTAINER} exec \
     --bind "/data/gpfs/projects/punim2657/sfs_main:/workspace" \
     --bind "${DS}:/Dataset/SfS_pp" \
-    "${SIF}" /bin/bash -c "${ENVSTR} /workspace/sfspreproc-docker/Hierarchy-Clear-SGtest 8" ) > "${LOG}" 2>&1
+    "${SIF}" /bin/bash -c "${ENVSTR} /workspace/sfspreproc-docker/Hierarchy-Clear-SGtest 8" ) > "${WORK}/stdout.log" 2>&1
 rc=$?
-echo "    exit ${rc} (not trusted)"
+echo "    exit ${rc} (not trusted; full stdout in ${WORK}/stdout.log)"
 echo "--- smoother marker:"
 if [ "${TAG}" = "sg" ]; then
     grep -c "SFS-SG" "${LOG}" 2>/dev/null | sed 's/^/    SFS-SG lines: /'
