@@ -28,11 +28,15 @@ git pull --ff-only 2>&1 | tail -n 2
 
 echo "### dataset selection in this build:"
 # Bare dataset switches only: JUGLET_BASE and friends are path macros, not
-# selections (an earlier version of this check matched JUGLET_BASE and
-# aborted a good build).
-SEL=$(grep -E "^#define (POT_A|POT_A_ORIG|TRAY_000|POT_B|POT_C|POT_D|POT_E|POT_F|POT_G|POT_H|POT_I|POT_J|POT_A_B_C|POT_D_E|POT_E_I|POT_C_J|POT_A_B_F_G_H|POT_A_B_C_D_E|POT_All|BB_Bwl_1|BB_Plt_1|BB_Vse_1|BB_Plt_2|BB_Plt_3|BB_Bwl_2|BB_Bwl_3|BB_Vse_2|BB_Vse_3|BB_Vse_Mix|BB_Bwl_Mix|JUGLET)$" class/data_path.h || true)
+# selections (an earlier version matched JUGLET_BASE and aborted a good
+# build). Names are followed by space-or-EOL because these lines carry
+# trailing comments -- an earlier $ anchor silently matched nothing.
+# And an empty match must FAIL: echo "" | wc -l counts 1, so the count test
+# alone passes on empty (caught 2026-09-29 after a build ran ambiguous).
+SEL=$(grep -E "^#define (POT_A|POT_A_ORIG|TRAY_000|POT_B|POT_C|POT_D|POT_E|POT_F|POT_G|POT_H|POT_I|POT_J|POT_A_B_C|POT_D_E|POT_E_I|POT_C_J|POT_A_B_F_G_H|POT_A_B_C_D_E|POT_All|BB_Bwl_1|BB_Plt_1|BB_Vse_1|BB_Plt_2|BB_Plt_3|BB_Bwl_2|BB_Bwl_3|BB_Vse_2|BB_Vse_3|BB_Vse_Mix|BB_Bwl_Mix|JUGLET)( |$)" class/data_path.h || true)
 echo "    ${SEL:-NONE FOUND -- aborting}"
-echo "${SEL}" | wc -l | grep -q "^1$" || { echo "ERROR: not exactly one dataset selected"; exit 1; }
+[ -n "${SEL}" ] || { echo "ERROR: no dataset selected"; exit 1; }
+[ "$(echo "${SEL}" | wc -l)" -eq 1 ] || { echo "ERROR: ambiguous selection"; exit 1; }
 
 echo
 echo "### SFS_SMOOTHER switch present in filter.cpp:"
