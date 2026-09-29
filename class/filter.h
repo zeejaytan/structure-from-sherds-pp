@@ -36,6 +36,12 @@ public:
 		int order,
 		int circle); 
 
+	// Paper-recipe smoothing (SFS-SG): Savitzky-Golay differentiation
+	// (7-point quadratic) followed by Gaussian (width 7, sigma 2.0),
+	// circular. See CalculateFeatureAxisless for why this exists.
+	MatrixXd SavitzkyGolayDiff(MatrixXd const& a);
+	void Gaussian7x2(MatrixXd const& in, MatrixXd& out);
+
 private:
 	double sum_kernel_;
 	double weight_;
