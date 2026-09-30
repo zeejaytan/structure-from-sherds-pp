@@ -233,3 +233,27 @@ joins. Found along the way and fixed: d2445d8's host-absolute dataset paths
 broke every fresh build's file loads (reverted to container-visible).
 Found and recorded: teardown segfault after full output (robustness item,
 not a measurement blocker).
+
+## 2026-09-30 — compliance 02/03: dead expectations removed, precedence mapped
+
+- Ticket 03 (axis/rim trace, closed as the map itself): at runtime the file
+  axis wins everywhere — nothing computed overrides it; the one in-binary
+  refinement seeds from canonical zero without corrupting file values.
+  Rim-flag reads all gate in the "rim constrains" direction; strongest is
+  BuildTree (rim segments never enter the tree). No contradictions; dead
+  rim-only filter branch and debug double-insert recorded as accepted.
+- Ticket 02 (base flags, verdict b): readers would act but no writer emits
+  — un-flipping the define is a provable no-op, so the work is completion
+  (clear `is_sane_base_` too — the old define left sane-base skips armed)
+  plus removal of the commented-out gate and uncalled base-only branches.
+  Enabling needs a true flag source from preprocessing, filed there.
+- Preproc-01 removal (recorded here as the consumer side): both
+  unconditional `Surface_F` loads now 2-arg (zero such files exist in
+  either dataset); `IcpFine` — zero callers — gains a loud empty-frac
+  refusal so it can never silently solve without the fracture term again.
+- All three rebuild clean in-container (`build_sif`, exit 0, new strings
+  in `Hierarchy-Clear`). Per-pair assembly reruns waived with reason: zero
+  executed instructions change on current data (dead loads of nonexistent
+  files, clears of always-false flags, edits inside uncalled functions).
+  If any of these ever executes differently, the waiver is void — but on
+  today's files there is nothing to execute.

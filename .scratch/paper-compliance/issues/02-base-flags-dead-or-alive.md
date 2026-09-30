@@ -4,10 +4,23 @@
 
 **Blocked by:** nothing — read code, measure, then decide
 
-**Status:** ready-for-agent — spike done 2026-09-30, verdict (b) verified
-by reading the lines. See spike section below; the build spec follows it.
+**Status:** resolved 2026-09-30 — verdict (b) executed: define completed,
+dead reads removed, rebuild clean in-container. No half state remains.
 
 **Needs-eye:** none — compile flags and match counts, no geometry claim.
+
+## Closeout 2026-09-30
+
+- `NO_BASE_INFO` clears `is_sane_base_` too in all three mains (F2 fixed;
+  provable no-op: every writer emits flag 0).
+- Commented-out base escape (`feature_matching.cpp:2088-2094`) and uncalled
+  base-only `ExclusivelyPickEdge` branches removed. Parse site + live
+  FeatureComp skips stay for a future true flag source.
+- In-container rebuild (`build_sif`) exit 0; new code in the binary.
+- Per-pair assembly rerun waived with recorded reason (S1 entry 2026-09-30):
+  zero executed instructions change on current data.
+- Enabling with a true flag source remains a preprocessing-repo question
+  (from `check_base_and_rim.m`), filed there, not here.
 
 ## Spike outcome (verified 2026-09-30, all cites re-read by the lead)
 
