@@ -4,9 +4,49 @@
 
 **Blocked by:** nothing — read code, measure, then decide
 
-**Status:** ready-for-agent
+**Status:** ready-for-agent — spike done 2026-09-30, verdict (b) verified
+by reading the lines. See spike section below; the build spec follows it.
 
 **Needs-eye:** none — compile flags and match counts, no geometry claim.
+
+## Spike outcome (verified 2026-09-30, all cites re-read by the lead)
+
+- Reader half is NOT inert: `feature_matching.cpp:1616-1621` and
+  `:1686-1691` (triple sane/sane-base skips) would genuinely alter
+  matching if flags were ever true. Both live (all mains call
+  `FeatureComp`; ranking calls graph building at `:835,873`).
+- Writer half is unanimous: all three C++ edgeline writers hardcode flag
+  `0` (headless `:1367,1371`; legacy `:1083,1087`; curvature-fixed
+  `:229`); the one MATLAB path computing `isbase`
+  (`check_base_and_rim.m:48-113`) cannot serialize it
+  (`*_frag_type` functions undefined). No file can set base flags, so
+  un-defining `NO_BASE_INFO` today is a provable no-op.
+- Dead under either verdict: commented-out read
+  (`feature_matching.cpp:2088-2094`), uncalled `ExclusivelyPickEdge`
+  base branches (`ranking_system.cpp:1197-1223`; zero callers verified:
+  decl + def only).
+- F2 (found by the trace ticket, verified): `main_headless_correct.cpp:202-206`
+  clears `is_seg_base_` but NOT `is_sane_base_` (`data_structure.cpp:236`
+  sets it). Half-state: sane-base skips stay armed. Dormant on current
+  files (writers emit 0 → both flags false) but the define lies about it.
+
+## Decision (verdict b, executed as two changes)
+
+1. **Complete the define**: clear `is_sane_base_` alongside `is_seg_base_`
+   in all three mains (`main.cpp:107-111`, `main_headless.cpp:160-163`,
+   `main_headless_correct.cpp:202-206`). Provable no-op on current files
+   (both flags already false on every emitted breakline) — verified by
+   rebuild + Pot_A/Juglet per-pair numbers unchanged.
+2. **Remove the dead reads**: commented-out `:2088-2094` gate and the
+   uncalled `ExclusivelyPickEdge` idx-2/3 branches. The parse site
+   (`data_structure.cpp:234-236`) and the live skips (`:1616,:1686`) STAY —
+   they are the machinery a future true flag source would use; deleting
+   them would destroy verdict-(b) option value for zero runtime effect.
+3. Enabling with a true flag source is NOT this ticket: it needs
+   base-flag emission in the preprocessing repo (starting from
+   `check_base_and_rim.m`) — filed there if anyone wants it.
+
+## Acceptance criteria (updated 2026-09-30)
 
 ## Why this ticket exists
 
