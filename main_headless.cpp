@@ -160,6 +160,8 @@ int main(int argc, char** argv)
 #ifdef NO_BASE_INFO
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		shard[i].edge_line_.is_seg_base_ = false;
+		// Assembly-02 (F2): see main_headless_correct.cpp -- clear both.
+		shard[i].edge_line_.is_sane_base_ = false;
 	}
 #endif
 

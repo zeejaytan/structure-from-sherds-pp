@@ -2097,6 +2097,24 @@ void IcpFine(
 
 		if (COR_sur.empty() || COR_frac.empty())
 			break;
+		// Preproc-01 removal lane: COR_frac entries with empty per-pair
+		// correspondence used to pass silently (no Surface_F files exist,
+		// so every entry was empty and P2PConstraint added zero residuals).
+		// Fail LOUDLY here so re-enabling this path without frac files can
+		// never silently solve without the fracture term again.
+		{
+			bool any_empty_frac = false;
+			for (size_t cf = 0; cf < COR_frac.size(); cf++) {
+				if (COR_frac[cf].cor.empty()) {
+					cerr << "[FATAL] COR_frac pair " << cf
+					     << " has empty fracture correspondence -- Surface_F "
+					        "files missing or no frac match. Refusing silent solve."
+					     << endl;
+					any_empty_frac = true;
+				}
+			}
+			if (any_empty_frac) break;
+		}
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;

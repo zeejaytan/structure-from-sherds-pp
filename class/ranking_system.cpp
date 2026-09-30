@@ -1194,33 +1194,13 @@ void ExclusivelyPickEdge(list<LCSIndex>& lcs_out,
 				iter = lcs_out.erase(iter);
 		}
 	}
-	else if (exclusive_index == 2) {
-		for (; iter != lcs_out.end(); ) {
-			int s_x = iter->shard_x_ - 1;
-			int s_y = iter->shard_y_ - 1;
-			if ((shard[s_x].edge_line_.is_seg_base_) && (shard[s_y].edge_line_.is_seg_base_)) {
-				++iter;
-			}
-			else
-				iter = lcs_out.erase(iter);
-		}
-	}
-	else if (exclusive_index == 3) {
-		for (; iter != lcs_out.end(); ) {
-			int s_x = iter->shard_x_ - 1;
-			int s_y = iter->shard_y_ - 1;
-			if ((shard[s_x].edge_line_.is_seg_base_) && (shard[s_y].edge_line_.is_seg_base_)) {
-				if ((!shard[s_x].edge_line_.is_sane_base_) && (!shard[s_y].edge_line_.is_sane_base_)) {
-					++iter;
-				}
-				else {
-					iter = lcs_out.erase(iter);
-				}
-			}
-			else
-				iter = lcs_out.erase(iter);
-		}
-	}
+	// Assembly-02: the exclusive_index==2 (base-base) and ==3
+	// (fractured-base) branches were dead -- this function has no callers
+	// repo-wide -- and their flag semantics can never be true on current
+	// files (every writer emits flag 0). Removed; the parse site and the
+	// live FeatureComp skips stay as the machinery a true flag source
+	// would use. NOTE: this function itself remains uncalled; wiring it
+	// with any index is a separate ticket with predicted pair movement.
 }
 
 void TransAverage(int current_node,

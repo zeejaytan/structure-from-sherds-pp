@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 			shard[i].edge_line_.CalculateLineNormal();
 			int breakline_points = shard[i].edge_line_.point_.cols();
 			max_breakline_points = max(max_breakline_points, breakline_points);
-			shard[i].LoadSurface(surface_in[i], surface_out[i], surface_fr[i]);
+			shard[i].LoadSurface(surface_in[i], surface_out[i]);
 			shard[i].is_matching_ = true;
 			shard[i].sur_in_.CalculateLineNormal();
 			shard[i].sur_out_.CalculateLineNormal();
@@ -202,6 +202,12 @@ int main(int argc, char** argv)
 #ifdef NO_BASE_INFO
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		shard[i].edge_line_.is_seg_base_ = false;
+		// Assembly-02 (F2): the define used to clear only is_seg_base_,
+		// leaving is_sane_base_ armed -- the sane-base pair skips in
+		// FeatureComp stayed live despite NO_BASE_INFO. Clear both: the
+		// define now means what it says. Provable no-op on current files
+		// (every writer emits flag 0, so both were already false).
+		shard[i].edge_line_.is_sane_base_ = false;
 	}
 #endif
 
