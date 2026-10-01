@@ -1912,6 +1912,61 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 				cout << "*** PROFILE DEBUG *** Checking profile with " << profile.size() << " points" << endl;
 				profile_matched = ProfileChecking(profile, 7.0, 7.0);	// PAPER-CONFIG 2026-10-01: paper Table II (7mm bins, 7mm threshold). Fit stays OLS and rule stays max-deviation (ticket 06 owns those); this arm changes NUMBERS only.
 				cout << "*** PROFILE DEBUG *** Profile validation result: " << (profile_matched ? "PASSED" : "FAILED") << endl;
+				// Ticket 10 T0: profile dump mode. Env-gated (SFS_PROFILE_DUMP
+				// = output dir); when unset, ZERO behavior change -- this block
+				// does not execute. When set, each validation appends one TSV:
+				// verdict + per-piece edge points AS VALIDATED with segment
+				// ids (from index_ ranges), rim flags, and piece Ts. Offline
+				// battery (T1-T4, T6) recomputes everything from these dumps;
+				// the replica must reproduce the recorded verdict first.
+				if (const char* dump_dir = std::getenv("SFS_PROFILE_DUMP")) {
+					static int dump_idx = 0;
+					char dump_path[1024];
+					std::snprintf(dump_path, sizeof(dump_path), "%s/dump_%04d.tsv",
+					              dump_dir, dump_idx++);
+					std::ofstream dump(dump_path, std::ios::out | std::ios::trunc);
+					if (dump.is_open()) {
+						dump << "# verdict=" << (profile_matched ? "PASSED" : "FAILED")
+						     << " bin=7.0 thresh=7.0\n";
+						dump << "# pieces:";
+						for (int i = 0; i < num_shard; i++)
+							if (toprank_graph.node_[i]) dump << " " << (i + 1);
+						dump << "\n";
+						for (int i = 0; i < num_shard; i++) {
+							if (!toprank_graph.node_[i]) continue;
+							const BreakLine& bl = shard[i].edge_line_;
+							const int ncols = (int)bl.point_.cols();
+							Matrix3d Rdump = Matrix3d::Identity();
+							Vector3d tdump(0, 0, 0);
+							if ((int)toprank_graph.T_.size() > i)
+								toprank_graph.T_[i].Output(Rdump, tdump);
+							dump << "# piece " << (i + 1) << " ncols=" << ncols
+							     << " rim=" << (bl.is_seg_rim_ ? 1 : 0);
+							dump << " R=";
+							for (int rr = 0; rr < 3; rr++)
+								for (int cc = 0; cc < 3; cc++)
+									dump << " " << Rdump(rr, cc);
+							dump << " t=" << tdump(0) << " " << tdump(1) << " " << tdump(2);
+							dump << " segs=";
+							for (int j = 0; j < bl.index_.cols(); j++)
+								dump << (int)bl.index_(0, j) << ":" << (int)bl.index_(1, j)
+								     << ":" << (int)bl.index_(2, j) << ",";
+							dump << "\n";
+							for (int c = 0; c < ncols; c++) {
+								int seg = -1;
+								for (int j = 0; j < bl.index_.cols(); j++) {
+									if (c >= (int)bl.index_(0, j) - 1 && c < (int)bl.index_(1, j)) {
+										seg = j;
+										break;
+									}
+								}
+								dump << (i + 1) << " " << seg << " "
+								     << bl.point_(0, c) << " " << bl.point_(1, c) << " "
+								     << bl.point_(2, c) << "\n";
+							}
+						}
+					}
+				}
 			}
 			if (profile_matched && is_rim) {
 				int up_count(0), down_count(0);
