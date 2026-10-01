@@ -1207,7 +1207,7 @@ void Icp(vector<BreakLine>& L,
 	double** s = new double* [num_shard];		// s : rotaion representer
 	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1); // E3 REVERTED 2026-10-01 (job 31890296: no recovery, same regime). Weights hypothesis exhausted. Ticket 07.
 	double w_r(1.0), w_h(1.0);
-	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG 2026-10-01: paper line 240 ICP max 150 outer (was 50). Weights untouched: no 0.4 mapping exists (ticket 07).
+	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG 2026-10-01: paper line 240 ICP max 150 outer (was 50). Weights mapping in ticket 07 (E1-E3: reproducible, all tested, none recovers).
 
 	COR.resize(num_edge);				// number of correspondence s same as number of edges
 	if (num_edge != 1) {
