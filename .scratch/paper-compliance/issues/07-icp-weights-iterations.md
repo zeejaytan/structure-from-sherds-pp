@@ -68,7 +68,16 @@ Variants liveness (item 3): `IcpIncGraphAxis` LIVE (called
 `ranking_system.cpp:1041`, w_a=1.0 variant); `IcpFine` DEAD (decl+def
 only, verified — same verdict as the Surface_F audit).
 
-## EXPERIMENTS (one variable each, this tree onward)
+## E1 OUTCOME 2026-10-01 (job 31854704): normal emphasis does NOT recover
+
+0/8 + 0/15, 22 states (vs 21), best 263 (vs 232), profile 83/2 (still
+healthy), 13 overlap fails. Same regime — the 7.5× emphasis flip on the
+normal term moves scores marginally and recovers nothing. Poses at T6
+resolution unavailable for this run (dump env not set in sbatch; T6 needs
+a dump-armed rerun to claim pose-level effects either way).
+E1 reverted below; E2 (rim) proceeds on the reverted base, one variable.
+
+## EXPERIMENTS (one variable each, this tree onward) — E1 DONE (no recovery, reverted)
 
 Base state, stated once: paper-config values + stddev rule + T0 dump
 code, POT_A block. Each experiment changes ONE weight, rebuilds,
