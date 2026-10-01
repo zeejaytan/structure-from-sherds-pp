@@ -97,6 +97,12 @@ T6 rel-rot table:
   the normal term behind rotation errors).
 - E2: w_r=w_h 1.0 → 0.4 (rim emphasis to paper's).
 - E3: w_a 0.1 → 0.4 (axis emphasis to paper's; same direction, 4× magnitude).
+- KNOWN PARTIAL, recorded not hidden: outer-150 reached only `Icp` (:1210).
+  The live `Registration` overloads (:1441, :1632) still run 50 outer —
+  the paper-config arm was partial on iterations, and E1–E3 inherit that.
+  Completing it (Registration → 150) is the next variable after E3, not
+  part of E3. (`IcpIncGraphAxis` runs 200/200, `IcpFine` 100/100 —
+  lineage values, untouched throughout.)
 No prediction on direction (baseline is 0/8 — nothing to regress; watch
 for losing the 6-state branching / crashes). Outer-150 stays (already
 paper's). Cauchy scales stay (paper-silent).
