@@ -23,7 +23,7 @@ class RankingSubgraph;
 #define CERES_FUNC_TOL			1.0e-3
 #define MINIMUM_NUMBER			1  // Further reduced for NURBS geometric features
 #define INLIER_THRESHOLD		3.0  // Relaxed distance threshold
-#define ANGLE_THRESHOLD			0.262
+#define ANGLE_THRESHOLD			0.5236  // PAPER-CONFIG 2026-10-01: paper line 215 normal-diff 30deg (was 0.262=15deg; ticket 08 owns the stage question)
 
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;

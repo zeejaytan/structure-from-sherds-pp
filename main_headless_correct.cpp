@@ -44,8 +44,8 @@ std::vector<GroundTruthDebugger::RejectionInfo> GroundTruthDebugger::rejections;
 
 // TOP-K TRANSFORMATION IMPLEMENTATION - REMOVED (useless perturbations)
 
-#define TOP_k 15     // EXPANDED: Keep multiple assembly hypotheses to explore all configuration combinations
-#define BRANCH_b 8    // EXPANDED: Explore more branching paths for better global solutions
+#define TOP_k 5     // PAPER-CONFIG 2026-10-01: paper single-pot experiment k=5 (was EXPANDED 15)
+#define BRANCH_b 3    // PAPER-CONFIG 2026-10-01: paper single-pot experiment b=3 (was EXPANDED 8)
 
 
 //#define NO_RIM_INFO

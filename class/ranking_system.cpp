@@ -1866,7 +1866,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 						shard[j].edge_line_,
 						area,
 						size,
-						10); // REDUCED from 50 to 10 to prevent major overlaps
+						50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was REDUCED 10)
 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
 					if (overlap) {
 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
@@ -1910,7 +1910,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 			double pc_var_value(0);
 			if (!profile.empty()) {
 				cout << "*** PROFILE DEBUG *** Checking profile with " << profile.size() << " points" << endl;
-				profile_matched = ProfileChecking(profile, 6.5, 6.0);	// RELAXED: More permissive profile validation (was 6.0/5.5, original 7.0/7.0)
+				profile_matched = ProfileChecking(profile, 7.0, 7.0);	// PAPER-CONFIG 2026-10-01: paper Table II (7mm bins, 7mm threshold). Fit stays OLS and rule stays max-deviation (ticket 06 owns those); this arm changes NUMBERS only.
 				cout << "*** PROFILE DEBUG *** Profile validation result: " << (profile_matched ? "PASSED" : "FAILED") << endl;
 			}
 			if (profile_matched && is_rim) {
@@ -1970,7 +1970,7 @@ bool SingleOverlapTest(const vector<bool>& true_node,
 				shard[c_node].edge_line_,
 				area,
 				size,
-				20); // REDUCED from 100 to 20 to prevent major overlaps
+				50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was REDUCED 20)
 
 			if (overlap)
 				break;

@@ -1742,7 +1742,7 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 		list<LCSIndex>::iterator comp = iter;
 		for (; comp != LCS_out.end(); ) {
 			if (comp != iter) {
-				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
+				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.436, 20))) { // PAPER-CONFIG 2026-10-01: paper line 294 grouping 25deg/20mm (was 0.175=10deg)
 					if (iter->score_ < comp->score_) {
 						Merge(*iter, *comp);
 						comp = LCS_out.erase(comp);
@@ -1825,7 +1825,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 
 		//#################### Overlapping check ####################//
 		double A_dummy(0), length(0);
-		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, 120.0); // ORIGINAL THRESHOLD: Let beam search handle connectivity instead
+		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, 50.0); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was "ORIGINAL" 120)
 
 		//#################### Update LCS_out information ####################//
 		iter->overlap_ = overlap;
@@ -2135,7 +2135,7 @@ bool MergeOverlapTest(vector<Geom>& shard,
 					shard[j].edge_line_,
 					area,
 					size,
-					100);
+					50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was 100)
 				if (overlap) {
 					result = true;
 					break;

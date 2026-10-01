@@ -431,7 +431,7 @@ double AssemblyScorer::calculateVesselCoherence(const HybridAssemblyState& state
         // Use actual ProfileChecking function for vessel profile validation
         if (piece_centers.size() >= 3) {
             std::vector<Vector3d> profile_curve = piece_centers;
-            bool profile_valid = ProfileChecking(profile_curve, 6.5, 6.0);  // Legacy thresholds
+            bool profile_valid = ProfileChecking(profile_curve, 7.0, 7.0);  // PAPER-CONFIG 2026-10-01: paper values (dead-by-default path; consistency only)
 
             if (profile_valid) {
                 coherence_score += 5.0;  // REDUCED: was 15, now 5 bonus for valid profile

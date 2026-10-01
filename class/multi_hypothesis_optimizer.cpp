@@ -615,7 +615,7 @@ void MultiHypothesisOptimizer::switchStep(GlobalProblem& problem, int iteration)
 
             if (!profile_curve.empty()) {
                 // Use proven ProfileChecking function with established thresholds
-                bool profile_valid = ProfileChecking(profile_curve, 6.5, 6.0);  // PROVEN: bin_size=6.5, threshold=6.0
+                bool profile_valid = ProfileChecking(profile_curve, 7.0, 7.0);  // PAPER-CONFIG 2026-10-01: paper values (dead-by-default path; consistency only)
                 if (profile_valid) {
                     curvature_quality_bonus = 0.3;  // Bonus for smooth curvature
                     if (config_.debug_mode && iteration == 0) {
@@ -970,7 +970,7 @@ bool GlobalConstraintSolver::solveGlobalConstraints(GlobalProblem& problem, std:
 
     if (!profile_curve.empty()) {
         // Use proven ProfileChecking function with established thresholds
-        bool profile_valid = ProfileChecking(profile_curve, 6.5, 6.0);  // PROVEN: bin_size=6.5, threshold=6.0
+        bool profile_valid = ProfileChecking(profile_curve, 7.0, 7.0);  // PAPER-CONFIG 2026-10-01: paper values (dead-by-default path; consistency only)
 
         if (!profile_valid) {
             if (config_.debug_mode) {
