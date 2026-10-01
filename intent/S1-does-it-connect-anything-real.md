@@ -283,6 +283,15 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-01 — Registration-150: first 2/8 (pieces 2,3 exact; 1 close)
+
+Single-run evidence, control rerun owed. Pieces 1–3 correctly posed yet
+edges read 0/15 — edge accuracy follows the graph, not poses (metric
+flagged, ticket 09's pair-level readings of it suspect). Ticket 07
+resolved (mapping reproducible, weights exhausted, iterations
+measured-once). Weights are out; remaining structural candidates: input
+quality (18), Cauchy scales, correspondence gate (08).
+
 ## 2026-10-01 — fix 1 works as intended; 0/8 stands on poses+scores
 
 Std-dev run (job 31843205): profile 87/2 (was 4/19), only kills a false

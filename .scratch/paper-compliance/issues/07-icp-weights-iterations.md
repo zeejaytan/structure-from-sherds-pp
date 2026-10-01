@@ -5,7 +5,10 @@
 **Blocked by:** nothing — methods comparison first (no assembly runs
 until the mapping question is answered)
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-01 — mapping reproducible; E1–E3 all
+no-recovery (weights exhausted); Registration-150 measured: first
+non-zero accuracy (2/8), single-run evidence, control rerun owed for
+conclusiveness. See outcome + caveats below.
 
 **Needs-eye:** none — weights and iteration counts, no geometry claim.
 
@@ -122,11 +125,30 @@ paper's). Cauchy scales stay (paper-silent).
       GT, frame-free) is the re-measurement protocol after any weights
       change.
 
-- [ ] Mapping write-up: paper cost vs code cost, reproducible-or-
-      structurally-different verdict with Eq/line cites
-- [ ] If reproducible: A/B per pair per variable; no-regression rule
-      (passing pair fails → revert in isolation)
-- [ ] If structurally different: recorded deviation with the structural
-      reason (not a shrug, not a tune)
-- [ ] Outer-iteration count resolved either way (150 measured or 50
-      justified)
+- [x] Mapping write-up: paper cost vs code cost, REPRODUCIBLE verdict
+      with Eq/line cites (table in MAPPING section)
+- [x] A/B per variable: E1/E2/E3 all no-recovery (jobs
+      31854704/31881006/31890296), all reverted; weights exhausted
+- [x] Outer-iteration count resolved: 150 measured (job 31898200, first
+      2/8 — single-run evidence, control rerun owed)
+- [x] RESOLVED 2026-10-01 with caveats (see RESOLVED section above):
+      mapping done, weights exhausted, iterations measured-once.
+      Control rerun + edge-metric definition are follow-ups, not
+      reopeners (filed below if needed).
+
+## RESOLVED 2026-10-01 (outer-count measured; weights exhausted)
+
+- E1 (w_n→0.4, job 31854704): 0/8 + 0/15, 22 states, best 263. Reverted.
+- E2 (w_r=w_h→0.4, job 31881006): 0/8 + 0/15, 23 states, best 608. Reverted.
+- E3 (w_a→0.4, job 31890296): 0/8 + 0/15, 17 states, best 299. Reverted.
+  WEIGHTS HYPOTHESIS EXHAUSTED (remaining structural: input quality per
+  18, Cauchy scales unmapped).
+- Registration-150 (job 31898200): **2/8 (pieces 2, 3 exact; piece 1 at
+  0.3°/2.0mm — effectively 3/8 within 2mm), edges 0/15.** First non-zero
+  accuracy in the E2E series. Single-run evidence; control rerun
+  (50-vs-150 same binary otherwise) owed before conclusive.
+- METRIC NOTE (measured): correct poses with 0/15 edges means edge
+  accuracy follows the assembly GRAPH, not final poses (displayed
+  "0/15 (3.333%)" — count and percent disagree). Do not cite edge
+  accuracy as pair-level evidence until its definition is verified;
+  ticket 09's pair-level readings of it are flagged suspect.
