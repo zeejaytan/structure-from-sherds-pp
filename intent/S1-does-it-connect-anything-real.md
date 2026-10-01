@@ -253,16 +253,6 @@ verdict also closes a ticket-16 leftover. Ticket-18 interaction cited into
 
 ## 2026-10-01 — E2E baseline: probe 15/15 in, assembly 0/8 out (handoff fired)
 
-## 2026-10-01 — PAPER-CONFIG arm: values move the search, not the outcome
-
-Same bundle through paper values (profile 7/7, overlap 50 everywhere,
-grouping 25°, 30° angle, ICP 150, k=5/b=3; job 31835275): 6 states branch
-(vs 1), best score 567.000 (vs 0.000), real 2-piece merges — but still 0/8
-+ 0/15, no state joins all 8, no pose right. Values were a lever, not the
-gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
-poses) owns the remainder. Bisect route recorded in ticket 09: paper
-values are now the control arm.
-
 Fresh current-code extraction (`pota_e2e_fresh`, probe `e2e_fresh` arm
 15/15) through `build_sif/Hierarchy-Clear` with the POT_A block (job
 31835065, COMPLETED 0:0): matching finds all 15 true pairs (values
@@ -272,6 +262,16 @@ triggered exactly as written: the probe passes and the assembler finds
 nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 (log forensics → owning ticket 06/07/08/09, re-run of this baseline moves
 0/8). `POT_A_ORIG` restore left pending in `data_path.h`.
+
+## 2026-10-01 — PAPER-CONFIG arm: values move the search, not the outcome
+
+Same bundle through paper values (profile 7/7, overlap 50 everywhere,
+grouping 25°, 30° angle, ICP 150, k=5/b=3; job 31835275): 6 states branch
+(vs 1), best score 567.000 (vs 0.000), real 2-piece merges — but still 0/8
++ 0/15, no state joins all 8, no pose right. Values were a lever, not the
+gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
+poses) owns the remainder. Bisect route recorded in ticket 09: paper
+values are now the control arm.
 
 ## 2026-09-30 — compliance 02/03: dead expectations removed, precedence mapped
 
