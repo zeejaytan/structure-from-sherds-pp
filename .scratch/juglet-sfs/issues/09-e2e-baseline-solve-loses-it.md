@@ -54,6 +54,28 @@ downstream of extraction — recorded here, not in preprocessing. Log:
    failure) vs wrong pairs (matching failure — excluded already, but
    state it from the transforms, not from §above).
 
+## PAPER-CONFIG ARM 2026-10-01 (job 31835275, COMPLETED 0:0)
+
+Thirteen paper values, structure untouched (commit `3ff4f8d`). Same bundle,
+same dataset, same binary path — only values differ from the 0/8 baseline.
+
+- Result: **0/8 sherds, 0/15 edges** (log
+  `sfs_main/e2e_pota_fresh_31835275.log`, `results_2026_10_01_1509/`).
+- Behavior MOVED: 6 states (branching works — baseline had 1), best State
+  #0 score **567.000** (baseline 0.000), real 2-piece merges in states.
+  Scores discriminate now.
+- Outcome UNMOVED: best state still 5 graphs (2+1+1+2+2 — "COMPLETE
+  ASSEMBLY" fires on pieces-accounted, not pieces-joined), no piece
+  correctly posed, no state joins all 8.
+
+Verdict: values were A lever (search branches, scores discriminate) but
+NOT the gap. The remainder is structural — weights mapping (07), OLS fit
++ max-rule + full-edge input (06), correspondence-stage gate (08), and/or
+ICP poses. The bisect each owning ticket needs is now cheaper: paper
+values are the control arm, current defaults the other; any single-value
+revert that collapses 6-states-567 back to 1-state-0 names a load-bearing
+value, while none of them reaching accuracy implicates structure.
+
 ## Out of scope (neighbor tickets own them)
 
 - Preprocessing changes: forbidden. The input bundle is fixed
