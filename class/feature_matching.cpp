@@ -907,6 +907,21 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 {
 	cout << "*** PROFILE VALIDATION *** Starting with " << profile.size() << " points, threshold=" << threshold << endl;
 	bool out = true;
+	// Ticket 06 guard (battery garbage finding 2026-10-01): corrupt input
+	// must FAIL LOUDLY. Was: empty profile → .back() on empty (UB); insane
+	// z-range from garbage transforms (e.g. t_z=-1.48e11) → bin-count int
+	// overflow → validation loop skipped → vacuous PASS. A corrupt config
+	// passing plausibility is how the 5-8 abort family starts.
+	for (size_t gi = 0; gi < profile.size(); gi++) {
+		if (!std::isfinite(profile[gi](0)) || !std::isfinite(profile[gi](2))) {
+			cout << "*** PROFILE VALIDATION *** REJECT: non-finite point -- corrupt input, failing loud" << endl;
+			return false;
+		}
+	}
+	if (profile.empty()) {
+		cout << "*** PROFILE VALIDATION *** REJECT: empty profile" << endl;
+		return false;
+	}
 	// Fist, sort profile curve based on height
 	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
 		return a(2) < b(2);
@@ -915,6 +930,14 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	MinMaxValue z_total;
 	z_total.max_value = profile.back()(2);
 	z_total.min_value = profile.front()(2);
+	{
+		const double zrange = z_total.max_value - z_total.min_value;
+		if (!(zrange >= 0.0) || zrange > 1e6) {
+			cout << "*** PROFILE VALIDATION *** REJECT: absurd z-range " << zrange
+			     << "mm -- corrupt placement, failing loud" << endl;
+			return false;
+		}
+	}
 
 	int Q_size = floor((z_total.max_value - z_total.min_value) / bin_size) + 1;
 	int s_index(0);
@@ -941,14 +964,32 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		double dist(0);
 		MatrixXd coeff = CalculateLeastSquare(profile, start, end);
 		double den = sqrt(coeff(0) * coeff(0) + 1);
-		for (int j = start; j < end; j++) {
-			if (abs(coeff(0)) > 1) {
-				dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
-			}
-			else {
-				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
-			}
-			if (dist > threshold) {
+		// Ticket 06 fix 1 (battery T1 convicted 2026-10-01): paper std-dev
+		// rule. Was max-absolute-deviation (any single point > threshold
+		// kills) — flipped 20/20 recorded failures with 0 new false
+		// passes under stddev on identical bins. Distances orthogonal for
+		// ALL points (the convicted variant); fit stays OLS (T2: refit
+		// cosmetic, skipped). Population stddev (÷n), matching the battery.
+		// Off-by-one also fixed: the old loop tested [start,end), leaving
+		// each bin's last point untested; the paper's statistic runs over
+		// the bin. Empty bins (start>end) are skipped, as before.
+		if (start > end) {
+			continue;
+		}
+		double sum = 0.0, sumsq = 0.0;
+		int cnt = 0;
+		for (int j = start; j <= end; j++) {
+			dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
+			sum += dist;
+			sumsq += dist * dist;
+			cnt++;
+		}
+		if (cnt > 0) {
+			const double mean = sum / cnt;
+			double var = sumsq / cnt - mean * mean;
+			if (var < 0.0) var = 0.0;
+			const double stddev = sqrt(var);
+			if (stddev > threshold) {
 				out = false;
 				break;
 			}
