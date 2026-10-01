@@ -93,7 +93,88 @@ shares the blame and ticket 07/08 scope expands to the ICP path.
   pollution, 09 for overlap shape); this ticket diagnoses and designs,
   it does not change matching code.
 
+## RESULTS 2026-10-01 (battery executed on holder; 31 dumps)
+
+Replica first: **30/30 recorded verdicts reproduced** (1 dump unprocessable
+— see garbage finding below). The dump block is vindicated as a recorder;
+offline variants below are trustworthy. Script:
+`structure-from-sherds-pp/artifacts/juglet_run1/profile_battery.py`
+(kept with the other gate scripts, same convention).
+
+### T1 statistic: CONVICTED
+
+Std-dev rule (paper) on identical bins: ALL 20 recorded FAILED flip to
+PASSED, all 11 PASSED stay PASSED. Kill criterion demanded ≥6 of 8 with no
+new false passes — delivered 20 of 20 with zero new false passes. The
+max-absolute-deviation rule, not the 7mm value, kills true merges. Ticket
+06's fix order starts here.
+
+### T2 fit: COSMETIC
+
+TLS (orthogonal) refit + max-rule: nearly everything still FAILED —
+including recorded-PASSED rows (stricter, not fairer). The fit does not
+decide verdicts. Ticket 06 skips the refit unless new evidence arrives.
+
+### T4' pollution: INCONCLUSIVE (confounded)
+
+Dropping non-~1.9mm-spacing segments flips most failures — but subsetting
+trivially reduces max-rule violations (fewer points, fewer chances), so
+this cannot convict pollution. T4 as designed is unmeasurable this way;
+ticket 18 stands on the eye evidence, not on this test. (T3 folded in:
+Breakline_0 IS the vote-interior wall, so "inner-only" == "wall-only" —
+recorded, not hidden.)
+
+### T5 overlap: CONVICTED (no separable threshold exists)
+
+Adjacent-MERGETABLE attribution, both logs. Baseline (gate 10): true kills
+[1-4]×2 (35.7/score97, 39.4/24), [1-5]×3 (95.5/42, 289/30, 297/6); correct
+kills [5-6]×2 (60.5/4, 40.4/52). Paper arm (gate 50): true kills [1-5]×4
+(53.03/58 ×2, 57.31/**144**, 53.65/**155**). TRUE merges span 35–297mm²;
+FALSE [5-6] sits at 40–60mm², INSIDE the true range. Paper's own 50 kills
+true merges carrying the run's highest scores. Mechanism note: overlap
+area confounds pose error with pair validity (a true pair at a wrong pose
+interpenetrates deeply — 289/297mm² — see T6), so the gate fires on the
+registration symptom while appearing to judge pairs. Ticket assembly-09
+owns threshold-vs-shape; the numbers say shape.
+
+### T6 poses: CONVICTED (registration shares the blame)
+
+Frame-free relative rotation, dumped T vs GT, all 2-piece dumps: 62–179°
+errors on TRUE pairs ([3,6] 62°/90.5°, [4,6] 100°, [6,7] 153.9°,
+[1,4] 179.4°...). Right pairs, catastrophically wrong poses. Whether the
+error enters at pairwise ICP or graph composition is ticket 07/08
+territory (unmapped weights + 150 outer iters that didn't help point at
+ICP convergence) — routed there, not solved here. Ticket 09's item 4 is
+ANSWERED: both (wrong poses AND killed pairs).
+
+### Garbage-transform robustness bug (new, filed here, not fixed here)
+
+Dump_0030 ([1,3,5], recorded PASSED): piece 1's dumped T carries
+t_z = **-1.48e11**, all its points share z=-1.48e11, z-range 1.48e11 →
+bin count 2.1e10 → C++ int overflow → validation loop skipped → **vacuous
+PASS**. Corrupt configs sail through plausibility. Same family as the
+5-8 abort (`length_error` at REGOUT, t_norm=28.4): garbage sizes from
+garbage geometry. The T0 block is exonerated (allocates nothing; 30/30
+replica); the no-env rerun is DOWNGRADED to optional for exactly that
+reason. Any fix must (a) finite-check transforms entering beam states,
+(b) make the bin-count overflow impossible — new small ticket or folded
+into 06's input work; recorded here so it isn't lost.
+
 ## Acceptance criteria
+
+- [x] T0 built (log-only diff reviewed), one rerun, dumps on disk with
+      per-point labels verified present (segment ids, rim flags, Ts —
+      surface-of-origin NOT captured: T3 folded, see above)
+- [x] T1–T6 each report: hypothesis, numbers, kill verdict above
+      (T4 inconclusive-with-reason; T5 convicted; rest as marked)
+- [x] The single cause ranked: registration poses (T6) + plausibility
+      gates firing on their symptom (T1 max-rule convicted, T5 no-threshold
+      convicted); fit cosmetic (T2); pollution unmeasured-offline (T4)
+- [ ] Fixes filed to owning tickets with the directing numbers
+      (06 gets T1-order + garbage-guard; 07 gets T6 + weights-mapping
+      urgency; assembly-09 gets T5 shape verdict; 18 keeps pollution) —
+      NEXT
+- [ ] Nothing fixed here (this ticket changes no matching code) — HELD
 
 - [ ] T0 built (log-only diff reviewed), one rerun, dumps on disk with
       per-point labels verified present (not assumed)

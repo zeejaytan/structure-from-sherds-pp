@@ -5,7 +5,8 @@
 **Blocked by:** nothing — log forensics first (job 31835065 log on Spartan),
 then targeted A/B
 
-**Status:** ready-for-agent
+**Status:** in-progress — forensics done (cause named, battery filed and
+executed); open until a fix re-runs this baseline and moves 0/8
 
 **Needs-eye:** a correct-vs-machine look enters if a proposed placement is
 worth judging; the numbers below come first (the eye judges geometry, not

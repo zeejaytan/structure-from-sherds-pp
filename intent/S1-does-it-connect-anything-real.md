@@ -263,6 +263,21 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 (log forensics → owning ticket 06/07/08/09, re-run of this baseline moves
 0/8). `POT_A_ORIG` restore left pending in `data_path.h`.
 
+## 2026-10-01 — battery executed: statistic convicted, poses convicted, fit cosmetic
+
+- Replica 30/30 (T0 vindicated as recorder).
+- T1: stddev rule flips ALL 20 recorded failures, 0 new false passes —
+  the max-deviation STATISTIC kills true merges (fix first, ticket 06).
+- T2: TLS refit changes nothing (skip).
+- T4: confounded by subset size (no signal; ticket 18 stands on the eye).
+- T5: true 35–297mm², false inside it, paper's 50 kills top-scored true
+  merges — no threshold separates (ticket assembly-09: shape, not value).
+- T6: relative poses 62–179° off on true pairs — registration convicted
+  alongside (ticket 07 urgent; T6 is the re-measurement protocol).
+- Robustness: garbage T (t_z=-1.48e11) vacuous-PASSES via bin-count
+  overflow; 5-8 abort same family. Guard required (ticket 06 input work).
+  No-env rerun downgraded to optional (T0 allocates nothing; 30/30 replica).
+
 ## 2026-10-01 — cause named: plausibility kills true merges at BOTH gates
 
 - Defaults: overlap-10 kills true merges (35–95mm²); profile never reached.

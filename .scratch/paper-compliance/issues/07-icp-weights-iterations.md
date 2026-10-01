@@ -45,6 +45,15 @@ methods comparison first.
 
 - [ ] Mapping write-up: paper cost vs code cost, reproducible-or-
       structurally-different verdict with Eq/line cites
+- [ ] DIRECTING NUMBERS 2026-10-01 (ticket 10 T6): candidate relative poses
+      62–179° off on TRUE pairs; 150 outer iterations did not prevent it.
+      Weights mapping is now URGENT, not academic — unmapped weights are
+      the prime suspect for ICP mis-convergence. T6 method (dumped T vs
+      GT, frame-free) is the re-measurement protocol after any weights
+      change.
+
+- [ ] Mapping write-up: paper cost vs code cost, reproducible-or-
+      structurally-different verdict with Eq/line cites
 - [ ] If reproducible: A/B per pair per variable; no-regression rule
       (passing pair fails → revert in isolation)
 - [ ] If structurally different: recorded deviation with the structural

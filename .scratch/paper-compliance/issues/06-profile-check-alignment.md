@@ -50,6 +50,12 @@ the fix lands first, and say which.
 
 - [ ] Spike: per-deviation effect ranking with numbers (which move gates,
       which don't)
+- [ ] DIRECTING NUMBERS 2026-10-01 (ticket 10 battery, no re-argument):
+      max-rule→stddev flips 20/20 recorded failures with 0 new false
+      passes (fix FIRST); TLS refit changes nothing (skip); wall-only
+      subset confounded (no signal); garbage-T guard required (bin-count
+      overflow vacuous-passes corrupt configs — see ticket 10)
+
 - [ ] Fixes in ranked order, one variable each, per-pair assembly numbers
       after each (Pot_A + Juglet honest + authors' sample)
 - [ ] No regression rule: a pair passing before fails after → ticket stays

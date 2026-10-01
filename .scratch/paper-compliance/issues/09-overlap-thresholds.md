@@ -37,6 +37,14 @@ least one of those comments is wrong about what the paper specifies.
 ## Acceptance criteria
 
 - [ ] Per-stage protection write-up (5 lines + cites)
+- [ ] DIRECTING NUMBERS 2026-10-01 (ticket 10 T5): true merges span
+      35–297mm²; false [5,6] at 40–60mm² sits INSIDE that range; paper's
+      own 50 kills true [1-5] carrying the run's top scores (144, 155).
+      No threshold separates — the verdict is SHAPE, not value: overlap
+      fires on pose error (T6's 62–179° interpenetrate), not pair validity.
+      Any surviving threshold must pair with score or pose sanity, never
+      stand alone.
+
 - [ ] End value per stage with measurement or reason; A/B per pair for
       every moved stage; no-regression rule
 - [ ] Comments cite measurements; the two contradictory history claims
