@@ -77,6 +77,16 @@ resolution unavailable for this run (dump env not set in sbatch; T6 needs
 a dump-armed rerun to claim pose-level effects either way).
 E1 reverted below; E2 (rim) proceeds on the reverted base, one variable.
 
+## E2 OUTCOME 2026-10-01 (job 31881006): rim emphasis does NOT recover
+
+0/8 + 0/15, 23 states (vs 22/21), best 608 (vs 263/232), profile 90/2,
+13 overlap fails. Same regime — rim 1.0→0.4 moves scores, recovers
+nothing. E2 reverted below; E3 (axis, same direction, 4×) proceeds on
+the reverted base, one variable. After E3 the weights hypothesis is
+exhausted either way: remaining structural candidates are correspondence
+input quality (ticket-18 pollution feeds ICP directly) and the unmapped
+Cauchy scales — not a fourth weight.
+
 ## EXPERIMENTS (one variable each, this tree onward) — E1 DONE (no recovery, reverted)
 
 Base state, stated once: paper-config values + stddev rule + T0 dump
