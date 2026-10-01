@@ -97,6 +97,12 @@ T6 rel-rot table:
   the normal term behind rotation errors).
 - E2: w_r=w_h 1.0 → 0.4 (rim emphasis to paper's).
 - E3: w_a 0.1 → 0.4 (axis emphasis to paper's; same direction, 4× magnitude).
+  OUTCOME 2026-10-01 (job 31890296): 0/8 + 0/15, 17 states, best 299,
+  profile 48/2. Same regime. WEIGHTS HYPOTHESIS EXHAUSTED — all three
+  emphasis directions tested, none recovers. Remaining structural
+  candidates: correspondence input quality (ticket-18 pollution feeds ICP
+  directly) and the unmapped Cauchy scales — not a fourth weight. E3
+  reverted below.
 - KNOWN PARTIAL, recorded not hidden: outer-150 reached only `Icp` (:1210).
   The live `Registration` overloads (:1441, :1632) still run 50 outer —
   the paper-config arm was partial on iterations, and E1–E3 inherit that.

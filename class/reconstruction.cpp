@@ -1205,7 +1205,7 @@ void Icp(vector<BreakLine>& L,
 	vector<bool> true_node(num_shard, false);
 	double** trans = new double* [num_shard];	// trans : transfortation
 	double** s = new double* [num_shard];		// s : rotaion representer
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.4); // E3 PAPER-EMPHASIS 2026-10-01: w_a 0.1->0.4 per paper Eq 14 (mu=0.4). Same direction, 4x magnitude. E1+E2 reverted. Ticket 07.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1); // E3 REVERTED 2026-10-01 (job 31890296: no recovery, same regime). Weights hypothesis exhausted. Ticket 07.
 	double w_r(1.0), w_h(1.0);
 	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG 2026-10-01: paper line 240 ICP max 150 outer (was 50). Weights untouched: no 0.4 mapping exists (ticket 07).
 
@@ -1436,9 +1436,9 @@ void Registration(vector<BreakLine>& L,
 	MatrixXd Table(num_shard, num_shard);
 	double* trans = new double[3];
 	double* s = new double[3];
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.4), w_r(1.0), w_h(1.0); // E3 PAPER-EMPHASIS 2026-10-01: w_a 0.1->0.4 per paper Eq 14 (mu=0.4). E1+E2 reverted same hunks. IcpIncGraphAxis keeps its own scheme -- separate experiment.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 50, ceres_iteration = 100;
+	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG COMPLETION 2026-10-01: paper line 240 ICP max 150 outer (was 50; Icp got it earlier, Registration overloads were missed). Ticket 07.
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
@@ -1627,9 +1627,9 @@ void Registration(vector<BreakLine>& L,
 	MatrixXd Table(num_shard, num_shard);
 	double* trans = new double[3];
 	double* s = new double[3];
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.4), w_r(1.0), w_h(1.0); // E3 PAPER-EMPHASIS 2026-10-01: w_a 0.1->0.4 per paper Eq 14 (mu=0.4). E1+E2 reverted same hunks. IcpIncGraphAxis keeps its own scheme -- separate experiment.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 50, ceres_iteration = 100;
+	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG COMPLETION 2026-10-01: paper line 240 ICP max 150 outer (was 50; Icp got it earlier, Registration overloads were missed). Ticket 07.
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
