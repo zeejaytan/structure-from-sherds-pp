@@ -251,6 +251,18 @@ optimizers are env-gated dead, as are their profile/overlap sites. LM-100
 verdict also closes a ticket-16 leftover. Ticket-18 interaction cited into
 06/07 (no polluted-bundle measurements without stating the arm).
 
+## 2026-10-01 — E2E baseline: probe 15/15 in, assembly 0/8 out (handoff fired)
+
+Fresh current-code extraction (`pota_e2e_fresh`, probe `e2e_fresh` arm
+15/15) through `build_sif/Hierarchy-Clear` with the POT_A block (job
+31835065, COMPLETED 0:0): matching finds all 15 true pairs (values
+7–148), then a single 8-piece state with score 0.000 "wins" and every
+piece lands wrong — 0/8 sherds, 0/15 edges. Ticket 07's handoff clause
+triggered exactly as written: the probe passes and the assembler finds
+nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
+(log forensics → owning ticket 06/07/08/09, re-run of this baseline moves
+0/8). `POT_A_ORIG` restore left pending in `data_path.h`.
+
 ## 2026-09-30 — compliance 02/03: dead expectations removed, precedence mapped
 
 - Ticket 03 (axis/rim trace, closed as the map itself): at runtime the file
