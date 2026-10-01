@@ -5,7 +5,12 @@
 **Blocked by:** ticket 18's attribution where bundles are concerned (see
 interaction rule below) — otherwise nothing; spike-first
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-01 — statistic fixed and measured; fit
+explicitly parked (T2: refit changes nothing — reopens only on new
+evidence); input belongs to ticket 18; guard done. Gate now behaves as
+the paper intends (below).
+
+**Needs-eye:** none — fit statistics and gate counts, no geometry claim.
 
 **Needs-eye:** none — fit statistics and gate counts, no geometry claim.
 A re-stage enters only if rim content changes (ticket 18's rule).
@@ -46,7 +51,21 @@ the fix lands first, and say which.
    6.0/5.5 in tuning logs; 6.5/6.0 itself unsourced). Whatever value wins
    gets a measurement cite in the code comment, ending the drift.
 
-## Acceptance criteria
+## RESOLVED 2026-10-01 (fix 1 measured end to end, job 31843205)
+
+Std-dev rule + corrupt-input guard, same paper values, same bundle:
+profile 87 PASSED / 2 FAILED (was 4/19); the only 2 kills are [1,5,8]
+twice — a NON-TRUE config, correctly killed. Every true merge passes.
+The gate now does what the paper intends. Fit stays OLS (parked per T2),
+numbers stay 7.0/7.0, input stays full-edge (ticket 18 owns pollution).
+
+Assembly still 0/8 + 0/15 — and that is itself the finding: with
+plausibility no longer blocking, beam chains 5–6-piece graphs (21 states,
+best 232) that are all wrong. The next layer is poses + scores (tickets
+07/08, assembly-09), not the profile gate. Ticket 09's baseline re-run
+criterion is NOT met by this run (different code); 09 stays open.
+
+## Acceptance criteria (closed)
 
 - [ ] Spike: per-deviation effect ranking with numbers (which move gates,
       which don't)
