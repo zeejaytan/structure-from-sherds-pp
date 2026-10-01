@@ -117,6 +117,22 @@ brief cite, lead did not re-open the function. Paper lines refer to
 
 ### Deviations (each owns a fix ticket)
 
+CORRECTIONS 2026-10-01 (fork audit, verified at upstream lines): the LCS
+multipliers (3/2.5/2.5/4), `Clustering(Out,20)`, `isConverge(T,0.1,2.0)`,
+and the Q_size/windowsize STRUCTURE are upstream's own — inherited, not
+fork deviations. They stay paper-silent in behavior (no paper values) but
+the owner is upstream. NEW in the same class: `MINIMUM_NUMBER` 6
+(upstream) → 1 ("Further reduced for NURBS", cluster lineage) — the LCS
+length gate is 6× looser; owned by new ticket 12 with the other
+lineage matching relaxations the audit surfaced (axis gate 0.436→1.571,
+lowest_score 1.5→4.0, RejectOutlier (20,0.7)→(2.0,0.85), opposing_ratio
+0.9 RELAXED, CountInlier adaptive contributions — all verified live-path,
+all cluster-lineage). GGCE/ConnectivityOptimizer scoring: the 0.7 local / 0.3 global combined
+score in `MakeHierarchyPriorityList` (ranking_system.cpp:134+, live path
+via :423) IS live paper-silent behavior ticket 05 never knew — owned by
+new ticket 12 as row 7. (Only the *separate GGCE phase* in
+enhanced_ranking_system is default-off; the scorer itself runs.)
+
 1. **ICP outer iterations 50 vs 150** (paper :240 → `max_iteration=50`
    :1210). Verified. → Ticket 07.
 2. **Weights λ/μ/ν.** Paper: 0.4 Cauchy-scaled (lines :491/:519). Code:

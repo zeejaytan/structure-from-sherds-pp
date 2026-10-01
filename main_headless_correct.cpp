@@ -177,6 +177,13 @@ int main(int argc, char** argv)
 		if(shard_on_off[i])	{
 			shard[i].edge_line_.ReadPCDFileWithInfo(file_path[i]);
 			if (shard[i].edge_line_.point_.cols() < 50) {
+				// Fork audit F5 (2026-10-01): log the drop HERE. The
+				// logging previously went only to unbuilt main_headless.cpp
+				// while this live binary dropped silently. Shards below 50
+				// points cannot join; saying so is load-bearing.
+				cout << "  [DROPPED] shard " << i << ": breakline has "
+				     << shard[i].edge_line_.point_.cols()
+				     << " points (< 50 required) -- excluded from assembly" << endl;
 				shard_on_off[i] = false;
 				shard[i].edge_line_.Remove();
 				continue;

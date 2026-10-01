@@ -1910,7 +1910,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 			double pc_var_value(0);
 			if (!profile.empty()) {
 				cout << "*** PROFILE DEBUG *** Checking profile with " << profile.size() << " points" << endl;
-				profile_matched = ProfileChecking(profile, 7.0, 7.0);	// PAPER-CONFIG 2026-10-01: paper Table II (7mm bins, 7mm threshold). Fit stays OLS and rule stays max-deviation (ticket 06 owns those); this arm changes NUMBERS only.
+				profile_matched = ProfileChecking(profile, 7.0, 7.0);	// PAPER-CONFIG 2026-10-01: paper Table II (7mm bins, 7mm threshold). Fit stays OLS (ticket 06 owns it); rule is stddev since 06 fix 1 (was max-deviation); this arm changes NUMBERS only.
 				cout << "*** PROFILE DEBUG *** Profile validation result: " << (profile_matched ? "PASSED" : "FAILED") << endl;
 				// Ticket 10 T0: profile dump mode. Env-gated (SFS_PROFILE_DUMP
 				// = output dir); when unset, ZERO behavior change -- this block
