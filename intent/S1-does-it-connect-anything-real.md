@@ -263,6 +263,26 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 (log forensics → owning ticket 06/07/08/09, re-run of this baseline moves
 0/8). `POT_A_ORIG` restore left pending in `data_path.h`.
 
+## 2026-10-01 — fork audits accepted (both docs land) + 05 corrected
+
+- Both `FORK_VS_UPSTREAM.md` docs reviewed claim-by-claim and committed.
+  Preprocessing doc stands as written (upstream-owned 0.12/4.5/1.5 verified;
+  ticket 16 corrected accordingly).
+- Assembly doc: 4 surprises verified, 1 corrected before landing —
+  ConnectivityOptimizer 0.7/0.3 scoring IS live (my first reading said
+  dormant; the scorer runs inside live `MakeHierarchyPriorityList`, only
+  the separate GGCE *phase* is default-off). It joins new ticket 12 as
+  row 7.
+- Ticket 05 amended: LCS multipliers / Clustering(Out,20) / isConverge /
+  Q-structure re-attributed to upstream (were "ours"); MINIMUM_NUMBER
+  6→1 + axis-gate/lowest-score/RejectOutlier/opposing-ratio/CountInlier
+  relaxations recorded as cluster-lineage unknowns → new ticket 12
+  (adopt-or-revert, measured; rows 4/5/7 are lineage-ADDED, so
+  disable-vs-keep, not value-vs-value).
+- F5 fixed (live binary logs `[DROPPED]` shards now — the old logging
+  reached only the unbuilt main; standing record corrected); F7 stale
+  comment fixed. Both ride the next rebuild (prints/comment + cout only).
+
 ## 2026-10-01 — battery executed: statistic convicted, poses convicted, fit cosmetic
 
 - Replica 30/30 (T0 vindicated as recorder).
