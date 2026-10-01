@@ -41,7 +41,46 @@ methods comparison first.
    variants: record which runs where (liveness unchecked in the audit);
    do not touch them here.
 
-## Acceptance criteria
+## MAPPING WRITE-UP 2026-10-01: REPRODUCIBLE (not structurally different)
+
+Paper cost (appendix Eqs 8–16, verified against the text) beside code
+(`reconstruction.{h,cpp}`, every functor read):
+
+| Paper term | Code term | Verdict |
+|---|---|---|
+| J_R dist P2P, m=ΔRΔt (Eq 10) | `CostFuncDist`: w_d·m + Cauchy(4.0) | MATCH structure |
+| J_R dist P2L, 4 terms l̂_A·l̂_B·n̂_A·n̂_B (Eq 11) | `CostFuncLineDist`: w_line·same 4-term set + Cauchy(4.0) | MATCH structure |
+| J_R normal λ=0.4, e=\|\|R_An_A−R_Bn_B\|\|² (Eq 13) | `CostFuncNorm`: w_n·(R_An_A−R_Bn_B) + Cauchy(1.8), w_n=3.0 | MATCH structure; VALUE BACKWARDS (paper 0.4× down, code 3× up — 7.5× emphasis flip) |
+| J_I axis μ=0.4, Cao + log-sum-exp softmin (Eqs 15–16) | `BiaxialCaoErrorWithFixedAxis`: w_a + softmin + Cauchy(1.8), w_a=0.1 | MATCH structure (code takes sqrt — "different from PotSAC" note; monotonic, absorbed by weight/scale); value same direction (0.1 vs 0.4) |
+| J_I rim ν=0.4 | `CostFuncRim`: w_r=w_h=1.0 + Cauchy(1.8) | MATCH structure with SPLIT weights (expressible: set both 0.4); VALUE BACKWARDS (1.0 vs 0.4) |
+| LM 100 / ICP 150 (line 240) | ceres 100 ✓ / outer 150 (paper-config) | MATCH |
+| Cauchy kernel scales | paper UNSTATED | ours by necessity (4.0/1.8) — recorded, not paper's |
+
+So the ticket's question is answered: settings EXIST (w_d=1.0, w_n=0.4,
+w_a=0.4, w_r=w_h=0.4). No recorded deviation, no structural convert —
+tuning toward the paper's numbers MEANS something here. The single most
+suspicious fact in the table: paper down-weights normal AND rim (0.4×);
+code up-weights normal 3× and holds rim at 1×. Emphasis backwards on two
+of three weighted terms — and T6's failures are ROTATION errors, i.e.
+normal-driven.
+
+Variants liveness (item 3): `IcpIncGraphAxis` LIVE (called
+`ranking_system.cpp:1041`, w_a=1.0 variant); `IcpFine` DEAD (decl+def
+only, verified — same verdict as the Surface_F audit).
+
+## EXPERIMENTS (one variable each, this tree onward)
+
+Base state, stated once: paper-config values + stddev rule + T0 dump
+code, POT_A block. Each experiment changes ONE weight, rebuilds,
+re-runs the same paper-config job, and reports states/scores/accuracy +
+T6 rel-rot table:
+- E1: w_n 3.0 → 0.4 (normal emphasis to paper's). FIRST (7.5× flip on
+  the normal term behind rotation errors).
+- E2: w_r=w_h 1.0 → 0.4 (rim emphasis to paper's).
+- E3: w_a 0.1 → 0.4 (axis emphasis to paper's; same direction, 4× magnitude).
+No prediction on direction (baseline is 0/8 — nothing to regress; watch
+for losing the 6-state branching / crashes). Outer-150 stays (already
+paper's). Cauchy scales stay (paper-silent).
 
 - [ ] Mapping write-up: paper cost vs code cost, reproducible-or-
       structurally-different verdict with Eq/line cites
