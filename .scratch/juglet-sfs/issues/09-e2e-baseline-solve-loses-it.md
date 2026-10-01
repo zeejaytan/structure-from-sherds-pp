@@ -41,18 +41,23 @@ downstream of extraction — recorded here, not in preprocessing. Log:
   ("rejected: 6 distance, 225 pottery" typical) under "LEGACY ICP ...
   robust ICP removed" — read in context before citing as cause.
 
-## What to find (log forensics, in this order)
+## Forensics (answered 2026-10-01, both arms — cause named, battery filed)
 
-1. Why exactly ONE state (1/1) with b=8/k=15 branching — where did
-   expansion die? Beam-loop lines vs `PrepareNextStep` replenish.
-2. Where the non-zero pruning scores go to 0.000 in the final state
-   (`CalculateMatchingScore` → `graph_score_` ordering).
-3. Whether plausibility (`CheckGraphPlausibility`, profile 6.5/6.0,
-   overlap-10) rejected the TRUE merges, passed the FALSE ones, or never
-   fired (score-0 win suggests the last — verify, don't assume).
-4. ICP transforms per true pair: right pairs, wrong poses (registration
-   failure) vs wrong pairs (matching failure — excluded already, but
-   state it from the transforms, not from §above).
+1. One state (baseline): expansion never produced alternatives (8
+   singletons → single score-0 state). Paper arm: 6 states branch.
+2. Score collapse: 0.000 baseline (nothing to score — no merges survived
+   plausibility); 567 paper arm. Collapse site located: plausibility,
+   not scoring.
+3. Plausibility: BASELINE kills at overlap (35.7/39.4/95.5mm² true merges
+   vs gate 10; profile never reached). PAPER kills at profile (8
+   all-true configs among 19 kills). Both gates reject true merges at
+   their values. Full ledger + prime suspects in ticket 10.
+4. ICP poses: NOT answered (no transforms in logs) → ticket 10 T6 (needs
+   T0 dump). This ticket stays open until T6 lands; everything else here
+   is done.
+
+(Original task list 1–4 retired — answered above. What remains is T6 via
+ticket 10, then this ticket closes and the fix lands in its owner.)
 
 ## PAPER-CONFIG ARM 2026-10-01 (job 31835275, COMPLETED 0:0)
 

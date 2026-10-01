@@ -263,6 +263,19 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 (log forensics → owning ticket 06/07/08/09, re-run of this baseline moves
 0/8). `POT_A_ORIG` restore left pending in `data_path.h`.
 
+## 2026-10-01 — cause named: plausibility kills true merges at BOTH gates
+
+- Defaults: overlap-10 kills true merges (35–95mm²); profile never reached.
+- Paper values: overlap-50 passes them on; profile 7/7-max-rule kills 8
+  all-true configs out of 19 ([1,5]×4, [3,6], [1,3,5]×2, [1,4]) — plus
+  correct kills and one false pass ([7,8]).
+- Prime suspects by body count: max-rule statistic (outliers — ticket 18
+  put face-crossing traces in the input), OLS fit, full-edge input;
+  overlap threshold placement (true merges span 35–95, above even paper's
+  50 at the top end). Test battery filed as juglet-sfs ticket 10 (T0 dump
+  → T1–T6 offline, one variable each, kill criteria stated). ICP poses
+  still open (T6); ticket 09 stays open until it lands.
+
 ## 2026-10-01 — PAPER-CONFIG arm: values move the search, not the outcome
 
 Same bundle through paper values (profile 7/7, overlap 50 everywhere,
