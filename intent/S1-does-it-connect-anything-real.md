@@ -234,6 +234,23 @@ broke every fresh build's file loads (reverted to container-visible).
 Found and recorded: teardown segfault after full output (robustness item,
 not a measurement blocker).
 
+## 2026-10-01 — compliance 05: matching methodology audited, fanned to 06–10
+
+Three mapping briefs + lead verification of every deviation and liveness
+claim. Matches: LCS search, two-round inverted matching, P2P→P2L, LM-100
+inner (settles LM-vs-trust-region), overlap d/θ conditions, area-50 at one
+stage, beam semantics. Deviations with fix tickets: ICP outer 50 vs 150 +
+weight-mapping (07); normal gate 15°-at-counting vs 30°-at-correspondence
+and grouping 10° vs 25° (08); profile check — OLS not orthogonal,
+max-rule not std-dev, 6.5/6.0 not 7/7, full-edge not inner-only (06, the
+big one); five overlap-area values where the paper has one (09). Dead code
+removal (10), incl. the backup file that would collide if compiled.
+Paper-silent inventory recorded (ours, never paper's). Liveness: only the
+incremental StateManager path runs by default; the three alternative
+optimizers are env-gated dead, as are their profile/overlap sites. LM-100
+verdict also closes a ticket-16 leftover. Ticket-18 interaction cited into
+06/07 (no polluted-bundle measurements without stating the arm).
+
 ## 2026-09-30 — compliance 02/03: dead expectations removed, precedence mapped
 
 - Ticket 03 (axis/rim trace, closed as the map itself): at runtime the file
