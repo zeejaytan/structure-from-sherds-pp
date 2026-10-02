@@ -23,7 +23,7 @@ class RankingSubgraph;
 #define CERES_FUNC_TOL			1.0e-3
 #define MINIMUM_NUMBER			1  // Further reduced for NURBS geometric features
 #define INLIER_THRESHOLD		3.0  // Relaxed distance threshold
-#define ANGLE_THRESHOLD			0.262  // TICKET-08 V2b 2026-10-02: inlier stage back to 15deg. Paper-config set 30deg bundled with 12 other values (never isolated); this isolates it: single variable vs the 2/8 arm (V2a reverted same commit).
+#define ANGLE_THRESHOLD			0.5236  // V2b WON 2026-10-02 (job 32102549: 15deg loses the 2/8). Back to paper 30deg. Ticket 08 resolved.
 
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;

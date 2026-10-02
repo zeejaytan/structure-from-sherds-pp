@@ -283,11 +283,13 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
-## 2026-10-02 — V1 grouping: tighter merges less, recovers nothing
+## 2026-10-02 — ticket 08 resolved; inlier 30° load-bearing for 2/8
 
-10° arm (job 32090601): 0/8 + 0/15, 22 states, best 745, profile 87/0 —
-max 3-piece fragments vs 25°'s 5–6-piece graphs. 25° stays. Next: V2
-normal gate (stage×angle, ticket 08).
+V1 (grouping 10°): fragments, no recovery — 25° stays. V2a (correspondence
+prune): hurts (loses 2/8) — reverted. V2b (inlier 15°): loses 2/8 —
+30° stays, now measured. Tree restored to the 2/8 configuration (all
+reverts reverted). Next in stage order: ticket 18 (preprocessing
+pollution), then dead-code removal, SG arm, ORIG restore.
 
 ## 2026-10-02 — control: iterations load-bearing (0/8 at 50 vs 2/8 at 150)
 

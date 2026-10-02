@@ -16,14 +16,17 @@ at correspondence removes load-bearing correspondences — paper value at
 the wrong stage. Reverted same commit as V2b (net single variable vs
 the 2/8 arm: inlier angle only).
 
-## V2b IN FLIGHT 2026-10-02: inlier 15° isolated
+## V2b OUTCOME 2026-10-02 (job 32102549): inlier 15° LOSES the 2/8 — 30° stays
 
-Paper-config bundled inlier-30 with 12 other values (never isolated).
-V2b reverts it to 15° on the otherwise-2/8 tree: if 2/8 holds, the angle
-is irrelevant and stays 30° unexamined-no-longer; if lost, inlier angle
-matters and ticket 08 owns the follow-up.
+0/8 + 0/15 (2/8 lost), 23 states, best 432, profile 85/1. Net single
+variable vs the 2/8 arm (V2a reverted same commit): the inlier angle is
+load-bearing — with 15° counting, inlier counts collapse and merges
+never form. 30° stays, now measured instead of bundled. Ticket 08
+RESOLVED below: all three variables have end conditions with numbers.
 
-then ticket closes or continues on numbers.
+**Status:** resolved 2026-10-02 — grouping→25° stays (V1: 10° fragments,
+no recovery); correspondence prune→reverted (V2a hurts); inlier→30°
+stays (V2b: 15° loses the 2/8). End conditions with numbers per variable.
 
 **Answers:** S1
 
