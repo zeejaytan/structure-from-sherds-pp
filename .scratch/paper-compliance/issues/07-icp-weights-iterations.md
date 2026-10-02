@@ -147,8 +147,18 @@ paper's). Cauchy scales stay (paper-silent).
   0.3°/2.0mm — effectively 3/8 within 2mm), edges 0/15.** First non-zero
   accuracy in the E2E series. Single-run evidence; control rerun
   (50-vs-150 same binary otherwise) owed before conclusive.
-- METRIC NOTE (measured): correct poses with 0/15 edges means edge
-  accuracy follows the assembly GRAPH, not final poses (displayed
-  "0/15 (3.333%)" — count and percent disagree). Do not cite edge
-  accuracy as pair-level evidence until its definition is verified;
-  ticket 09's pair-level readings of it are flagged suspect.
+- METRIC NOTE (measured): pieces 1–3 sit correctly posed yet edges read
+  0/15 — see edge-metric addendum below.
+
+## EDGE-METRIC ADDENDUM 2026-10-02 (definition verified, flag lifted)
+
+`CountResult` (`data_structure.cpp:1000-1066`): an edge counts only if
+BOTH GT and method graphs propose it (honest gate holds), then compares
+GT-relative vs method-relative transforms at 0.35rad/50mm. Counts are
+DIRECTED (total=30): "0/15 (3.333%)" = exactly ONE directed edge passed
+(k=1, display truncates k/2, percent is exact). Sherd accuracy (2/8 =
+pieces 2,3 by pose) comes from a different function — independent
+criteria, no contradiction. Ticket 09's "no true pair fully recovered"
+reading STANDS (zero UNDIRECTED pairs pass). The staged GT graph is
+byte-identical to the probe's (row-by-row diff). Next: identify the
+single passing directed edge (T_result vs GT recompute).
