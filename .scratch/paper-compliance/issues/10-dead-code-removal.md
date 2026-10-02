@@ -4,9 +4,11 @@
 
 **Blocked by:** nothing — deletion only; rebuild is the test
 
-**Status:** in-progress — Group A deleted (9 files, committed separately);
-Group B deletions made, awaiting rebuild. NOT resolved until the build
-passes (a deletion that breaks compilation is the failure mode).
+**Status:** resolved 2026-10-02 — both groups deleted, in-container rebuild
+exit 0, binary verified current (no source newer). Per-item proof stands
+(uncompiled files cannot execute; uncalled code verified-again-uncalled
+at deletion time). Default-path numbers waived by construction: every
+deletion is unreachable code or print-only.
 
 **Needs-eye:** none — no behavior exists to witness; the proof is the
 build plus the pre-deletion reachability cites below (re-checked at build
