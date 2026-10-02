@@ -23,7 +23,30 @@ are robust-ish (failure repeated 8+ times), but the lone 2/8 and the
 control's "iterations load-bearing" may be draws from a nondeterministic
 distribution, not effects.
 
-## What to establish (in this order)
+## CODE INSPECTION 2026-10-02 (default path — no smoking gun yet)
+
+- OMP `parallel for` (data_structure :790, reconstruction :518/:582/:645/:728):
+  all index-partitioned writes; only shared op is `cor_counter++`
+  (never read — benign race, UB-technically, behavior-neutral).
+  `feature_matching` OMPs are commented out. NOT the source (so far).
+- RANSAC nondeterminism (`random_device` + shared mt19937 + unordered_set
+  ordering, axis_estimation.cpp:24/138-186): OFFLINE TOOL ONLY
+  (`ComputePotSACAxis`, sole caller the edgeline-extraction tool).
+  Excluded for production runs. Noted for the record.
+- Sorts: `std::list::sort` (stable) + `std::sort` on vectors (deterministic
+  given fixed input) — need unordered INPUT to matter; none found in the
+  live path (`intersection_detector` unordered_map include is unused in
+  its .cpp; puzzlefusion unordered_sets are dead-by-default).
+- `time()` (ranking_system :525): filenames only. `rand()`: puzzlefusion
+  only (dead by default). No RNG/time seeds in live behavior.
+- REMAINING suspects: Ceres/Eigen thread FP summation order (weak alone,
+  needs near-ties to flip argmins — beam scores may provide them);
+  uninitialized reads (not yet swept — Eigen matrices sized-then-
+  partially-filled + full reads are the pattern to hunt).
+- Empirical test queued: guard run (32109955) + identical repeat, compare.
+  If identical → pipeline deterministic → 2/8-vs-0/8 needs tree-level
+  re-explanation (re-audit the two run trees hunk by hunk). If different
+  → nondeterminism confirmed, hunt continues above.
 
 1. QUANTIFY (no code change): rerun the SAME binary + SAME dataset 3×
    (the guard run 32109955 counts as run 1 of the new binary; two more
