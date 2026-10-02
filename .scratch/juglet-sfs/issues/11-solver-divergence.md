@@ -63,6 +63,23 @@ reject translations >20000mm loudly via existing failure channels
 behavior. This bounds damage (no fantasy merges, no overflow passes, no
 length_error aborts) but does NOT fix convergence — say so in the
 verdict, don't oversell.
+RUN LOGISTICS 2026-10-02 (accidental A/B, kept): job 32107435 runs the
+PRE-guard 2/8-config tree (stale-binary submit: the guard push hadn't
+propagated when the build pulled — push-then-pull race, same class as
+before; verified by mtime discipline AFTER submit, too late). Kept
+running deliberately: it reproduces the 2/8 configuration on a fresh
+rebuild (2/8 stability data point, free). The guard run follows on the
+guard binary; compare the two for guard effect (garbage-T counts,
+abort absence) separately from accuracy.
+
+GUARD FIRST 2026-10-02 (chosen — see forensics): same 8-line block in
+`Icp` + both `Registration` overloads (one variable, three call sites):
+reject translations >20000mm loudly via existing failure channels
+(score 11 / inlier 0). Sane placements live ≤427mm (GT max); garbage at
+1e11+. Only insane solves change path; sane solves byte-identical
+behavior. This bounds damage (no fantasy merges, no overflow passes, no
+length_error aborts) but does NOT fix convergence — say so in the
+verdict, don't oversell.
 ATTEMPT FLOOR second (if guard's loud lines show a clean pre-condition
 worth refusing earlier).
 
