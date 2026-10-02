@@ -7,8 +7,8 @@
 #define _DATA_PATH_H_
 
 // Dataset selection
-#define POT_A   // E2E 2026-10-01: our fresh pipeline breaklines (resample19+);
-// POT_A_ORIG restored after (smoother A/B 2026-09-29 used the authors sample)
+#define POT_A   // E2E/control runs need the fresh-pipeline block; ORIG
+// restored after (smoother A/B used the authors sample)
 // #define POT_A_ORIG
 // #define JUGLET (paper-compliance smoother A/B, 2026-09-29: Pot_A selected;
 // JUGLET restored after)

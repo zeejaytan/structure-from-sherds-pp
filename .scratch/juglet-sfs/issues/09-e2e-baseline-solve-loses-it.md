@@ -42,7 +42,19 @@ downstream of extraction — recorded here, not in preprocessing. Log:
   ("rejected: 6 distance, 225 pottery" typical) under "LEGACY ICP ...
   robust ICP removed" — read in context before citing as cause.
 
-## Forensics (answered 2026-10-01, both arms — cause named, battery filed)
+## 1-2 DEATH LOCATED 2026-10-02 (same logs, no new run)
+
+Witnessed-genuine pair 1-2: matching SURVIVES (value 10) → pairwise ICP
+DIVERGES on most attempts (REGOUT t_norm 1.7e13 / 8.2e12 / 8.4e12 mm; one
+sane-ish 42.6mm@36°) → one-to-one correspondence table empty →
+`isEdgeRemoved` true (`reconstruction.cpp:474`, called :2005) → never
+MERGE-attempted. Chain complete: nice input, exploding solver, silent
+table-miss, removal. The solver divergence (unanchored free-free 12-DOF?
+bad correspondence input? unbounded LM steps?) is now THE mechanism
+behind T6's garbage poses — shared root with the 5-8 abort and dump_0030.
+Fix venues in order: correspondence input (18's pollution feeds ICP),
+Cauchy scales (unmapped, no ticket yet), solver anchoring/step limits
+(no ticket yet — file if 18 + scales don't explain it).
 
 EDGE-LEVEL RESOLUTION 2026-10-02 (ticket 07 addendum — read it for the
 table): k=1 directed edge bounded to {1→3, 3→1, 1→4}. Pair 1-2 (witnessed,
