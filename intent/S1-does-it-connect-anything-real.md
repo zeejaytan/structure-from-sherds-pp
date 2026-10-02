@@ -283,7 +283,13 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
-## 2026-10-02 — edge metric verified (directed counts; 09 readings stand)
+## 2026-10-02 — k=1 bounded; 1-2 never attempted (next slice named)
+
+Seven directed edges transform-similar; MERGETABLE ledger eliminates all
+but {1→3, 3→1, 1→4} (pairs 1-2/2-4 never attempted). Pair 1-2 — eye-witnessed
+genuine, probe 15/15 member, pieces transform-exact — survived matching
+(value 10) yet never reached merging. Dies between matching and merging;
+ticket 09 owns locating where (pruning vs beam).
 
 `CountResult` counts DIRECTED edges (total=30): "0/15 (3.333%)" is exactly
 one passing directed edge (k=1, display truncates, percent exact). Context:

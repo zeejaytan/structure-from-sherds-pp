@@ -150,7 +150,23 @@ paper's). Cauchy scales stay (paper-silent).
 - METRIC NOTE (measured): pieces 1–3 sit correctly posed yet edges read
   0/15 — see edge-metric addendum below.
 
-## EDGE-METRIC ADDENDUM 2026-10-02 (definition verified, flag lifted)
+## EDGE-METRIC ADDENDUM 2026-10-02 (definition verified + k=1 bounded)
+
+`CountResult` (`data_structure.cpp:1000-1066`): DIRECTED edges (total=30),
+honest gate (GT+proposed), relative-transform check at 0.35rad/50mm.
+"0/15 (3.333%)" = exactly ONE passing directed edge (display truncates
+k/2, percent exact). Ticket 09's "no true pair fully recovered" stands.
+Recompute (`which_edge_passed.py`, final T vs GT, holder-run): 7 directed
+edges transform-similar — 1→2, 1→3, 1→4, 2→1, 2→4, 3→1, 4→2 — but
+MERGETABLE ledger shows pair 1-2 and 2-4 were NEVER merge-attempted, so
+the k=1 edge is one of {1→3, 3→1, 1→4} (attempted AND similar; final-graph
+membership among the three open). All inside the well-posed {1,3,4}
+cluster — consistent with sherd 2/8.
+FINDING for ticket 09: pair 1-2 — witnessed genuine by eye, probe-passing,
+transform-exact pieces — SURVIVED feature matching (value=10) yet was
+NEVER merge-attempted. It dies between matching and merging
+(PairwisePruning? RegistrationPruning? beam never expands it?). Next
+forensics slice: where 1-2 dies.
 
 `CountResult` (`data_structure.cpp:1000-1066`): an edge counts only if
 BOTH GT and method graphs propose it (honest gate holds), then compares

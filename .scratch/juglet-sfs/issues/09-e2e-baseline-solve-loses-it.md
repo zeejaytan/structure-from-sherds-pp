@@ -44,6 +44,12 @@ downstream of extraction — recorded here, not in preprocessing. Log:
 
 ## Forensics (answered 2026-10-01, both arms — cause named, battery filed)
 
+EDGE-LEVEL RESOLUTION 2026-10-02 (ticket 07 addendum — read it for the
+table): k=1 directed edge bounded to {1→3, 3→1, 1→4}. Pair 1-2 (witnessed,
+probe-passing, transform-exact) SURVIVED matching yet NEVER merge-attempted
+— dies between matching and merging. Next slice: locate where (pruning vs
+beam expansion) in THIS ticket.
+
 1. One state (baseline): expansion never produced alternatives (8
    singletons → single score-0 state). Paper arm: 6 states branch.
 2. Score collapse: 0.000 baseline (nothing to score — no merges survived
