@@ -1362,6 +1362,27 @@ void Icp(vector<BreakLine>& L,
 			int node = cycle.nodes[i] - 1;
 			UpdateTrans(L[node], s[node], trans[node], R, t, R_i, t_i, node);
 		}
+		// Ticket 11 guard (2026-10-02): diverged solves REJECTED LOUDLY.
+		// LM walks translations to 1e11+ mm on underdetermined sets
+		// (measured 1.7e13 on pair 1-2); downstream then works in fantasy
+		// land (vacuous profile passes, length_error aborts). Sane
+		// placements live at hundreds of mm (GT max 427); 20000mm is 50x
+		// safe. Uses the existing failure channels (score 11 / inlier 0).
+		// !(x<20000) also catches NaN. Same guard in both Registration
+		// overloads below: one variable (the guard), three call sites.
+		{
+			bool t_sane = true;
+			for (int i = 0; i < num_node; i++) {
+				const int node = cycle.nodes[i] - 1;
+				if (!(t_i[node].norm() < 20000.0)) { t_sane = false; break; }
+			}
+			if (!t_sane) {
+				cout << "*** DIVERGED-SOLVE *** Icp translation insane -- rejecting loudly" << endl;
+				cycle.score = 11.0;
+				cycle.inlier = 0;
+				break;
+			}
+		}
 		shard_A = m_LCS[cycle.edges[0]].shard_y_ - 1;
 		shard_B = m_LCS[cycle.edges[0]].shard_x_ - 1;
 		Matrix4d T1 = Matrix4d::Identity(), T2 = Matrix4d::Identity();
@@ -1579,6 +1600,14 @@ void Registration(vector<BreakLine>& L,
 		//############### Update the transformation matrix to data ###############//
 		int count(0);	// For stop condition
 		UpdateTrans(L[c_node - 1], s, trans, R, t, R_i, t_i, c_node - 1);
+		// Ticket 11 guard (2026-10-02): same diverged-solve reject as Icp
+		// above (one variable, three call sites).
+		if (!(t_i[c_node - 1].norm() < 20000.0)) {
+			cout << "*** DIVERGED-SOLVE *** Registration translation insane -- rejecting loudly" << endl;
+			lcs.score_ = 11.0;
+			lcs.inliner_ = 0;
+			break;
+		}
 
 		Matrix4d T = Matrix4d::Identity();
 		for (int j = 0; j < 3; j++) {
@@ -1796,6 +1825,14 @@ void Registration(vector<BreakLine>& L,
 				UpdateTrans(L[i], s, trans, R, t, R_i, t_i, i);
 			else if (merge_node[i])
 				EdgeLineMove(L[i], R_m, t_m);
+		}
+		// Ticket 11 guard (2026-10-02): same diverged-solve reject (one
+		// variable, three call sites).
+		if (!(t_i[c_node - 1].norm() < 20000.0)) {
+			cout << "*** DIVERGED-SOLVE *** Registration translation insane -- rejecting loudly" << endl;
+			lcs.score_ = 11.0;
+			lcs.inliner_ = 0;
+			break;
 		}
 
 		Matrix4d T = Matrix4d::Identity();
