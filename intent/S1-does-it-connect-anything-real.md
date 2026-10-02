@@ -283,6 +283,14 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-02 — control: iterations load-bearing (0/8 at 50 vs 2/8 at 150)
+
+Symmetric single-run isolation (only the two Registration lines differ).
+150 restored (it earned it). Ticket 07 outer-count item conclusive-ish.
+`POT_A_ORIG` restore postponed again — ticket 08's A/Bs need the POT_A
+block next; restore lands after the last assembly run, and the ticket
+says so.
+
 ## 2026-10-02 — k=1 bounded; 1-2 never attempted (next slice named)
 
 Seven directed edges transform-similar; MERGETABLE ledger eliminates all

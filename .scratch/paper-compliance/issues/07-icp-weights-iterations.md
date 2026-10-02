@@ -90,7 +90,19 @@ exhausted either way: remaining structural candidates are correspondence
 input quality (ticket-18 pollution feeds ICP directly) and the unmapped
 Cauchy scales — not a fourth weight.
 
-## EXPERIMENTS (one variable each, this tree onward) — E1 DONE (no recovery, reverted)
+## CONTROL OUTCOME 2026-10-02 (job 32087141): iterations ARE load-bearing
+
+Registration-50 (Icp fixed at 150, everything else identical): **0/8 +
+0/15**, 17 states, best 237. Against Registration-150's 2/8: the ONLY
+difference is the two overload lines. Control verdict: outer iterations
+decide whether pieces 2,3 land (single runs each way — symmetric
+single-run evidence, the best isolation available; a swapped repeat
+would strengthen it). 1-2 REGOUT bit-identical across runs (pairwise
+stage deterministic, untouched by Registration iters — as expected).
+REGISTRATION-150 RESTORED below (it earned its keep: 2/8 > 0/8).
+Ticket 07's outer-count item is now CONCLUSIVE-ish: 150 stays.
+
+## EXPERIMENTS (one variable each, this tree onward) — ALL DONE
 
 Base state, stated once: paper-config values + stddev rule + T0 dump
 code, POT_A block. Each experiment changes ONE weight, rebuilds,

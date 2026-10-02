@@ -1438,7 +1438,7 @@ void Registration(vector<BreakLine>& L,
 	double* s = new double[3];
 	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 50, ceres_iteration = 100; // CONTROL 2026-10-02: Registration back to 50 for the 50-vs-150 control (Icp stays 150 -- isolates the Reg delta behind the 2/8). Ticket 07.
+	int max_iteration = 150, ceres_iteration = 100; // CONTROL WON 2026-10-02 (job 32087141: 0/8 at 50 vs 2/8 at 150, all else identical). Registration-150 restored. Ticket 07.
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
@@ -1629,7 +1629,7 @@ void Registration(vector<BreakLine>& L,
 	double* s = new double[3];
 	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 50, ceres_iteration = 100; // CONTROL 2026-10-02: Registration back to 50 for the 50-vs-150 control (Icp stays 150 -- isolates the Reg delta behind the 2/8). Ticket 07.
+	int max_iteration = 150, ceres_iteration = 100; // CONTROL WON 2026-10-02 (job 32087141: 0/8 at 50 vs 2/8 at 150, all else identical). Registration-150 restored. Ticket 07.
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
