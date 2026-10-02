@@ -1,5 +1,15 @@
 # 08: Correspondence normal gate + grouping angle
 
+## V1 OUTCOME 2026-10-02 (job 32090601): grouping 10° does NOT recover
+
+0/8 + 0/15, 22 states, best 745, profile 87/0 (zero kills), State 0 =
+2+1+3+2 fragments (no large graph). Against the 25° arm (2/8, best
+567/232, 5–6-piece graphs): tighter grouping fragments merging (max
+3-piece vs 5–6-piece) at HIGHER best score (745) with zero correct.
+Grouping moves granularity, not correctness; 25° stays (paper value +
+only arm that ever placed pieces). Next: normal gate stage×angle (V2),
+then ticket closes or continues on numbers.
+
 **Answers:** S1
 
 **Blocked by:** nothing — assembly A/B measurements; one variable each

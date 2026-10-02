@@ -283,10 +283,17 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-02 — V1 grouping: tighter merges less, recovers nothing
+
+10° arm (job 32090601): 0/8 + 0/15, 22 states, best 745, profile 87/0 —
+max 3-piece fragments vs 25°'s 5–6-piece graphs. 25° stays. Next: V2
+normal gate (stage×angle, ticket 08).
+
 ## 2026-10-02 — control: iterations load-bearing (0/8 at 50 vs 2/8 at 150)
 
-Symmetric single-run isolation (only the two Registration lines differ).
-150 restored (it earned it). Ticket 07 outer-count item conclusive-ish.
+Registration-50 (job 32087141) vs Registration-150 (job 31898200), all else
+identical: 0/8 vs 2/8. Symmetric single-run isolation. 150 restored (it
+earned it). Ticket 07 outer-count item conclusive-ish.
 `POT_A_ORIG` restore postponed again — ticket 08's A/Bs need the POT_A
 block next; restore lands after the last assembly run, and the ticket
 says so.
