@@ -283,6 +283,14 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-03 — guard holds (550 loud rejects, no abort, 0/8 unchanged)
+
+Same bundle, guard binary (job 32109955): 550 diverged solves rejected
+loudly, zero aborts, accuracy 0/8 + 0/15 (19 states, best 335, profile
+73/0). Guard bounds damage as designed; convergence untouched. Identical
+repeat submitted (job 32113198) for ticket 12's determinism test — same
+binary, same data, compare.
+
 ## 2026-10-02 — ticket 10 resolved: dead code gone, build green
 
 Group A (9 unbuilt files) + Group B (uncalled twin, mode-1 branch,

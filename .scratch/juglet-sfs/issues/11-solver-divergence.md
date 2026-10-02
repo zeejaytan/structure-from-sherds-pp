@@ -53,7 +53,16 @@ inliers? large initial meandist? specific pairs?) or strike uniformly?
 If uniform → solver setup (anchor/prior/cap). If preconditioned →
 input quality (route to 18/Cauchy-scales with the pre-condition table).
 
-## Fix candidates (ONE — forensics picks, then A/B)
+## GUARD OUTCOME 2026-10-03 (job 32109955): bounds damage, no recovery
+
+0/8 + 0/15, 19 states, best 335, profile 73/0, **550 DIVERGED-SOLVE
+fires**, zero aborts/length_errors. Verdict as predicted: garbage
+rejected loudly 550× (mechanism scale confirmed — every ~sixth solve
+leaves the map), no fantasy merges from those branches, no abort. No
+recovery (convergence untouched — 1-2 still never merges). Guard STAYS
+(it prevents the abort + vacuous-pass family at zero sane cost).
+Convergence itself (anchor/prior/input/Cauchy) remains open work, in
+that order per the forensics.
 
 GUARD FIRST 2026-10-02 (chosen — see forensics): same 8-line block in
 `Icp` + both `Registration` overloads (one variable, three call sites):
@@ -72,14 +81,6 @@ rebuild (2/8 stability data point, free). The guard run follows on the
 guard binary; compare the two for guard effect (garbage-T counts,
 abort absence) separately from accuracy.
 
-GUARD FIRST 2026-10-02 (chosen — see forensics): same 8-line block in
-`Icp` + both `Registration` overloads (one variable, three call sites):
-reject translations >20000mm loudly via existing failure channels
-(score 11 / inlier 0). Sane placements live ≤427mm (GT max); garbage at
-1e11+. Only insane solves change path; sane solves byte-identical
-behavior. This bounds damage (no fantasy merges, no overflow passes, no
-length_error aborts) but does NOT fix convergence — say so in the
-verdict, don't oversell.
 ATTEMPT FLOOR second (if guard's loud lines show a clean pre-condition
 worth refusing earlier).
 
