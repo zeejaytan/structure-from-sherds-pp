@@ -95,11 +95,9 @@ bool ProfileChecking(vector<Vector3d>& profile,
 	double bin_size,
 	double threshold);
 
-bool ProfileCheckingWithInlier(vector<Vector3d>& profile,
-	double bin_size,
-	double threshold,
-	double th_inlier,
-	int& inlier);
+// Ticket 10: ProfileCheckingWithInlier deleted (def + decl) — zero
+// callers repo-wide, verified 2026-10-02. The live ProfileChecking above
+// is the only profile gate.
 
 void MatchingScore(double& score,
 	const vector<Corres>& COR);

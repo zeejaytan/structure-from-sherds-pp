@@ -4,7 +4,9 @@
 
 **Blocked by:** nothing — deletion only; rebuild is the test
 
-**Status:** ready-for-agent
+**Status:** in-progress — Group A deleted (9 files, committed separately);
+Group B deletions made, awaiting rebuild. NOT resolved until the build
+passes (a deletion that breaks compilation is the failure mode).
 
 **Needs-eye:** none — no behavior exists to witness; the proof is the
 build plus the pre-deletion reachability cites below (re-checked at build

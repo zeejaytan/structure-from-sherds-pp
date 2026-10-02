@@ -24,7 +24,7 @@ Follow the workspace root **`../AGENTS.md`** (laptop ↔ GitHub ↔ Spartan) for
 
 - `main_headless_correct_branch_{N}.cpp` are **generated** — `run_top_k_parallel.sbatch` (outer `sfs_main/`) copies `main_headless_correct.cpp` per Slurm array task and appends `PARALLEL_BRANCH_ID`. Gitignored; never commit or edit them — edit `main_headless_correct.cpp`.
 - `CMakeLists_enhanced.txt` was an older draft fully merged into the tracked `CMakeLists.txt` (verified zero unique lines); it was deleted during the 2026-07-19 migration.
-- `surface_overlap_detection.{cpp,h}` (repo root) is an early standalone draft, superseded by the tracked `class/surface_overlap_detector.{cpp,h}` which is what the build uses. Kept for reference only; nothing includes it.
+- `surface_overlap_detection.{cpp,h}` (repo root) was an early standalone draft, superseded by the tracked `class/surface_overlap_detector.{cpp,h}` which is what the build uses. REMOVED 2026-10-02 (ticket 10, Group A) — nothing included it.
 - GGCE (Global Graph Connectivity Enhancement) is documented in `GGCE_README.md`; its tests live in `tests/` and build as `ggce_tests` via the tracked `CMakeLists.txt`.
 - Historical analysis/debugging writeups (`ROOT_CAUSE_DIAGNOSIS.md`, `COORDINATE_FIX_PROGRESS.md`, etc.) live at repo root from the research phase.
 

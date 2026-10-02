@@ -264,7 +264,9 @@ int main(int argc, char** argv)
 	}
 
 	cout << "#################### Save initial state ####################" << endl;
-	EnhancedStateManager manager;
+	// Ticket 10: dead `manager` removed (constructed, never referenced --
+	// the live manager is `assembly_manager`, built later). Verified
+	// unreferenced 2026-10-02.
 	vector<Visualize> pc_origin(SHARD_NUMBER);
 	vector<Visualize> pc_overlap;
 	
@@ -446,24 +448,6 @@ int main(int argc, char** argv)
 	}
 	result_log << "Feature matches after pruning: " << LCS_out.size() << endl;
 
-	// #################### POST-PRUNING HUB GUIDANCE (DISABLED) ####################
-	cout << "#################### Post-Pruning Hub Guidance (DISABLED) ####################" << endl;
-	cout << "*** HUB GUIDANCE DISABLED *** Skipping hub guidance to prevent boosting failed connections" << endl;
-	cout << "*** REASON *** Hub guidance was boosting failed ICP connections (score=11.0, inlier=0) to high scores (16.5)" << endl;
-	cout << "*** RESULT *** Auto-Agglomerative Assembly will use original connection scores and inlier counts" << endl;
-
-	// HUB GUIDANCE SYSTEM DISABLED - was causing:
-	// 1. Failed ICP connections (score=11.0, inlier=0) boosted to score=16.5
-	// 2. Inlier scaling: 0 * 1.5 = 0 (zero times anything is still zero)
-	// 3. Auto-Agglomerative Assembly prioritizing invalid connections
-	//
-	// Original problematic code:
-	// - hub_guidance_system.computeEnhancedScore() boosted scores
-	// - connection.inliner_ = static_cast<int>(connection.inliner_ * score_ratio) failed for 0 inliners
-	// - Result: artificially high scores with no geometric validity
-
-// TOP-K TRANSFORMS REMOVED - useless perturbations that don't solve 3-graph problem
-
 	// #################### TWO-PHASE ASSEMBLY ARCHITECTURE ####################
 	cout << "#################### Two-Phase Assembly Architecture ####################" << endl;
 	cout << "*** TWO-PHASE ASSEMBLY *** Enabling enhanced assembly with connection preservation" << endl;
@@ -496,7 +480,7 @@ int main(int argc, char** argv)
 
 		if (two_phase_result.success) {
 			cout << "*** TWO-PHASE ASSEMBLY SUCCESS *** "
-			     << two_phase_result.local_components_generated << " → "
+			     << two_phase_result.local_components_generated << " �? "
 			     << two_phase_result.final_components << " components" << endl;
 			cout << "    Connectivity improvement: " << (two_phase_result.connectivity_improvement * 100.0) << "%" << endl;
 			cout << "    Overall quality: " << (two_phase_result.overall_improvement * 100.0) << "%" << endl;
@@ -1057,7 +1041,7 @@ int main(int argc, char** argv)
 	
 	assembly_data << endl;
 	assembly_data << "TRANSFORMATION DATA:" << endl;
-	assembly_data << "✅ Transformation matrices successfully extracted and applied!" << endl;
+	assembly_data << "�? Transformation matrices successfully extracted and applied!" << endl;
 	assembly_data << "All surface points have been transformed to final assembly positions" << endl;
 	assembly_data.close();
 	
@@ -1126,11 +1110,11 @@ int main(int argc, char** argv)
 			vis_script << "        ply_filename = f'{ply_dir}/piece_" << (i+1) << "_assembled_surface.ply'" << endl;
 			vis_script << "        piece_colors = np.tile(color_rgb[" << i << "], (len(full_data), 1))" << endl;
 			vis_script << "        write_ply(ply_filename, full_data, piece_colors)" << endl;
-			vis_script << "        print(f'✓ Exported {ply_filename} with {len(full_data)} points')" << endl;
+			vis_script << "        print(f'�? Exported {ply_filename} with {len(full_data)} points')" << endl;
 			vis_script << "        all_assembled_points.extend(full_data)" << endl;
 			vis_script << "        all_assembled_colors.extend(piece_colors)" << endl;
 			vis_script << "    except Exception as e:" << endl;
-			vis_script << "        print(f'✗ Failed to process {filename}: {e}')" << endl;
+			vis_script << "        print(f'�? Failed to process {filename}: {e}')" << endl;
 		}
 	}
 
@@ -1139,7 +1123,7 @@ int main(int argc, char** argv)
 	vis_script << "if all_assembled_points:" << endl;
 	vis_script << "    combined_filename = f'{ply_dir}/pot_a_complete_assembly.ply'" << endl;
 	vis_script << "    write_ply(combined_filename, np.array(all_assembled_points), np.array(all_assembled_colors))" << endl;
-	vis_script << "    print(f'✓ Exported combined assembly: {combined_filename} with {len(all_assembled_points)} points')" << endl;
+	vis_script << "    print(f'�? Exported combined assembly: {combined_filename} with {len(all_assembled_points)} points')" << endl;
 	vis_script << "" << endl;
 	vis_script << "print(f'\\n=== PLY FILES CREATED ===')" << endl;
 	vis_script << "print(f'Directory: {ply_dir}/')" << endl;

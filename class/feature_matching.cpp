@@ -908,9 +908,9 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	cout << "*** PROFILE VALIDATION *** Starting with " << profile.size() << " points, threshold=" << threshold << endl;
 	bool out = true;
 	// Ticket 06 guard (battery garbage finding 2026-10-01): corrupt input
-	// must FAIL LOUDLY. Was: empty profile â†’ .back() on empty (UB); insane
-	// z-range from garbage transforms (e.g. t_z=-1.48e11) â†’ bin-count int
-	// overflow â†’ validation loop skipped â†’ vacuous PASS. A corrupt config
+	// must FAIL LOUDLY. Was: empty profile ï¿?? .back() on empty (UB); insane
+	// z-range from garbage transforms (e.g. t_z=-1.48e11) ï¿?? bin-count int
+	// overflow ï¿?? validation loop skipped ï¿?? vacuous PASS. A corrupt config
 	// passing plausibility is how the 5-8 abort family starts.
 	for (size_t gi = 0; gi < profile.size(); gi++) {
 		if (!std::isfinite(profile[gi](0)) || !std::isfinite(profile[gi](2))) {
@@ -966,7 +966,7 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		double den = sqrt(coeff(0) * coeff(0) + 1);
 		// Ticket 06 fix 1 (battery T1 convicted 2026-10-01): paper std-dev
 		// rule. Was max-absolute-deviation (any single point > threshold
-		// kills) â€” flipped 20/20 recorded failures with 0 new false
+		// kills) ï¿?? flipped 20/20 recorded failures with 0 new false
 		// passes under stddev on identical bins. Distances orthogonal for
 		// ALL points (the convicted variant); fit stays OLS (T2: refit
 		// cosmetic, skipped). Population stddev (Ã·n), matching the battery.
@@ -1000,78 +1000,6 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	}
 
 	cout << "*** PROFILE VALIDATION *** RESULT: " << (out ? "PASSED" : "FAILED") << endl;
-	return out;
-}
-
-bool ProfileCheckingWithInlier(vector<Vector3d>& profile,
-	double bin_size,
-	double threshold,
-	double th_inlier,
-	int& inlier)
-{
-	int pc_inlier(0), pc_base(0);
-	bool out = true;
-	// Fist, sort profile curve based on height
-	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
-		return a(2) < b(2);
-		});
-
-	MinMaxValue z_total;
-	z_total.max_value = profile.back()(2);
-	z_total.min_value = profile.front()(2);
-
-	int Q_size = floor((z_total.max_value - z_total.min_value) / bin_size) + 1;
-	int s_index(0);
-	for (int i = 0; i < Q_size; i++) {
-		MinMaxValue bin;
-		bin.min_value = bin_size * i + z_total.min_value;
-		bin.max_value = bin_size * (i + 1) + z_total.min_value;
-
-		int start = s_index;
-		for (int j = s_index; j < profile.size(); j++) {
-			if (profile[j](2) > bin.max_value) {
-				break;
-			}
-			else if (profile[j](2) < bin.min_value) {
-				cout << "ProfileChecking : Error - out of scope" << endl;
-				break;
-			}
-			else {
-				s_index++;
-			}
-		}
-		int end = s_index - 1;
-
-		double dist(0);
-		MatrixXd coeff = CalculateLeastSquare(profile, start, end);
-		double den = sqrt(coeff(0) * coeff(0) + 1);
-		for (int j = start; j < end; j++) {
-			if (abs(coeff(0)) > 1) {
-				dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
-			}
-			else {
-				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
-			}
-			if (dist > threshold) {
-				out = false;
-				break;
-			}
-			else if (dist < th_inlier) {
-				pc_inlier++;
-			}
-
-			pc_base++;
-		}
-		if (!out) {
-			break;
-		}
-	}
-
-	if (out) {
-		double weight = pow(((double)pc_inlier / (double)pc_base), 2) * 0.2 + 1;
-		inlier = (int)(weight * (double)inlier);
-	}
-
 	return out;
 }
 
@@ -1570,74 +1498,16 @@ void FeatureComp(vector<Geom>& a,
 {
 	vector<double> Q_size;
 	int shard_num = a.size();
-	bool is_thickness = false;
+	(void)size; // Ticket 10: mode-1 branch (its only user) removed; kept
+	(void)mode; // for the three callers' sake. All callers pass mode=0.
 
-	for (int i = 0; i < shard_num; i++) {
-		if (!a[i].is_matching_) continue;
-		if (a[i].edge_line_.feature_[0].cols() > 3) {
-			is_thickness = true;
-			break;
-		}
-	}
-
-	if (mode == 1) {
-		vector<MinMaxValue> mfeatures(3);
-		int num_iter = 3;
-
-		for (int j = 0; j < 3; j++) {
-			MinMaxValue mTemp;
-			for (int i = 0; i < shard_num; i++) {
-				if (!a[i].is_matching_) continue;
-				else {
-					int num_axis = a[i].edge_line_.feature_.size();
-					for (int axis_index = 0; axis_index < num_axis; axis_index++) {
-						mTemp.max_value = max(a[i].edge_line_.feature_[axis_index].row(j).maxCoeff(), mTemp.max_value);
-						mTemp.min_value = min(a[i].edge_line_.feature_[axis_index].row(j).minCoeff(), mTemp.min_value);
-					}
-				}
-			}
-			mfeatures[j] = mTemp;
-		}
-
-		// If there is thickness featuer.
-		// 7 th row of feature_ is thickness
-		if (is_thickness) {
-			num_iter = 4;
-			MinMaxValue mTemp;
-			mTemp.min_value = 9999;
-			for (int i = 0; i < shard_num; i++) {
-				if (!a[i].is_matching_) continue;
-
-				int num_axis = a[i].edge_line_.feature_.size();
-				for (int axis_index = 0; axis_index < num_axis; axis_index++) {
-					mTemp.max_value = max(a[i].edge_line_.feature_[axis_index].row(6).maxCoeff(), mTemp.max_value);
-
-					for (int j = 0; j < a[i].edge_line_.feature_[axis_index].cols(); j++) {
-						if (a[i].edge_line_.feature_[axis_index](6, j) < 0) {
-							continue;
-						}
-						else {
-							mTemp.min_value = min(mTemp.min_value, a[i].edge_line_.feature_[axis_index](6, j));
-						}
-					}
-				}
-			}
-
-			mfeatures.push_back(mTemp);
-		}
-
-		for (int i = 0; i < num_iter; i++) {
-			Q_size.push_back((mfeatures[i].max_value - mfeatures[i].min_value) / size);
-		}
-	}
-
-	else {
-		Q_size.resize(4);
-		Q_size[0] = 0.15;  // D - Restored to ORIGINAL values for Orange connections
-		Q_size[1] = 0.15;  // H - Restored to ORIGINAL values for Orange connections
-		Q_size[2] = 0.15;  // Theta - Restored to ORIGINAL values for Orange connections
-		Q_size[3] = 0.2;   // Curvature - Restored to ORIGINAL values for Orange connections
-	}
+	// Ticket 10: mode-1 Q_size branch removed (all three callers pass
+	// mode=0, verified 2026-10-02). Unconditional quantizers below.
+	Q_size.resize(4);
+	Q_size[0] = 0.15;  // D - Restored to ORIGINAL values for Orange connections
+	Q_size[1] = 0.15;  // H - Restored to ORIGINAL values for Orange connections
+	Q_size[2] = 0.15;  // Theta - Restored to ORIGINAL values for Orange connections
+	Q_size[3] = 0.2;   // Curvature - Restored to ORIGINAL values for Orange connections
 
 	// i : standard piece(y axis), j : changing piece(x axis)
 	for (int i = 0; i < shard_num; i++) {
@@ -1920,7 +1790,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double lowest_score(9999);
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
-			if (iter->axis_angle_ > 1.571) {	// Evidence-based: 0.610 (35Â°) â†’ 1.571 (90Â°) for pottery geometry
+			if (iter->axis_angle_ > 1.571) {	// Evidence-based: 0.610 (35Â°) ï¿?? 1.571 (90Â°) for pottery geometry
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** AXIS ANGLE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
@@ -1936,7 +1806,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 4.0) {	// Evidence-based: 2.5 â†’ 4.0 to preserve Blue-Red connections
+			if (lowest_score > 4.0) {	// Evidence-based: 2.5 ï¿?? 4.0 to preserve Blue-Red connections
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** SCORE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
