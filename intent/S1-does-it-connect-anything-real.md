@@ -283,14 +283,16 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
-## 2026-10-01 — Registration-150: first 2/8 (pieces 2,3 exact; 1 close)
+## 2026-10-02 — edge metric verified (directed counts; 09 readings stand)
 
-Single-run evidence, control rerun owed. Pieces 1–3 correctly posed yet
-edges read 0/15 — edge accuracy follows the graph, not poses (metric
-flagged, ticket 09's pair-level readings of it suspect). Ticket 07
-resolved (mapping reproducible, weights exhausted, iterations
-measured-once). Weights are out; remaining structural candidates: input
-quality (18), Cauchy scales, correspondence gate (08).
+`CountResult` counts DIRECTED edges (total=30): "0/15 (3.333%)" is exactly
+one passing directed edge (k=1, display truncates, percent exact). Context:
+Registration-150 run (job 31898200) placed pieces 2, 3 exactly and piece 1
+within 0.3°/2.0mm — first 2/8 in the series (ticket 07, single-run
+evidence, control rerun owed). Sherd 2/8 (poses) is an independent
+criterion from edges. Zero undirected pairs pass, so ticket 09's
+pair-level "nothing fully recovered" stands. Staged GT graph
+byte-identical to the probe's. Open: which directed edge passed.
 
 ## 2026-10-01 — fix 1 works as intended; 0/8 stands on poses+scores
 
