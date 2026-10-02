@@ -7,7 +7,22 @@
 567/232, 5–6-piece graphs): tighter grouping fragments merging (max
 3-piece vs 5–6-piece) at HIGHER best score (745) with zero correct.
 Grouping moves granularity, not correctness; 25° stays (paper value +
-only arm that ever placed pieces). Next: normal gate stage×angle (V2),
+only arm that ever placed pieces).
+
+## V2a OUTCOME 2026-10-02 (job 32099332): correspondence prune HURTS, reverted
+
+0/8 + 0/15 (2/8 LOST), 21 states, best 225, profile 42/1. The 30° prune
+at correspondence removes load-bearing correspondences — paper value at
+the wrong stage. Reverted same commit as V2b (net single variable vs
+the 2/8 arm: inlier angle only).
+
+## V2b IN FLIGHT 2026-10-02: inlier 15° isolated
+
+Paper-config bundled inlier-30 with 12 other values (never isolated).
+V2b reverts it to 15° on the otherwise-2/8 tree: if 2/8 holds, the angle
+is irrelevant and stays 30° unexamined-no-longer; if lost, inlier angle
+matters and ticket 08 owns the follow-up.
+
 then ticket closes or continues on numbers.
 
 **Answers:** S1

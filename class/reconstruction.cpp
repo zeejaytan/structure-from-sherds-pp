@@ -312,11 +312,8 @@ void MakeCor(Corres& c_in,
 				dummy.line_n_B = line_nB;
 				dummy.index_A = *ptr_index_A;
 				dummy.index_B = *ptr_index_B;
-				// Ticket 08 V2a (paper line 215): correspondence-stage
-				// normal prune at 30deg. Was mutual-nearest only (ticket 05
-				// item 7). Inlier-stage 15deg untouched (V2b, separate).
-				if (dummy.n_A.normalized().dot(dummy.n_B.normalized()) < 0.8660254)
-					continue;
+				// V2a REVERTED 2026-10-02 (job 32099332: loses the 2/8, no
+				// gains -- paper value at the wrong stage hurts). Ticket 08.
 				c_in.cor.push_back(dummy);
 			}
 		}
@@ -329,9 +326,7 @@ void MakeCor(Corres& c_in,
 			dummy.line_n_B = p_B.line_normal_.col(i);
 			dummy.index_A = *ptr_index_A;
 			dummy.index_B = i;
-			// Ticket 08 V2a: same 30deg prune on the non-onetoone path.
-			if (dummy.n_A.normalized().dot(dummy.n_B.normalized()) < 0.8660254)
-				continue;
+			// V2a REVERTED (same job, same verdict).
 			c_in.cor.push_back(dummy);
 		}
 	}
