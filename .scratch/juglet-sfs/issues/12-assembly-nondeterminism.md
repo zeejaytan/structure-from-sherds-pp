@@ -67,6 +67,19 @@ distribution, not effects.
    outranks all tuning. Until then, every future A/B needs ≥2 runs per
    arm with the distribution reported, not single numbers.
 
+## DETERMINISM VERDICT 2026-10-03: NONDETERMINISTIC, confirmed
+
+Identical binary + identical data: guard run 0/8 + 0/15 (19 states, best
+335, 73/0, 550 diverged) vs repeat 2/8 + 1/15 (best 283, State 0 = 2+5+1,
+86/0, 572 diverged). Accuracy flips run to run; profile kills nothing in
+either. The difference is which merges form and which poses land — the
+search and solver, not the gates.
+CONSEQUENCE (bulk re-verdict): every single-run A/B in 07/08 stands as
+single-run evidence with stated caveats — consistent 0/8s remain failure
+evidence (repeated 8+ times); the 2/8 positive, the control's "iterations
+load-bearing", and V1/V2a/b deltas are DRAWS, not effects, until
+repeated. Determinism fix outranks all tuning.
+
 ## Out of scope
 
 - Re-litigating E1–V2b verdicts individually: they stand as

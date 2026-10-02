@@ -283,13 +283,15 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
-## 2026-10-03 — guard holds (550 loud rejects, no abort, 0/8 unchanged)
+## 2026-10-03 — nondeterminism CONFIRMED (identical rerun flips 0/8→2/8)
 
-Same bundle, guard binary (job 32109955): 550 diverged solves rejected
-loudly, zero aborts, accuracy 0/8 + 0/15 (19 states, best 335, profile
-73/0). Guard bounds damage as designed; convergence untouched. Identical
-repeat submitted (job 32113198) for ticket 12's determinism test — same
-binary, same data, compare.
+Guard run vs identical repeat: 0/8+0/15/19-states/335 vs 2/8+1/15/best-283
+(State 0 = 2+5+1). Profile kills nothing either way (73/0, 86/0).
+Difference is merges+poses, not gates. All single-run A/B verdicts now
+carry the draws-not-effects caveat (ticket 12 bulk re-verdict);
+consistent 0/8s stand as failure evidence. Determinism fix outranks
+tuning. (Guard run in the same pair: 550 loud rejects, zero aborts —
+guard holds as designed; ticket 11.)
 
 ## 2026-10-02 — ticket 10 resolved: dead code gone, build green
 
