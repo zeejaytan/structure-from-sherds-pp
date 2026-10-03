@@ -31,6 +31,16 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 endif()
 
+# Ticket 12 determinism test (2026-10-03): Eigen threads its large
+# decompositions/products via OpenMP when built with -fopenmp (this build
+# has it), varying FP summation order run to run. Matching + pairwise
+# pruning are byte-identical across runs while beam exploration counts
+# differ (states 18/19, profile 53/57, diverged 571/583) — the divergence
+# enters where Eigen-heavy geometry runs (AxisConsistency, profile fits,
+# ICP normal equations). One variable: Eigen threading off (our matrices
+# are small; Eigen's own docs say threading only pays off large).
+add_definitions(-DEIGEN_DONT_PARALLELIZE)
+
 # Find required dependencies
 find_package(Ceres CONFIG REQUIRED)
 if(NOT Ceres_FOUND)
