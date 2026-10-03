@@ -247,7 +247,7 @@ void RefineAxis(Geom* const geom_ptr,
 	options.minimizer_progress_to_stdout = display_output;
 	options.max_num_iterations = num_iters;
 	options.function_tolerance = 1.0e-9;
-	options.num_threads = num_threads;
+	options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres (was num_threads param, live call passes 12). Pairwise proves deterministic; beam diverges after — RefineAxis runs in the live graph path and was missed by the first single-threading pass (reconstruction.cpp only).
 	options.use_inner_iterations = false;
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
@@ -311,7 +311,7 @@ void RefineAxis(vector<Geom*> const geom_ptr,
 	options.minimizer_progress_to_stdout = display_output;
 	options.max_num_iterations = num_iters;
 	options.function_tolerance = 1.0e-6;
-	options.num_threads = num_threads;
+	options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres (was num_threads param, live call passes 12). Pairwise proves deterministic; beam diverges after — RefineAxis runs in the live graph path and was missed by the first single-threading pass (reconstruction.cpp only).
 	options.use_inner_iterations = false;
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
