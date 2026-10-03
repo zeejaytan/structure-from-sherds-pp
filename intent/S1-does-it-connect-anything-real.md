@@ -313,13 +313,20 @@ earned it). Ticket 07 outer-count item conclusive-ish.
 block next; restore lands after the last assembly run, and the ticket
 says so.
 
-## 2026-10-02 — k=1 bounded; 1-2 never attempted (next slice named)
+## 2026-10-02 — 1-2 dies multi-stage, gate exonerated; poses own it
+
+Witnessed pair: diverged attempts die at table-miss, sane-pose survivors
+die at overlap (54–1065mm² interpenetration — correctly rejected).
+`DetectIntersection` verified as genuine intrusion test. Overlap-gate
+changes NOT indicated by 1-2 (assembly-09 owns shape independently).
+Root cause stays poses. Aside: <5mm centroid auto-reject (area 1000)
+matters for Juglet-scale pieces, not Pot_A.
 
 Seven directed edges transform-similar; MERGETABLE ledger eliminates all
 but {1→3, 3→1, 1→4} (pairs 1-2/2-4 never attempted). Pair 1-2 — eye-witnessed
 genuine, probe 15/15 member, pieces transform-exact — survived matching
-(value 10) yet never reached merging. Dies between matching and merging;
-ticket 09 owns locating where (pruning vs beam).
+(value 10); death located 2026-10-02 above (table-miss for diverged
+attempts, overlap gate for sane-pose survivors).
 
 `CountResult` counts DIRECTED edges (total=30): "0/15 (3.333%)" is exactly
 one passing directed edge (k=1, display truncates, percent exact). Context:
@@ -328,7 +335,8 @@ within 0.3°/2.0mm — first 2/8 in the series (ticket 07, single-run
 evidence, control rerun owed). Sherd 2/8 (poses) is an independent
 criterion from edges. Zero undirected pairs pass, so ticket 09's
 pair-level "nothing fully recovered" stands. Staged GT graph
-byte-identical to the probe's. Open: which directed edge passed.
+byte-identical to the probe's. Passing edge bounded to {1→3, 3→1, 1→4}
+(transform-similar AND merge-attempted; pairs 1-2/2-4 never attempted).
 
 ## 2026-10-01 — fix 1 works as intended; 0/8 stands on poses+scores
 

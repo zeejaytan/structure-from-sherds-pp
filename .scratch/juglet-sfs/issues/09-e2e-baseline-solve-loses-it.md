@@ -44,17 +44,28 @@ downstream of extraction — recorded here, not in preprocessing. Log:
 
 ## 1-2 DEATH LOCATED 2026-10-02 (same logs, no new run)
 
+Witnessed-genuine pair 1-2: matching SURVIVES (value=10) → pairwise ICP
+diverges on most attempts (t to 1e12–1e13; one sane 42mm/36°) → dies at
+the PairwisePruning OVERLAP gate (50.0): interpenetration areas
+54/279/935/1065mm² across attempts. Semantics verified
+(`DetectIntersection` :540–597: fracture half-plane intrusion test — it
+punishes surfaces crossing INTO each other, which is exactly what wrong
+poses do; correct placements score ~0 by construction). The gate is
+EXONERATED for 1-2: it correctly rejects interpenetrating placements.
+Root cause stays poses (solver divergence + convergence). Overlap-gate
+changes (assembly-09) are therefore NOT indicated by 1-2 — 09 owns the
+shape question independently (true merges at correct poses).
+ASIDE (one line, not a ticket): centers <5mm apart auto-reject at area
+1000 (`:679–684`) regardless of geometry — any pair of small sherds
+whose rim centroids lie within 5mm is unjoinable by construction.
+Matters for Juglet-scale pieces, not Pot_A.
+
 Witnessed-genuine pair 1-2: matching SURVIVES (value 10) → pairwise ICP
 DIVERGES on most attempts (REGOUT t_norm 1.7e13 / 8.2e12 / 8.4e12 mm; one
-sane-ish 42.6mm@36°) → one-to-one correspondence table empty →
-`isEdgeRemoved` true (`reconstruction.cpp:474`, called :2005) → never
-MERGE-attempted. Chain complete: nice input, exploding solver, silent
-table-miss, removal. The solver divergence (unanchored free-free 12-DOF?
-bad correspondence input? unbounded LM steps?) is now THE mechanism
-behind T6's garbage poses — shared root with the 5-8 abort and dump_0030.
-Fix venues in order: correspondence input (18's pollution feeds ICP),
-Cauchy scales (unmapped, no ticket yet), solver anchoring/step limits
-(no ticket yet — file if 18 + scales don't explain it).
+sane-ish 42.6mm@36°) → THOSE die at one-to-one table-miss
+(`isEdgeRemoved`, never MERGE-attempted); the sane-pose survivors die one
+stage later at the overlap gate above. Multi-stage death, single root
+(poses). Chain complete.
 
 EDGE-LEVEL RESOLUTION 2026-10-02 (ticket 07 addendum — read it for the
 table): k=1 directed edge bounded to {1→3, 3→1, 1→4}. Pair 1-2 (witnessed,
