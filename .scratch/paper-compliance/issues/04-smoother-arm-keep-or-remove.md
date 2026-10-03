@@ -4,7 +4,9 @@
 
 **Blocked by:** nothing — read code, decide, then a small build/test change
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-03 — REMOVE decided and executed (see below).
+
+**Needs-eye:** none — an env switch and numeric coefficients, no geometry claim.
 
 **Needs-eye:** none — an env switch and numeric coefficients, no geometry claim.
 
@@ -25,7 +27,21 @@ shows pairs on the margin → re-run A/B there"). That condition belongs to
 matcher-tuning work, not to smoothing: restate it there when such a run
 exists; do not re-argue the 2.6–20% descriptor gap, which 01 settled.
 
-## Decision inputs (read first, all on record)
+## DECISION 2026-10-03: REMOVE (executed, build verifies)
+
+Reason (2 sentences): an untested fork in the matching path costs more
+carrying than re-implementing — ticket 01's spec + A/B table bound the
+re-implementation if a tuned-config run ever needs it, while the arm
+itself had zero coverage and bit-rotted with every edit to
+`CalculateFeatureAxisless`. The repo's no-half-state rule (ticket 02)
+and the ticket-10 dead-code precedent decide ties toward removal.
+Removed: `SavitzkyGolayDiff` + `Gaussian7x2` defs, decls, the env
+switch (default branch unconditional), `<cstdlib>`/`<string>` includes.
+Default path byte-identical by construction (the removed branch never
+ran with the switch unset — all runs). Verification: rebuild + strings
+(no `SFS-SG`) + default-path numbers unchanged-or-waived (below).
+
+## Decision inputs (were read first; kept for the record)
 
 - 01's A/B table (same 9 pairs, ±1–2) and verdict; the SG-window caveat
   (paper's window unspecified, 7 used to match — an assumption that must

@@ -3,8 +3,6 @@
 #include <Eigen/Core>
 #include <iostream>
 #include <fstream>
-#include <cstdlib>  // SFS-SG: getenv for the smoother switch
-#include <string>   // SFS-SG: std::string comparison
 #include <math.h>
 
 using namespace Eigen;
@@ -115,61 +113,6 @@ MatrixXd Filter::LanczosDiffLow(MatrixXd const& a, int order = 5, int circle = 0
 	return diff_;
 }
 
-// SFS-SG: Savitzky-Golay first derivative, 7-point quadratic, circular.
-// Weights [-3 -2 -1 0 1 2 3]/28 for unit spacing. The existing Lanczos path
-// is likewise index-based (no arc-length weighting), so both arms share
-// that limitation and the comparison is fair. Circular (wraparound) because
-// rims are closed loops -- same convention as the Gaussian below.
-MatrixXd Filter::SavitzkyGolayDiff(MatrixXd const& a)
-{
-	int n = (int)a.rows();
-	MatrixXd diff_(n, 1);
-	if (n < 7) {
-		cout << "size of matrix is wrong" << endl;
-	}
-	static const double w[7] = { -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0 };
-	for (int i = 0; i < n; i++) {
-		double temp = 0.0;
-		for (int j = -3; j <= 3; j++) {
-			int idx = i + j;
-			if (idx < 0) idx += n;
-			else if (idx > n - 1) idx -= n;
-			temp += w[j + 3] * a(idx, 0);
-		}
-		diff_(i, 0) = temp / 28.0;
-	}
-	return diff_;
-}
-
-// SFS-SG: Gaussian smoothing, kernel width 7, sigma 2.0, circular,
-// normalized -- the paper's stated parameters (Fig. 7 caption). Deliberately
-// separate from Gaussian(), whose kernel width is fixed at kkernelLevel=10;
-// sharing it would silently change the paper arm's parameters.
-void Filter::Gaussian7x2(MatrixXd const& in, MatrixXd& out)
-{
-	const int width = 7;
-	const double sigma = 2.0;
-	const int m = width / 2;
-	double k[7];
-	double sum = 0.0;
-	for (int j = -m; j <= m; j++) {
-		k[j + m] = exp(-(j * j) / (2.0 * sigma * sigma));
-		sum += k[j + m];
-	}
-	int n = (int)in.rows();
-	out.resize(n, 1);
-	for (int i = 0; i < n; i++) {
-		double s = 0.0;
-		for (int j = -m; j <= m; j++) {
-			int idx = i + j;
-			if (idx < 0) idx += n;
-			else if (idx > n - 1) idx -= n;
-			s += k[j + m] * in(idx, 0);
-		}
-		out(i, 0) = s / sum;
-	}
-}
-
 void Filter::Gaussian(double sigma,
 	MatrixXd const& in,
 	MatrixXd& out,
@@ -257,37 +200,16 @@ void CalculateFeatureAxisless(Geom& shard, int axis_index)
 		Theta_Diff(i) = Theta_Diff(i) * Dist(i);
 	}
 
-	// SFS-SG: paper-recipe arm (Savitzky-Golay + Gaussian(7, 2.0)),
-	// selected by SFS_SMOOTHER=sg. Default (unset/anything else) keeps the
-	// Lanczos + Gaussian(sigma 2, k10) path byte-identical. Which arm ran is
-	// printed so a matching result can never be attributed to the wrong one.
-	// NOTE: the trailing Gaussian block below must NOT run in the SG arm --
-	// that would smooth twice. The if/else structure enforces it; do not
-	// "simplify" this into sequential code.
-	{
-		const char* sfs_s = std::getenv("SFS_SMOOTHER");
-		if (sfs_s != nullptr && std::string(sfs_s) == "sg") {
-			std::cout << "[SFS-SG] paper smoother active (Savitzky-Golay + Gaussian 7x2.0)" << std::endl;
-			Dist_Diff = filter.SavitzkyGolayDiff(Dist);
-			Height_Diff = filter.SavitzkyGolayDiff(Height);
-			Theta_Diff = filter.SavitzkyGolayDiff(Theta);
-			for (int i = 0; i < Theta_Diff.rows(); i++) {
-				Theta_Diff(i) = Theta_Diff(i) * Dist(i);
-			}
-			MatrixXd tmp;
-			filter.Gaussian7x2(Dist_Diff, tmp);
-			Dist_Diff = tmp;
-			filter.Gaussian7x2(Height_Diff, tmp);
-			Height_Diff = tmp;
-			filter.Gaussian7x2(Theta_Diff, tmp);
-			Theta_Diff = tmp;
-		}
-		else {
-			filter.Gaussian(2, Dist_Diff, Dist_Diff, 1);
-			filter.Gaussian(2, Height_Diff, Height_Diff, 1);
-			filter.Gaussian(2, Theta_Diff, Theta_Diff, 1);
-		}
-	}
+	// SFS-SG REMOVED 2026-10-03 (ticket 04: keep-covered-or-remove decided
+	// for remove). The paper-recipe arm (SavitzkyGolayDiff + Gaussian7x2,
+	// SFS_SMOOTHER=sg) served its comparison (ticket 01 A/B: same 9 pairs,
+	// cosmetic for joins) and stood untested since. Default path below is
+	// byte-identical to every run made with the switch unset (i.e., all of
+	// them): Lanczos diffs + one Gaussian(sigma 2, k10) pass. Re-implement
+	// from ticket 01's spec if a tuned-config run ever needs the comparison.
+	filter.Gaussian(2, Dist_Diff, Dist_Diff, 1);
+	filter.Gaussian(2, Height_Diff, Height_Diff, 1);
+	filter.Gaussian(2, Theta_Diff, Theta_Diff, 1);
 
 	int num_features = Dist_Diff.rows();
 
