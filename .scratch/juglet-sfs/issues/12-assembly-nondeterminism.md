@@ -23,12 +23,16 @@ are robust-ish (failure repeated 8+ times), but the lone 2/8 and the
 control's "iterations load-bearing" may be draws from a nondeterministic
 distribution, not effects.
 
-## CODE INSPECTION 2026-10-02 (default path — no smoking gun yet)
+## CODE INSPECTION 2026-10-02 (default path — suspects narrowed)
 
 - OMP `parallel for` (data_structure :790, reconstruction :518/:582/:645/:728):
   all index-partitioned writes; only shared op is `cor_counter++`
   (never read — benign race, UB-technically, behavior-neutral).
   `feature_matching` OMPs are commented out. NOT the source (so far).
+- RANSAC nondeterminism offline-only; sorts deterministic; no RNG/time
+  seeds live; trans/s zeroed every iter; Tables zeroed; scores init 0.
+- MALLOC_PERTURB_ experiment queued (see below) — distinguishes heap-garbage
+  reads from threading without any code change.
 - RANSAC nondeterminism (`random_device` + shared mt19937 + unordered_set
   ordering, axis_estimation.cpp:24/138-186): OFFLINE TOOL ONLY
   (`ComputePotSACAxis`, sole caller the edgeline-extraction tool).
@@ -97,5 +101,9 @@ repeated. Determinism fix outranks all tuning.
 - [ ] Nondeterminism source located (or determinism PROVEN by 3×
       identical — equally an answer, and the cheaper one to hope for)
 - [ ] If broken: fix + 3× identical reruns; bulk re-verdict on E1–V2b
+- [ ] MALLOC_PERTURB_ pair (no code change): two runs with
+      MALLOC_PERTURB_=169 (heap garbage fixed) — identical ⇒ uninit heap
+      reads confirmed; still different ⇒ threading (Eigen test decides
+      between them; perturb-test is independent of it)
 - [ ] Until fixed: standing rule that every assembly A/B reports
       distributions (this ticket states it; tickets cite it)
