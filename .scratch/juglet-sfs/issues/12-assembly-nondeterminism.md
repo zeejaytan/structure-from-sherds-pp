@@ -71,13 +71,37 @@ distribution, not effects.
    outranks all tuning. Until then, every future A/B needs ≥2 runs per
    arm with the distribution reported, not single numbers.
 
-## DETERMINISM VERDICT 2026-10-03: NONDETERMINISTIC, confirmed
+## DETERMINISM VERDICT 2026-10-03: NONDETERMINISTIC, confirmed (pairs agree)
 
 Identical binary + identical data: guard run 0/8 + 0/15 (19 states, best
 335, 73/0, 550 diverged) vs repeat 2/8 + 1/15 (best 283, State 0 = 2+5+1,
 86/0, 572 diverged). Accuracy flips run to run; profile kills nothing in
 either. The difference is which merges form and which poses land — the
 search and solver, not the gates.
+
+## THREADING + PERTURB PAIRS 2026-10-03: best stable-ish, fringe wanders (verified table)
+
+Same binary + same data throughout (matching md5 51b57b85 and pruning
+md5 43920151 IDENTICAL in all six runs — divergence enters strictly
+after pairwise pruning):
+
+| pair | run A best | run B best | fringe |
+|---|---|---|---|
+| Ceres-1 (threaded Eigen) | 246.000, 1+6+1 | 246.000, 1+6+1 | states 18/19, profile 53/57, div 571/583 |
+| Eigen-off + Ceres-1 | 246.000, 1+6+1 | 261.000, 7+1 | best MOVED (not stabilized) |
+| Perturb (fixed heap) | 235.000, 1+6+1 | 235.000, 1+6+1 | profile 40/41, div 545/544 |
+
+Threading FP order is NOT the (sole) source (fully single-threaded pairs
+still differ); fixed heap fill doesn't fix the fringe either. Best-state
+stability varies pair to pair with no threading correlation. Remaining:
+node-dependent FP (CPU-arch vector paths — every pair so far ran on
+DIFFERENT nodes: bm179/bm162, bm209/bm186, bm207/bm210...) vs
+stack-garbage reads. NODE-PINNED pair running (job 32155220 on bm179;
+twin follows): same node twice decides it. If identical → node/CPU-arch
+FP confirmed (pin nodes for A/Bs + record arch sensitivity; cross-node
+bit-identity may be unachievable, same-node determinism is the
+operational bar). If different → stack garbage or true races;
+valgrind-grade hunt next.
 CONSEQUENCE (bulk re-verdict): every single-run A/B in 07/08 stands as
 single-run evidence with stated caveats — consistent 0/8s remain failure
 evidence (repeated 8+ times); the 2/8 positive, the control's "iterations
