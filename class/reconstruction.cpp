@@ -1353,7 +1353,7 @@ void Icp(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.num_threads = NUMBER_OF_THREAD;
+		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
@@ -1593,7 +1593,7 @@ void Registration(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.num_threads = NUMBER_OF_THREAD;
+		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
@@ -1810,7 +1810,7 @@ void Registration(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.num_threads = NUMBER_OF_THREAD;
+		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
@@ -2003,7 +2003,7 @@ void IcpIncGraphAxis(
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.num_threads = NUMBER_OF_THREAD;
+		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
@@ -2201,7 +2201,7 @@ void IcpFine(
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.num_threads = NUMBER_OF_THREAD;
+		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
