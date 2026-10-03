@@ -283,6 +283,11 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-03 — ticket 04 resolved: SG arm removed, verified gone
+
+Rebuild exit 0, binary newer than every source, zero SG strings.
+Default path byte-identical by construction. One smoother, no switch.
+
 ## 2026-10-03 — nondeterminism CONFIRMED (identical rerun flips 0/8→2/8)
 
 Guard run vs identical repeat: 0/8+0/15/19-states/335 vs 2/8+1/15/best-283

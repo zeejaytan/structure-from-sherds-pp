@@ -80,14 +80,12 @@ windows are separate decisions with their own measurements.
 
 ## Acceptance criteria
 
-- [ ] Decision recorded: keep-covered or remove, with the 2–3 sentence
-      reason (cost of carrying an untested matching path vs cost of
-      re-implementing a measured comparison)
-- [ ] If keep: coefficient test green; assumed window logged; 01's reopen
-      condition restated as matcher-tuning's, with the pointer
-- [ ] If remove: rebuild clean; binary carries no SG arm; default-path
-      numbers unchanged or waived-by-construction with the proving diff
-- [ ] No half state afterwards: either one tested smoother switch or one
-      smoother — never two paths with one unproven
-- [ ] Authors' sample numbers (01's table) cited, not re-run, unless the
-      change touches the default path — it must not
+- [x] Decision recorded: REMOVE, with reason (above)
+- [x] Rebuild clean (in-container exit 0); binary carries no SG arm
+      (`strings`: 0 hits for SFS-SG/Savitzky/SFS_SMOOTHER); binary
+      verified newer than every source
+- [x] Default-path numbers waived by construction (removed branch never
+      ran with switch unset — all runs; nothing to compare)
+- [x] No half state afterwards: one smoother, no switch
+- [x] Authors' sample numbers (01's table) cited, not re-run (default
+      path untouched)
