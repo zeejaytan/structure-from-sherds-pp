@@ -1,5 +1,18 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
+## ROW 6 OUTCOME 2026-10-05 (jobs 32274521 vs 32275782, same node bm065)
+
+MINIMUM=1 → 6, everything else identical: diverged solves 545 → 140
+(3.9× fewer fantasy branches — the floor refuses underdetermined sets
+loudly via score-11 instead of solving them). Matching intact (1-2 still
+survives, value 10→6 — fewer, still present). Accuracy 0/8 both (no
+recovery, none expected — floor bounds damage like the guard).
+VERDICT: KEEP 6 (upstream value; kills garbage with no true-pair harm on
+Pot_A). Caveat recorded: Juglet assembly impact unmeasured (no Juglet
+assembly baseline exists anywhere — the probe covers breaklines, not
+matching); small-piece handling (the lineage's original worry) must be
+re-checked if Juglet assembly ever runs. Next row per ticket order.
+
 **Answers:** S1
 
 **Blocked by:** nothing — assembly A/B measurements; one variable each

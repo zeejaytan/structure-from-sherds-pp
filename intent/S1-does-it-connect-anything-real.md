@@ -283,6 +283,13 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-05 — row 6: floor kills garbage 3.9×, kept (upstream value)
+
+Same-node pair (bm065): MINIMUM 1→6 drops diverged solves 545→140 with
+matching intact (1-2 survives, value 10→6). No recovery (0/8 both —
+floor bounds like the guard). Caveat: Juglet assembly impact unmeasured
+(no baseline exists). Next row per ticket order.
+
 ## 2026-10-03 — ticket 04 resolved: SG arm removed, verified gone
 
 Rebuild exit 0, binary newer than every source, zero SG strings.
