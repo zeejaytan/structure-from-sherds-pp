@@ -32,7 +32,9 @@ stays (V2b: 15° loses the 2/8). End conditions with numbers per variable.
 
 **Blocked by:** nothing — assembly A/B measurements; one variable each
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-02 (see V1/V2a/V2b outcome sections above —
+all three variables decided with numbers; body below is the original
+spec, kept for the record)
 
 **Needs-eye:** none — gate counts and pair movement, no geometry claim.
 
