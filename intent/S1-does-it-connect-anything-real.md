@@ -57,6 +57,18 @@ run over identical input (6-7, 5-7, 3-7, 7-9) — ticket 08. Until that
 is attributed, any single-run join count on this corpus is a sample from
 a distribution, not a measurement.
 
+## Where it stands
+
+SfS++ has not found a real join on the Juglet. That "0" holds for the dotted break-line
+input it was given, so it is not yet a verdict on the method. Our copy's matching
+settings are being tested one change at a time against the authors' own (ticket 12);
+one change already kept leaves about 3.9 times fewer false joins. The second test pot
+(Tray 000) is still unmeasured, and it is the one that can show the method works at all.
+
+Weight: one pot measured, at zero; the capability half rests on Tray 000.
+Next: finish ticket 12, then measure Tray 000.
+Viewer: `juglet_sfs29`
+
 ## Why it matters
 
 The headline finding on this system is stark: **zero pairwise connections** between any of
