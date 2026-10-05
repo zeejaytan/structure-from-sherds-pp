@@ -288,15 +288,17 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 Rebuild exit 0, binary newer than every source, zero SG strings.
 Default path byte-identical by construction. One smoother, no switch.
 
-## 2026-10-03 — nondeterminism CONFIRMED (identical rerun flips 0/8→2/8)
+## 2026-10-05 — determinism SOURCE found: node-dependent FP, same-node identical
 
-Guard run vs identical repeat: 0/8+0/15/19-states/335 vs 2/8+1/15/best-283
-(State 0 = 2+5+1). Profile kills nothing either way (73/0, 86/0).
-Difference is merges+poses, not gates. All single-run A/B verdicts now
-carry the draws-not-effects caveat (ticket 12 bulk re-verdict);
-consistent 0/8s stand as failure evidence. Determinism fix outranks
-tuning. (Guard run in the same pair: 550 loud rejects, zero aborts —
-guard holds as designed; ticket 11.)
+Node-pinned pair on bm179 (jobs 32155220 + 32273451): identical on every
+number (0/8, 0/15, 235.000 1+6+1, 13 states, 40/1, matching/pruning md5s).
+Cross-node pairs always differ. Source: CPU-arch vector FP paths, not
+threads (all off), not heap garbage (perturb didn't fix), no live code
+races found. Standing rule: pin `--nodelist` for every assembly A/B;
+cross-node verdicts keep failure direction, lose positive claims to
+draws. Ticket 12 resolved on this basis (fix is operational, not code).
+(Guard run in the same series: 550 loud rejects, zero aborts — guard
+holds as designed; ticket 11.)
 
 ## 2026-10-02 — ticket 10 resolved: dead code gone, build green
 

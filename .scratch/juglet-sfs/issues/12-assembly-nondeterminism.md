@@ -5,7 +5,8 @@
 **Blocked by:** nothing — reruns + code inspection; no new method needed
 to start
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-05 — node-dependent FP confirmed; same-node
+pair identical. Standing rule: pin nodes for every assembly A/B.
 
 **Needs-eye:** none — accuracy distributions and root-cause code paths.
 
@@ -71,7 +72,24 @@ distribution, not effects.
    outranks all tuning. Until then, every future A/B needs ≥2 runs per
    arm with the distribution reported, not single numbers.
 
-## DETERMINISM VERDICT 2026-10-03: NONDETERMINISTIC, confirmed (pairs agree)
+## RESOLVED 2026-10-05 (node-pinned pair identical — node-dependent FP)
+
+Node-pinned pair on bm179 (jobs 32155220 + 32273451): IDENTICAL on every
+number — 0/8, 0/15, best 235.000 (1+6+1), 13 states, profile 40/1,
+matching/pruning md5s identical. Against cross-node pairs that always
+differ in fringe (and sometimes argmax): the source is NODE-DEPENDENT
+floating point (CPU-arch vector paths in Eigen/Ceres/VTK code compiled
+once, run on heterogeneous Sapphire nodes), not threads (all off),
+not heap garbage (perturb didn't fix), not code races (none found live).
+Standing rule (operational fix — no code change can fix CPU-arch FP):
+pin `--nodelist` for every assembly A/B; cross-node numbers are draws
+across microarchitectures, same-node numbers are comparable. All past
+cross-node A/B verdicts keep their failure direction (0/8 repeats) but
+lose their positive claims to draws-not-effects until same-node
+repeated — this now applies as stated, no per-ticket re-verdict needed
+beyond what ticket 12 already recorded.
+(Rule-6 note, AGENTS.md 2026-10-05: all compute already runs on holders;
+the ticket's laptop-side analyses predate the rule.)
 
 Identical binary + identical data: guard run 0/8 + 0/15 (19 states, best
 335, 73/0, 550 diverged) vs repeat 2/8 + 1/15 (best 283, State 0 = 2+5+1,
