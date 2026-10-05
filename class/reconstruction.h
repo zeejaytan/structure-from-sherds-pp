@@ -21,7 +21,7 @@
 class RankingSubgraph;
 
 #define CERES_FUNC_TOL			1.0e-3
-#define MINIMUM_NUMBER			1  // Further reduced for NURBS geometric features
+#define MINIMUM_NUMBER			6  // TICKET-12 ROW 6 2026-10-05: restored to upstream value for the A/B (was lineage 1: 3 for small pieces, then 1 for NURBS). Tests whether the floor kills 2-pt divergent solves without killing thin-true pairs (1-2 good attempts run 8-81 inliers).
 #define INLIER_THRESHOLD		3.0  // Relaxed distance threshold
 #define ANGLE_THRESHOLD			0.5236  // V2b WON 2026-10-02 (job 32102549: 15deg loses the 2/8). Back to paper 30deg. Ticket 08 resolved.
 
