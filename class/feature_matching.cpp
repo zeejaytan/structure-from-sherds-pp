@@ -908,9 +908,9 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	cout << "*** PROFILE VALIDATION *** Starting with " << profile.size() << " points, threshold=" << threshold << endl;
 	bool out = true;
 	// Ticket 06 guard (battery garbage finding 2026-10-01): corrupt input
-	// must FAIL LOUDLY. Was: empty profile ï¿?? .back() on empty (UB); insane
-	// z-range from garbage transforms (e.g. t_z=-1.48e11) ï¿?? bin-count int
-	// overflow ï¿?? validation loop skipped ï¿?? vacuous PASS. A corrupt config
+	// must FAIL LOUDLY. Was: empty profile ï¿½?? .back() on empty (UB); insane
+	// z-range from garbage transforms (e.g. t_z=-1.48e11) ï¿½?? bin-count int
+	// overflow ï¿½?? validation loop skipped ï¿½?? vacuous PASS. A corrupt config
 	// passing plausibility is how the 5-8 abort family starts.
 	for (size_t gi = 0; gi < profile.size(); gi++) {
 		if (!std::isfinite(profile[gi](0)) || !std::isfinite(profile[gi](2))) {
@@ -966,7 +966,7 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		double den = sqrt(coeff(0) * coeff(0) + 1);
 		// Ticket 06 fix 1 (battery T1 convicted 2026-10-01): paper std-dev
 		// rule. Was max-absolute-deviation (any single point > threshold
-		// kills) ï¿?? flipped 20/20 recorded failures with 0 new false
+		// kills) ï¿½?? flipped 20/20 recorded failures with 0 new false
 		// passes under stddev on identical bins. Distances orthogonal for
 		// ALL points (the convicted variant); fit stays OLS (T2: refit
 		// cosmetic, skipped). Population stddev (Ã·n), matching the battery.
@@ -1790,11 +1790,11 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double lowest_score(9999);
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
-			if (iter->axis_angle_ > 1.571) {	// Evidence-based: 0.610 (35Â°) ï¿?? 1.571 (90Â°) for pottery geometry
+			if (iter->axis_angle_ > 0.610) {	// TICKET-12 ROW 1 2026-10-05: restored to upstream 0.610 (35deg) for the A/B (was lineage 1.571/90deg). One variable: this hunk only.
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** AXIS ANGLE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": axis_angle=" << iter->axis_angle_ << " (>" << 1.571 << ")" << endl;
+						 << ": axis_angle=" << iter->axis_angle_ << " (>" << 0.610 << ")" << endl;
 				}
 				iter = lcs_basket[i].erase(iter);
 			}
@@ -1806,7 +1806,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 4.0) {	// Evidence-based: 2.5 ï¿?? 4.0 to preserve Blue-Red connections
+			if (lowest_score > 4.0) {	// Evidence-based: 2.5 ï¿½?? 4.0 to preserve Blue-Red connections
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** SCORE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 

@@ -29,7 +29,7 @@ paper behavior, so per 05's rules they get tickets, not shrugs:
 
 | # | Site | Upstream | Ours (lineage) | Paper |
 |---|---|---|---|---|
-| 1 | PairwisePruning axis gate | 0.436 (25°) | 1.571 (90°, "Evidence-based") | silent |
+| 1 | PairwisePruning axis gate | 0.610 (35°, per the replaced comment) | 1.571 (90°, "Evidence-based") | silent |
 | 2 | PairwisePruning lowest_score wipe | 1.5 | 4.0 ("preserve Blue-Red") | silent |
 | 3 | Correspondence RejectOutlier | (20, 0.7) | (2.0, 0.85) ("fork tightened") | silent |
 | 4 | opposing_ratio veto | ABSENT upstream (verified) | 0.9 RELAXED | silent |
