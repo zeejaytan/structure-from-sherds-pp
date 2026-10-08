@@ -7,6 +7,7 @@ then targeted A/B
 
 **Status:** in-progress — forensics done (cause named, battery filed and
 executed); open until a fix re-runs this baseline and moves 0/8
+**Working in:** not recorded (in progress before this line existed; last changed 2026-10-03)
 
 **Needs-eye:** a correct-vs-machine look enters if a proposed placement is
 worth judging; the numbers below come first (the eye judges geometry, not
