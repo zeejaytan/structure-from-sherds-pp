@@ -1,5 +1,15 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
+## ROW 1 OUTCOME 2026-10-09 (job 32284017, bm065): KEEP 0.610 — first fully-correct pair
+
+2/8 + 1/15 (k=2 directed = pair **1-4 both directions**: 7.8°/20–26mm,
+merged 5×, in the final 6-piece graph — the largest joined assembly yet).
+16 states, profile 99/0, diverged 140 (floor holds), 68 axis rejections
+(the tightened gate firing). Against row-6 arm (0/8, best 310, fragments):
+tighter axis gate → fewer garbage candidates → beam spends budget on true
+merges (observed effect; mechanism not proven). KEEP upstream 0.610.
+Next row per ticket order.
+
 ## ROW 6 OUTCOME 2026-10-05 (jobs 32274521 vs 32275782, same node bm065)
 
 MINIMUM=1 → 6, everything else identical: diverged solves 545 → 140

@@ -283,6 +283,13 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
   reached only the unbuilt main; standing record corrected); F7 stale
   comment fixed. Both ride the next rebuild (prints/comment + cout only).
 
+## 2026-10-09 — row 1: first fully-correct pair (1-4 both ways), KEEP 0.610
+
+2/8 + 1/15 (k=2 = pair 1-4 at 7.8°/20–26mm, merged 5×, final 6-piece
+graph — largest joined yet). 16 states, profile 99/0, diverged 140,
+68 axis rejections firing. Tighter gate → beam spends budget on true
+merges (observed, mechanism unproven). Next row per ticket order.
+
 ## 2026-10-05 — row 6: floor kills garbage 3.9×, kept (upstream value)
 
 Same-node pair (bm065): MINIMUM 1→6 drops diverged solves 545→140 with
