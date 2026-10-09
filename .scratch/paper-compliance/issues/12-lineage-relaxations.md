@@ -1,5 +1,14 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
+## ROW 3 IN FLIGHT 2026-10-10 (job 32613911, bm065): RejectOutlier → upstream (20, 0.7)
+
+Three live-path sites reverted (MakeSingleCorres :523, MakeMergeCorres
+:587, MakeMultiCorres env-default :654; dead MakeCorWithSur :733/:758
+untouched — single caller dead IcpFine). Control arm is the row-2 tree
+(2/8 + 1/15, best 246, job 32610367). Poll watching; verdict on landing.
+**Working in:** row 3 — do not touch reconstruction.cpp or the row-3
+sbatch until the verdict lands.
+
 ## ROW 2 OUTCOME 2026-10-09 (jobs 32284017 vs 32610367, same node bm065): ADOPT 1.5 — byte-identical tie
 
 Same-node pair, one value apart (4.0 → 1.5): 2/8 + 1/15 both arms, best
