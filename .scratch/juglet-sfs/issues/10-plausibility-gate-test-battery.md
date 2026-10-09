@@ -4,7 +4,25 @@
 
 **Blocked by:** nothing — T0 instruments, T1–T6 run offline on its dumps
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-10 — battery executed, verdicts routed and
+verified in the owning tickets (routing box checked line-by-line, not
+assumed):
+
+- 06 carries T1-order + garbage-guard: RESOLVED section (fix 1 measured,
+  job 31843205) + DIRECTING NUMBERS block (20/20 flips, TLS skip,
+  confounded subset, guard-required) — both present with numbers.
+- 07 carries T6 + weights-mapping urgency: T6 rel-rot table + DIRECTING
+  NUMBERS block (62–179° off, 150 iters did not prevent, unmapped weights
+  prime suspect) — present with numbers.
+- assembly-09 carries T5 shape verdict: DIRECTING NUMBERS block
+  (35–297mm² true span, false inside, paper's 50 kills top-scored trues,
+  SHAPE-not-value) — present with numbers.
+- 18 keeps pollution: T4' recorded inconclusive-with-reason here AND the
+  ticket stands on eye evidence independently (refuted-as-pollution
+  2026-10-02; face traces are true 2-8 seams) — no orphan.
+
+Nothing was fixed here (no matching-code change in this ticket — held
+throughout). The battery's job (diagnose + design + direct) is done.
 
 **Needs-eye:** none — gate verdicts recomputed offline, no geometry claim.
 The eye re-enters only if rim content changes (ticket 18's rule).
