@@ -43,7 +43,7 @@ grep -q "SOLVER-01 2026-10-10" class/reconstruction.cpp || { echo "ERROR: solver
 grep -q "rej_dist = 20, rej_norm = 0.7;" class/reconstruction.cpp || { echo "ERROR: row-3 adopted value missing -- wrong tree, aborting"; exit 1; }
 grep -q "lowest_score > 1.5" class/feature_matching.cpp || { echo "ERROR: row-2 adopted value missing -- wrong tree, aborting"; exit 1; }
 grep -q "axis_angle_ > 0.610" class/feature_matching.cpp || { echo "ERROR: row-1 kept value missing -- wrong tree, aborting"; exit 1; }
-if grep -q "else if (CheckOpposingNormals" class/feature_matching.cpp; then echo "ERROR: row-4 veto still live -- control tree must have it DISABLED, aborting"; exit 1; fi
+if grep -q "^[[:space:]]*else if (CheckOpposingNormals" class/feature_matching.cpp; then echo "ERROR: row-4 veto still live -- control tree must have it DISABLED, aborting"; exit 1; fi
 echo "    solver-01 (cap x5) + row-3 (20/0.7) + row-2 (1.5) + row-1 (0.610) + veto DISABLED all present"
 
 echo "--- verify dataset selection is POT_A (compile-time):"
