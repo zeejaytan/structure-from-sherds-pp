@@ -1,5 +1,15 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
+## ROW 4 IN FLIGHT 2026-10-10 (job 32619839, bm065): opposing veto ENABLED
+
+Disable-vs-keep test (lineage-ADDED, no upstream value): veto branch
+live in PairwisePruning; control is the row-3 tree (2/8 + 1/15, best
+264, job 32613911). If the veto kills true pairs it stays disabled WITH
+numbers; if it removes false ones without loss the disablement stands
+questioned. Poll watching; verdict on landing.
+**Working in:** row 4 — do not touch feature_matching.cpp or the row-4
+sbatch until the verdict lands.
+
 ## ROW 3 OUTCOME 2026-10-09 (jobs 32610367 vs 32613911, same node bm065): ADOPT (20, 0.7) — headline tie, same pair
 
 Same-node pair, one variable (tightened (2.0, 0.85) → upstream (20,
