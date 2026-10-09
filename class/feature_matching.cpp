@@ -1822,12 +1822,11 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 				}
 				iter = lcs_basket[i].erase(iter);
 			}
-			// Check for opposing surface normals at the matched segment (interior-to-interior matching)
-			// DISABLED: Too aggressive - rejecting legitimate ground truth connections (1-5, 2-6, 5-6, 5-7)
-			// else if (CheckOpposingNormals(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], *iter)) {
-			//	cout << "REJECTED: Opposing normals in matched segment between pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
-			//	iter = lcs_basket[i].erase(iter);
-			// }
+			// TICKET-12 ROW 4 2026-10-10: veto ENABLED for the A/B (was DISABLED since lineage 869e696: "too aggressive"). One variable: this branch only. Disable-vs-keep test.
+			else if (CheckOpposingNormals(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], *iter)) {
+				cout << "REJECTED: Opposing normals in matched segment between pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
+				iter = lcs_basket[i].erase(iter);
+			}
 			else {
 				LCS_out.push_back(*iter);
 				++iter;
