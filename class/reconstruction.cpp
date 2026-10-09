@@ -1353,6 +1353,8 @@ void Icp(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
+		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10: scene-scale first step (default 1e4 = 10m on a 300mm pot). One variable with max below: bound the walk.
+		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10: ceiling on radius expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1593,6 +1595,8 @@ void Registration(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
+		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10: scene-scale first step (default 1e4 = 10m on a 300mm pot). One variable with max below: bound the walk.
+		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10: ceiling on radius expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -1810,6 +1814,8 @@ void Registration(vector<BreakLine>& L,
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
+		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10: scene-scale first step (default 1e4 = 10m on a 300mm pot). One variable with max below: bound the walk.
+		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10: ceiling on radius expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -2003,6 +2009,8 @@ void IcpIncGraphAxis(
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
+		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10: scene-scale first step (default 1e4 = 10m on a 300mm pot). One variable with max below: bound the walk.
+		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10: ceiling on radius expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
@@ -2201,6 +2209,8 @@ void IcpFine(
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
 		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
+		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10: scene-scale first step (default 1e4 = 10m on a 300mm pot). One variable with max below: bound the walk.
+		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10: ceiling on radius expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);

@@ -9,7 +9,8 @@ byte-identical.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** solver-01 cap A/B Basesolve (2026-10-10)
 
 - [ ] Hunk: `initial_trust_region_radius = 100` +
       `max_trust_region_radius = 1000` at all five Solve sites
