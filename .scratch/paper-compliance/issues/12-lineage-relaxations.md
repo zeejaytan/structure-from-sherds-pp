@@ -1,13 +1,20 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
-## ROW 3 IN FLIGHT 2026-10-10 (job 32613911, bm065): RejectOutlier → upstream (20, 0.7)
+## ROW 3 OUTCOME 2026-10-09 (jobs 32610367 vs 32613911, same node bm065): ADOPT (20, 0.7) — headline tie, same pair
 
-Three live-path sites reverted (MakeSingleCorres :523, MakeMergeCorres
-:587, MakeMultiCorres env-default :654; dead MakeCorWithSur :733/:758
-untouched — single caller dead IcpFine). Control arm is the row-2 tree
-(2/8 + 1/15, best 246, job 32610367). Poll watching; verdict on landing.
-**Working in:** row 3 — do not touch reconstruction.cpp or the row-3
-sbatch until the verdict lands.
+Same-node pair, one variable (tightened (2.0, 0.85) → upstream (20,
+0.7) at three live-path sites; dead MakeCorWithSur untouched): 2/8 +
+1/15 both arms, best 264 vs 246 (scores move, joins don't — same pattern
+as the smoother A/B), 11 states both, profile 200/198 passed with zero
+kills both, SURVIVED 29 both with identical per-pair values, GT report
+14 both, rejections 0/68/57 both, diverged 140 both. Same passing pair
+both arms (1-4 both directions: 8.3°/21–27mm vs 7.8°/20–26mm). Final
+transforms byte-differ but the scored outcome is identical — the
+tightening earns nothing, so per the ticket's rule the lineage (2.0,
+0.85) goes and upstream (20, 0.7) stays. Valid run: rebuild compiled
+reconstruction.cpp, runtime gate confirmed 20.0/0.70, freshness clean.
+Caveat (same as rows 6/2): Juglet impact unmeasured. Next row per ticket
+order (row 4: opposing-ratio veto, disable-vs-keep).
 
 ## ROW 2 OUTCOME 2026-10-09 (jobs 32284017 vs 32610367, same node bm065): ADOPT 1.5 — byte-identical tie
 

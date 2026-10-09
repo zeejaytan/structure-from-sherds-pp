@@ -64,7 +64,10 @@ input it was given, so it is not yet a verdict on the method. Our copy's matchin
 settings are being tested one change at a time against the authors' own (ticket 12);
 one change already kept leaves about 3.9 times fewer false joins; a second row
 (lowest-score wipe back to 1.5) tied the control byte-identically, so the 4.0
-relaxation earned nothing and upstream 1.5 is adopted. The second test pot
+relaxation earned nothing and upstream 1.5 is adopted; a third row
+(correspondence filter back to 20/0.7) tied at 2/8+1/15 on the same pair,
+so the (2.0,0.85) tightening earned nothing and upstream (20,0.7) is
+adopted. The second test pot
 (Tray 000) is still unmeasured, and it is the one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
