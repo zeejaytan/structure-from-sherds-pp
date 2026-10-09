@@ -1,14 +1,20 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
-## ROW 4 IN FLIGHT 2026-10-10 (job 32619839, bm065): opposing veto ENABLED
+## ROW 4 OUTCOME 2026-10-09 (jobs 32613911 vs 32619839, same node bm065): stays DISABLED, WITH numbers — enabling LOSES the only correct pair
 
-Disable-vs-keep test (lineage-ADDED, no upstream value): veto branch
-live in PairwisePruning; control is the row-3 tree (2/8 + 1/15, best
-264, job 32613911). If the veto kills true pairs it stays disabled WITH
-numbers; if it removes false ones without loss the disablement stands
-questioned. Poll watching; verdict on landing.
-**Working in:** row 4 — do not touch feature_matching.cpp or the row-4
-sbatch until the verdict lands.
+Same-node pair, one variable (veto disabled → enabled): 2/8 + 1/15
+(row 3) collapses to **0/8 + 0/15** (row 4). The veto fires exactly 3×,
+all on pair 5-6 (a TRUE pair: GT-graph mates, 48–55 inliers, score
+~0.5) — garbage removed nowhere. Downstream the only correct pair 1-4
+merges 3× vs 8× and never reaches the beam; best state 266 vs 264
+(scores move, joins don't — again). SURVIVED sets identical (29, same
+values), rejections 0/68/57 both, diverged 140 both, profile 218/200
+passed zero kills both — the veto's damage is purely downstream
+starvation. Per the ticket's rule (a revert that loses pairs stays
+reverted-from) the branch returns to disabled, now WITH the measurement
+cite instead of the bare "too aggressive". Verdict: KEEP DISABLED.
+Caveat (same as rows 6/2/3): Juglet impact unmeasured. Next row per
+ticket order (row 5: CountInlier adaptive, disable-vs-keep).
 
 ## ROW 3 OUTCOME 2026-10-09 (jobs 32610367 vs 32613911, same node bm065): ADOPT (20, 0.7) — headline tie, same pair
 

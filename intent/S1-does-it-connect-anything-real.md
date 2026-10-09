@@ -67,7 +67,9 @@ one change already kept leaves about 3.9 times fewer false joins; a second row
 relaxation earned nothing and upstream 1.5 is adopted; a third row
 (correspondence filter back to 20/0.7) tied at 2/8+1/15 on the same pair,
 so the (2.0,0.85) tightening earned nothing and upstream (20,0.7) is
-adopted. The second test pot
+adopted; a fourth row (opposing-normals veto enabled) lost the only
+correct pair 1-4 and collapsed 2/8 to 0/8, so the veto stays disabled
+with numbers. The second test pot
 (Tray 000) is still unmeasured, and it is the one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.

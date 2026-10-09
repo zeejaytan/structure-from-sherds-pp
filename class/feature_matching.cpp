@@ -1822,11 +1822,11 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 				}
 				iter = lcs_basket[i].erase(iter);
 			}
-			// TICKET-12 ROW 4 2026-10-10: veto ENABLED for the A/B (was DISABLED since lineage 869e696: "too aggressive"). One variable: this branch only. Disable-vs-keep test.
-			else if (CheckOpposingNormals(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], *iter)) {
-				cout << "REJECTED: Opposing normals in matched segment between pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
-				iter = lcs_basket[i].erase(iter);
-			}
+			// TICKET-12 ROW 4 2026-10-10: veto stays DISABLED, WITH numbers (was bare "too aggressive"). Same-node A/B enable-vs-keep (jobs 32613911 vs 32619839, bm065): enabling fires 3x on true-wrong pair 5-6 and LOSES the only correct pair 1-4 (2/8+1/15 -> 0/8+0/15). Removes garbage nowhere, kills truth somewhere -- keep disabled.
+			// else if (CheckOpposingNormals(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], *iter)) {
+			//	cout << "REJECTED: Opposing normals in matched segment between pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
+			//	iter = lcs_basket[i].erase(iter);
+			// }
 			else {
 				LCS_out.push_back(*iter);
 				++iter;
