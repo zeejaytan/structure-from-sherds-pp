@@ -1806,7 +1806,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 1.5) {	// TICKET-12 ROW 2 2026-10-09: reverted to upstream 1.5 for the A/B (was lineage 4.0). One variable: this hunk only.
+			if (lowest_score > 1.5) {	// TICKET-12 ROW 2 2026-10-09: ADOPTED upstream 1.5. Same-node A/B vs lineage 4.0 (jobs 32284017 vs 32610367, bm065) byte-identical on all measures incl. final transforms -- the 1.5-4.0 band holds no basket on Pot_A, so the relaxation earns nothing.
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** SCORE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 

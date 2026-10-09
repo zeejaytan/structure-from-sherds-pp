@@ -1,5 +1,18 @@
 # 12: Lineage matching relaxations — adopt or revert, measured
 
+## ROW 2 OUTCOME 2026-10-09 (jobs 32284017 vs 32610367, same node bm065): ADOPT 1.5 — byte-identical tie
+
+Same-node pair, one value apart (4.0 → 1.5): 2/8 + 1/15 both arms, best
+246.000 both, 11 states both, profile 198/0 both, SURVIVED 29 both with
+identical per-pair values, rejections 0/68/57 both, diverged 140 both,
+final transforms md5-identical (all seven T files). The 1.5–4.0 score
+band holds no basket on Pot_A — the relaxation earns nothing, so per the
+ticket's rule (a revert that removes nothing without loss is adopted as
+upstream's) the lineage 4.0 goes and upstream 1.5 stays. No-regression by
+construction: nothing changed anywhere. Comment cites this job pair.
+Caveat (same as row 6): Juglet impact unmeasured. Next row per ticket
+order (row 3: RejectOutlier).
+
 ## ROW 1 OUTCOME 2026-10-09 (job 32284017, bm065): KEEP 0.610 — first fully-correct pair
 
 2/8 + 1/15 (k=2 directed = pair **1-4 both directions**: 7.8°/20–26mm,
