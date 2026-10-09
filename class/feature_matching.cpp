@@ -1806,11 +1806,11 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 4.0) {	// Evidence-based: 2.5 �?? 4.0 to preserve Blue-Red connections
+			if (lowest_score > 1.5) {	// TICKET-12 ROW 2 2026-10-09: reverted to upstream 1.5 for the A/B (was lineage 4.0). One variable: this hunk only.
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** SCORE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": lowest_score=" << lowest_score << " (>" << 4.0 << ")" << endl;
+						 << ": lowest_score=" << lowest_score << " (>" << 1.5 << ")" << endl;
 				}
 				iter = lcs_basket[i].erase(iter);
 			}
