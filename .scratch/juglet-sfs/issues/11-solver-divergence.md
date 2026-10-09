@@ -1,5 +1,31 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## FORENSICS TABLE 2026-10-10 (27 e2e logs, all on disk — uniformity verdict)
+
+Mined every `e2e_pota_fresh_*.log` + `e2e_pota_row2_*.log` for divergence
+onsets (script pattern kept in the ticket body: ICPCOR iter=0 per attempt
+as pre-condition, DIVERGED-SOLVE vs REGOUT as outcome):
+
+- 26,312 attempts with iter-0 lines; 6,586 diverged solves (25% — every
+  fourth solve leaves the map; the guard's 550-per-run is the same rate).
+- Diverged pre-conditions: pts min 1 / max 48 / **median 2**; meandist
+  9.7–195.1mm / **median 106.3mm**.
+- ALL-attempt control: pts min 1 / max 52 / **median 2.0**; meandist
+  2.3–199.4mm / **median 99.3mm**. Same distribution to the digit.
+- Per-pair: diverged and sane leaderboards agree (2-3, 2-5, 3-5, 2-4 top
+  both) — divergence strikes in proportion to attempts, not to pairs.
+
+**Verdict: UNIFORMITY.** Diverged and sane attempts enter with
+indistinguishable inputs (median 2 pts at ~100mm either way) — no
+pre-condition table routes this to input quality. Per the ticket's own
+rule, the fix venue is **solver setup (anchor/prior/cap)**, not 18 or
+Cauchy-scales. The attempt-floor candidate is NOT supported by this data
+(a floor at N would refuse sane and diverged attempts alike — both enter
+at median 2 pts). Standing candidates in order: (c) unbounded LM steps —
+verify the trust-region option exists in the vendored Ceres headers;
+(b) unanchored 12-DOF gauge drift; (a) angle-axis singularities last.
+Guard stays (bounds damage at zero sane cost); convergence untouched.
+
 **Answers:** S1
 
 **Blocked by:** nothing — log forensics first (all evidence on disk),
