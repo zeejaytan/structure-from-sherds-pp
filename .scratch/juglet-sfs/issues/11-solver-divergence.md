@@ -1,5 +1,17 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## CAP VERDICT 2026-10-10 (solver-01, jobs 32613911 vs 32624499, bm065): BOUNDED, convergence open
+
+Trust-region cap (initial=100, max=1000, all 5 Solve sites) vs row-3
+tree: diverged 140 → **0**; SURVIVED 29 identical, GT 14 both, 2/8 +
+1/15 both, same pair 1-4 both ways. The unbounded-step candidate (c) is
+CONFIRMED as the divergence mechanism and CLOSED as a fix: the walk is
+bounded at zero sane cost. What remains is convergence itself — poses on
+non-passing pairs still 62–179° off, 1-2 still never merge-attempted.
+The guard stays (defense in depth; fires 0× now, costs nothing). Next:
+ticket 02 (anchor per Eq. 5) is the live convergence candidate; Cauchy
+scales remain unowned. Cap hunk stays in the tree with the job-pair cite.
+
 ## FORENSICS TABLE 2026-10-10 (27 e2e logs, all on disk — uniformity verdict)
 
 Mined every `e2e_pota_fresh_*.log` + `e2e_pota_row2_*.log` for divergence

@@ -69,7 +69,9 @@ relaxation earned nothing and upstream 1.5 is adopted; a third row
 so the (2.0,0.85) tightening earned nothing and upstream (20,0.7) is
 adopted; a fourth row (opposing-normals veto enabled) lost the only
 correct pair 1-4 and collapsed 2/8 to 0/8, so the veto stays disabled
-with numbers. The second test pot
+with numbers. The solver walk is now bounded (trust-region cap:
+diverged 140 to 0 with sane placements identical, same pair passing),
+but convergence is untouched — poses elsewhere still far off. The second test pot
 (Tray 000) is still unmeasured, and it is the one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
