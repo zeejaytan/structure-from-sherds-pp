@@ -11,7 +11,8 @@ pairs the cap alone cannot.
 decides whether anchoring adds anything, and the control tree is 01's
 output).
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** solver-02 anchor A/B Basesolve (2026-10-10)
 
 - [ ] Hunk: `SetParameterBlockConstant` on the fixed sherd's `s`/`trans`
       before Solve, `SetParameterBlockVariable` after, at the pairwise

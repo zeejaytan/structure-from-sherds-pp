@@ -1356,8 +1356,14 @@ void Icp(vector<BreakLine>& L,
 		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
 		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		// TICKET-02 2026-10-10 IN-PROGRESS (.scratch/solver-convergence/issues/02-anchor-newcomer.md): anchor A/B, one variable vs 01 tree. Freeze shard_y (code fix convention, reconstruction.cpp:1254-1255 shard_y fix / shard_x mov, feature_matching.cpp:1715-1716 index_f/index_m) via Ceres Problem::SetParameterBlockConstant (ceres 1.14 problem.h:314-315, paper Eq.5 fix-Phi_old :284-286); unfreeze after Solve. Icp-only: Registration overloads already solve single newcomer (P2PConstraintFixed single s/trans).
+		int anchor_fix = m_LCS[cycle.edges[0]].shard_y_ - 1;
+		problem.SetParameterBlockConstant(s[anchor_fix]);
+		problem.SetParameterBlockConstant(trans[anchor_fix]);
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
+		problem.SetParameterBlockVariable(s[anchor_fix]);
+		problem.SetParameterBlockVariable(trans[anchor_fix]);
 
 		//############### Update the transformation matrix to data ###############//
 		for (int i = 0; i < num_node; i++) {
