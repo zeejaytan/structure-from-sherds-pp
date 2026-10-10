@@ -1,5 +1,21 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## MAKEMULTI ITER TAG 2026-10-10 (uncommitted, pre-01): graph path now labeled
+
+`MakeMultiCorres` gained an `int iter` parameter (signature
+`reconstruction.h:110-116`, 3 call sites threaded: `IcpIncGraphAxis`
+main `:1947`, merge-table `:2043`, dead `IcpFine` `:2249`) and the
+existing `*** MAKEMULTI ***` line now prints `iter=`
+(`reconstruction.cpp:663`). Why: the graph path (live via
+`ranking_system.cpp:1041` → `IcpIncGraphAxis`) had no iteration
+label on its per-pair log — `Icp` has `ICPCOR iter=` at `:1308`,
+graph had nothing. Without `iter`, the per-pair rows from up to 200
+outer iterations are indistinguishable, so a graph-path onset table
+(like the forensics below, but for the graph path) cannot be built.
+Log-only, zero behavior change; the `meandist` extension proposed
+alongside was dropped as scope creep (one variable: the label).
+This unblocks the same forensics pattern for graph-path runs.
+
 ## ANCHOR VERDICT 2026-10-10 (solver-02, jobs 32663002 vs 32624499, bm065): FAILED, reverted
 
 Anchor (freeze shard_y s/trans around Icp Solve only,

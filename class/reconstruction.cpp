@@ -614,7 +614,8 @@ void MakeMultiCorres(vector<Corres>& COR,
 	const vector<bool>& true_node,
 	MatrixXd& simple_graph,
 	MatrixXd& table,
-	bool onetoone)
+	bool onetoone,
+	int iter)
 {
 	int num_shard = true_node.size();
 	//########## First make KD tree
@@ -659,7 +660,7 @@ void MakeMultiCorres(vector<Corres>& COR,
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
 		if (pre_reject_n > 0) {
-			cout << "*** MAKEMULTI *** pair " << i_A + 1 << "-" << i_B + 1
+			cout << "*** MAKEMULTI *** pair " << i_A + 1 << "-" << i_B + 1 << " iter=" << iter
 				<< " raw=" << pre_reject_n << " kept=" << cor_line.cor.size() << endl;
 		}
 		// If the number of breakline correspondence is over 6, fill out the table
@@ -1943,7 +1944,7 @@ void IcpIncGraphAxis(
 
 		//############### Make correspondence ###############// 
 		COR.clear();
-		MakeMultiCorres(COR, shard, graph.node_, dummy_table, dummy_table, cor_onetoone);
+		MakeMultiCorres(COR, shard, graph.node_, dummy_table, dummy_table, cor_onetoone, iter);
 
 		//############### Set nonlinear equation ###############//
 		ceres::Problem problem;
@@ -2044,7 +2045,7 @@ void IcpIncGraphAxis(
 				graph.node_, 
 				graph.simple_graph_, 
 				Table, 
-				cor_onetoone);
+				cor_onetoone, iter);
 
 			{ int mre_n = 0; for (size_t mci = 0; mci < cor_conv.size(); mci++) mre_n += (int)cor_conv[mci].cor.size();
 			string mepairs; for (size_t mei = 0; mei < edges.size(); mei++) { mepairs += to_string(edges[mei].shard_y_) + "-" + to_string(edges[mei].shard_x_) + " "; }
@@ -2250,7 +2251,7 @@ void IcpFine(
 				true_node,
 				graph,
 				graph,
-				false);
+				false, iter);
 			cout << "#################### Fine reconstruction is converge ####################" << endl;
 			iter = max_iteration;
 			break;
