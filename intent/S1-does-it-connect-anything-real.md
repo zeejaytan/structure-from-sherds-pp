@@ -71,7 +71,13 @@ adopted; a fourth row (opposing-normals veto enabled) lost the only
 correct pair 1-4 and collapsed 2/8 to 0/8, so the veto stays disabled
 with numbers. The solver walk is now bounded (trust-region cap:
 diverged 140 to 0 with sane placements identical, same pair passing),
-but convergence is untouched — poses elsewhere still far off. The second test pot
+but convergence is untouched — poses elsewhere still far off. The
+second solver candidate, anchoring one sherd's pose per pairwise
+solve (ticket 02, Eq. 5), was A/B'd same-node and FAILED its kill
+criterion: accuracy 2/8 + 1/15 went backwards to 0/8 + 0/15 (same
+pair lost, no new pair, 1-2 never merge-attempted either way) —
+hunk reverted, verdict in ticket 02. Convergence now routes to the
+unowned Cauchy-scale work (E-0 gates all sweeps). The second test pot
 (Tray 000) is still unmeasured, and it is the one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.

@@ -11,8 +11,23 @@ pairs the cap alone cannot.
 decides whether anchoring adds anything, and the control tree is 01's
 output).
 
-**Status:** in-progress
-**Working in:** solver-02 anchor A/B Basesolve (2026-10-10)
+**Status:** resolved
+
+**Answer 2026-10-10 (A/B jobs 32663002 vs 32624499, bm065): FAIL —
+reverted.** Anchor (freeze shard_y s/trans around Icp Solve, unfreeze
+after) vs 01 tree: diverged 0 both; SURVIVED identical; accuracy
+went 2/8 + 1/15 **backwards** to 0/8 + 0/15 — the same pair 1-4
+did not survive, let alone grow, and 1-2 was never merge-attempted
+in either arm. By the ticket's own kill criterion this is
+"reshuffle without growth": anchoring changes the search without
+converging it. Hunk reverted (00504f4 reverted; tree back to 5cd22a2
+state for reconstruction.cpp); cap stays. The Eq. 5 mechanism as
+implemented (freeze one block set, solve the rest) does not attack
+the measured defect — the forensics (ticket 11: uniform
+pre-conditions, median 2 pts at ~100mm either way) plus this A/B
+say the missing ingredient is elsewhere. Cauchy scales remain the
+unowned route (ticket 01's E-0 gate); Eq. 6 free-all global step
+stays future work.
 
 - [ ] Hunk: `SetParameterBlockConstant` on the fixed sherd's `s`/`trans`
       before Solve, `SetParameterBlockVariable` after, at the pairwise

@@ -1,5 +1,23 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## ANCHOR VERDICT 2026-10-10 (solver-02, jobs 32663002 vs 32624499, bm065): FAILED, reverted
+
+Anchor (freeze shard_y s/trans around Icp Solve only,
+unfreeze after; code fix/mov convention) vs 01 tree:
+diverged 0 both arms; SURVIVED list identical; accuracy
+2/8 + 1/15 BACKWARDS to 0/8 + 0/15 — the same pair 1-4
+lost, no new pair seated, 1-2 never merge-attempted in
+either arm. Kill criterion's "reshuffle without growth"
+branch: anchoring changes the search without converging
+it. Hunk reverted; cap stays. Convergence candidates
+exhausted in this series: cap (bounds, no fix) and anchor
+(changes search, no gain). Standing unowned route: Cauchy
+scales (ticket 01's E-0 gate) — the 8x scale spread with
+no paper values anywhere is the next measured suspect, and
+the forensics below (uniform pre-conditions) leave solver
+setup or input quality as the only venues; anchor was the
+last cheap solver-setup candidate.
+
 ## CAP VERDICT 2026-10-10 (solver-01, jobs 32613911 vs 32624499, bm065): BOUNDED, convergence open
 
 Trust-region cap (initial=100, max=1000, all 5 Solve sites) vs row-3
