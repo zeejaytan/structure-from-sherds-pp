@@ -77,8 +77,17 @@ solve (ticket 02, Eq. 5), was A/B'd same-node and FAILED its kill
 criterion: accuracy 2/8 + 1/15 went backwards to 0/8 + 0/15 (same
 pair lost, no new pair, 1-2 never merge-attempted either way) —
 hunk reverted, verdict in ticket 02. Convergence now routes to the
-unowned Cauchy-scale work (E-0 gates all sweeps). The second test pot
-(Tray 000) is still unmeasured, and it is the one that can show the method works at all.
+unowned Cauchy-scale work (E-0 gates all sweeps). **The E-0
+measurement has now landed** (cauchy-scales ticket 01, job 32696452,
+same node bm065, 38,584 dump files / 11.9 M rows): at iteration 0 the
+point-to-point term sits a median ~780× past its own Cauchy knee
+(`s/a² ≈ 780`, pull-weight `ρ′ ≈ 0.0013`) — effectively switched off
+for essentially every correspondence point — while the normal, axis,
+point-to-line and rim terms are at or inside their knees. So the
+first iteration is driven by normals/axis/rim, not by point position;
+the term that is off is the point-to-point one. Nothing was tuned.
+The second test pot (Tray 000) is still unmeasured, and it is the
+one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
 Next: finish ticket 12, then measure Tray 000.
@@ -433,6 +442,43 @@ grouping 25°, 30° angle, ICP 150, k=5/b=3; job 31835275): 6 states branch
 gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
+
+## 2026-10-11 — E-0 measured: the point-to-point term is off at entry (cauchy-scales 01)
+
+What was measured, in the conservator's terms first: when the solver
+starts, the rule that says "put one fragment's points onto the other
+fragment's matching points" is contributing almost nothing — about a
+thousandth of its intended pull on virtually every point pair — because
+those point pairs are about 780 times further apart than the solver's
+own tolerance for calling them outliers. The rules that are actually
+steering the first attempt are the surface-normal agreement, the
+axis-alignment, the profile-line distance and the rim fit, all of which
+sit at or inside their tolerances.
+
+Cauchy scales ticket 01, hunk log-only, same-node run on spartan-bm065
+(job 32696452, COMPLETED 0:0 in 00:44:55), 38,584 dump files, 11.9 M
+residual rows, Pot_A full assembly. Per class at iteration 0:
+point-to-point `s/a²` median 774–890 (Icp 889.5, Registration-5 774.5,
+Registration-6 777.4) with pull-weight `ρ′` median 0.0013 and 99.81%
+past the `s/a² = 9` point; normals `s/a²` median 4.07–5.40 (`ρ′` 0.18);
+after iteration 1 the normals become inlier-quality (`s/a²` 0.11,
+`ρ′` 0.90). Axis (Cao soft-min) median inlier ≈ 28 mm at s=100 against
+a knee at 1.8, so ~47% of surface points already fall past it.
+Point-to-line 0.40 / 0.87 (ρ′), rim 0.16 (`ρ′` 0.97). Full table, the
+per-site iter-0/iter-1 class census, the empirical add-order parity
+confirmation (including the 2-dim case the ticket's parity rule could
+not express) and the surprises are in
+`.scratch/cauchy-scales/issues/01-log-residual-norms.md`.
+
+Zero-behavior-change verified: with the dump env var unset the run is
+outcome-identical to the control (2/8 sherds, 1/15 edges, PROFILE 783,
+0 diverged solves). Nothing tuned, nothing scheduled.
+
+Why this matters for S1: the "poses are 62–179° off" finding converges
+on refinement robustness, and the robust weighing of the point-to-point
+term is one of the levers whose current setting is now known rather
+than assumed. It is a **mechanism statement, not a join count** — it
+does not move the capability half, which still needs Tray 000.
 
 ## 2026-09-30 — compliance 02/03: dead expectations removed, precedence mapped
 
