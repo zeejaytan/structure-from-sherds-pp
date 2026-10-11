@@ -14,8 +14,7 @@ wrong assembly, the run still proceeds (tolerance and scoring are
 separate variables) but the verdict must read accuracy and score
 separately.
 
-**Status:** ready-for-agent (rewritten 2026-10-12 after E-2; previous
-sweep version superseded — see "Why rewritten")
+**Status:** ready-for-human (run `32729140` COMPLETED 2026-10-12; evidence below; verdict for lead in ticket 11 + S1)
 
 ## Why rewritten (E-2 verdict, job 32722789)
 
@@ -41,7 +40,7 @@ kills the distance direction entirely and routes to 04 (normals) / 05
 
 ## Approved hunk spec
 
-- [ ] Step 0 — scorer read, ZERO new runs (lead or worker, before the
+- [x] Step 0 — scorer read, ZERO new runs (lead or worker, before the
       arm is submitted): compare the best assemblies of the two logs on
       disk (`sfs_main/e2e_pota_e2_32722789.log`, score 266.000 at 0/8,
       vs the solver-01 control `sfs_main/e2e_pota_fresh_*.log` for job
@@ -53,41 +52,106 @@ kills the distance direction entirely and routes to 04 (normals) / 05
       it does not stop the run (separate variables), but a "scorer
       prefers wrong" finding routes to the scorer's owner alongside —
       not instead of — the tolerance verdict.
-- [ ] Hunk: replace the `GraduatedDistScale(site, iter)` call at exactly
+      DONE (worker, 2026-10-12, zero new runs, both bm065) — ANSWER YES:
+      control `sfs_main/e2e_pota_solver01_32624499.log` (NOTE: actual
+      filename is `e2e_pota_solver01_*.log`, not `e2e_pota_fresh_*.log`;
+      18M Oct10; Best State #0 7/8 score=262.000 Sherd 2/8 Edge 1/15)
+      vs E-2 `sfs_main/e2e_pota_e2_32722789.log` (20M Oct12; Best State
+      #0 7/8 score=266.000 0/8 0/15). Tails identical SURVIVED14
+      FEATURE_MATCHING1 incl Pieces1-4 SURVIVED; both saved pieces
+      1,3,4,5,6,7,8 (missing 2). assembly_data.txt decides: control
+      G0={1,4,5,6,7,8} G1={3}, final MERGETABLE [1-3] corObjs=7
+      corPts=170 tablesum=14.000; E-2 G0={1,4,5,7,8} G1={3,6}, late
+      merges [5-7]/[5-8]/[1-8]. Poses differ (piece6 control
+      t=[4.50,1.65,-69.33] vs E-2 near-identity; piece3 identity vs
+      rotated). Scorer prefers wrong (266>262 seats 0 vs 2); tolerance
+      vs scoring separate; run proceeded.
+- [x] Hunk: replace the `GraduatedDistScale(site, iter)` call at exactly
       the three hardcoded distance sites (`Icp`, `Registration` 5-arg,
       `Registration` 6-arg — current lines `:1486`/`:1735`/`:1951`, verify
       at implementation time) with the fixed literal `119.0`. The helper
       itself stays (E-2 record); the call sites stop calling it. Norm /
       axis / rim scales keep their literals 1.8. `IcpIncGraphAxis` (env)
       and dead `IcpFine` (5.0) untouched, as in 02.
-- [ ] Dump calls pass `119.0` (same live-value rule as 02 — the dump's
+      DONE — commit `2098f55`: `:1486`/`:1735`/`:1951` now
+      `new ceres::CauchyLoss(119.0)`; helper def `:1356` retained
+      (`GraduatedDistScale(` count = 1); `IcpIncGraphAxis` still
+      `CauchyLoss(cauchy_dist)` + `SFS_CAUCHY_DIST` gate (`:2142-2144`);
+      dead `IcpFine` still `5.0` (`:2365`); 9x `1.8` intact.
+- [x] Dump calls pass `119.0` (same live-value rule as 02 — the dump's
       `a` column must show 119 at iter 0, or it lies).
-- [ ] Weights, iteration counts, gates, solver options, caps, staging
+      DONE — `:1540`/`:1786`/`:2009` pass
+      `LogE0Residuals(site, iter, 119.0, 1.8, 1.8, 1.8, problem)`; run
+      dump confirms a=119 at all three sites at iter 0.
+- [x] Weights, iteration counts, gates, solver options, caps, staging
       untouched. Six cap invariants still hold (100 ×5, 1000 ×5).
-- [ ] Batch arm `hpc/sbatch/run_e3_p50.sbatch` modelled on
+      DONE — verified at `2098f55`: caps 5+5, SOLVER-01 + E3 REVERTED
+      markers, 150/100 x3, POT_A `#define` active,
+      `multi_hypothesis_optimizer.cpp:887` untouched.
+- [x] Batch arm `hpc/sbatch/run_e3_p50.sbatch` modelled on
       `run_e2_graduated.sbatch`: marker grep (three sites `CauchyLoss(119.0)`,
       untouched-site checks, dump-live-value checks, cap checks, POT_A
       check) + freshness + one Pot_A full assembly, pinned
       `--nodelist=spartan-bm065`, dump enabled. Single run citing the
       existing solver-01 control per 02's recorded deviation (dump
       outcome-neutrality already proven, job 32696452 A vs B).
-- [ ] **Kill criterion stated before running:**
-      1. Primary read — dist `s/a²` p50 ≈ 1, `ρ′` p50 ≈ 0.5 at iter 0
-         (arithmetic prediction from E-0 `fnorm` p50 111–119 mm at
-         `a = 119`). If the term is still suppressed or fully online,
-         the arithmetic is wrong — report, do not tune.
-      2. Divergence stays 0 (cap work holds; anything above is a STOP).
-      3. Accuracy vs control (2/8, 1/15): HOLDS → distance at p50 is
-         neutral, direction stays open; GROWS → follow it (ticket for
-         the winning value); FALLS to 0 → distance direction CLOSED,
-         route to 04/05 with the numbers.
-      4. Score vs accuracy read SEPARATELY (E-2 lesson): report both,
-         never let a score rise overrule an accuracy fall.
-      5. Pair 1-4 still SURVIVED; SURVIVED ≥ 14.
-      - Do not tune the value in place whatever moves. Revert, record,
-        report.
-- [ ] Report: primary read before/after, outcome lines, diverged count,
+      DONE — arm shipped in `2098f55` (186 lines); job `32729140`
+      COMPLETED 0:0 in 00:20:09 on spartan-bm065; all in-job marker
+      greps passed, build exit 0, HEAD `2098f55` confirmed in-job.
+- [x] **Kill criterion stated before running:**
+      DONE — job `32729140` (sfs_e3_p50), COMPLETED 0:0 in 00:20:09 on
+      `spartan-bm065`, commit `2098f55`. Single run citing the existing
+      solver-01 control (job 32624499, same node) per 02's recorded
+      deviation. STOPs a–e: NONE triggered (details per branch below);
+      no tuning performed. Verdict NOT written here — lead lands it in
+      ticket 11 + S1 (worker reports evidence only).
+      1. Primary read — LANDED ON PREDICTION. `a` confirmed 119 at all
+         three sites at iter 0 (Icp n=4628, Reg5 n=141183, Reg6
+         n=100777; in-run control `IcpIncGraphAxis` still `a = 1`,
+         n=8388):
+
+         | site | n | `s/a²` p50 / p90 / max | `ρ′` p50 / p90 / max |
+         |---|---|---|---|
+         | Icp | 4,628 | 1.005 / 2.313 / 2.753 | 0.4986 / 0.8581 / 0.9976 |
+         | Registration5 | 141,183 | 0.859 / 2.46 / 4.548 | 0.5379 / 0.8669 / 0.9976 |
+         | Registration6 | 100,777 | 0.8562 / 2.434 / 3.882 | 0.5387 / 0.8237 / 0.9999 |
+         | IcpIncGraphAxis (control) | 8,388 | 4.192 / 48.17 / 547.2 | 0.1926 / 0.7938 / 0.996 |
+
+         Ticket predicted `s/a²` p50 ≈ 1, `ρ′` p50 ≈ 0.5 from
+         `(115/119)²`. Landed on it. Arithmetic holds — STOP-a clear,
+         term half-online as designed. Before: E-0 at `a = 4.0` was
+         `s/a²` p50 774–890, `ρ′` p50 0.00128. 40,121 dump files at
+         `/data/gpfs/projects/punim2657/sfs_main/e3_dumps`.
+      2. Divergence: `DIVERGED-SOLVE` count 0 (grep -c returned 0) —
+         stays 0, STOP-b clear (cap work holds).
+      3. Accuracy vs control (2/8, 1/15): E-3 = **0/8 + 0/15** — FALLS
+         to 0 branch FIRES: distance direction CLOSED, route to 04/05
+         with the numbers (lead to land). Best assembly 7/8 pieces
+         score=266.000 — identical score to E-2's 266.000.
+      4. Score vs accuracy read SEPARATELY: score 266.000 (= E-2, up
+         from control 262) while accuracy 0/8+0/15 (down from 2/8+1/15)
+         — repeats the E-2 signature (false matches admitted). PROFILE
+         831 (control 783, E-2 855).
+      5. Pair 1-4 still SURVIVED (`Pieces 1-4 @ SURVIVED: Feature
+         matching succeeded (value=21.000)`); SURVIVED 14 /
+         FEATURE_MATCHING 1 — unchanged, STOP-d/e clear.
+      - No tuning performed; value stays 119.0 in tree for the record.
+- [x] Report: primary read before/after, outcome lines, diverged count,
       step-0 scorer answer, verdict in ticket 11 + S1 Where-it-stands.
+      DONE (worker evidence; verdict NOT written — lead lands ticket 11
+      + S1): primary before E-0 (`a`=4.0: `s/a²` p50 774–890, `ρ′`
+      p50 0.00128) → after E-3 (`a`=119: per-site table in branch 1
+      above). Outcome lines: `Best assembly: State #0 with 7/8 pieces
+      (score=266.000)`, `Sherd accuracy : 0 / 8 (0.000%)`, `Edge
+      accuracy : 0 / 15 (0.000%)`; DIVERGED-SOLVE 0; SURVIVED 14 /
+      FEATURE_MATCHING 1; pair 1-4 SURVIVED. Step-0 scorer answer: YES,
+      scorer prefers wrong (266 at 0/8 outscores 262 at 2/8 — recorded
+      in Step 0 box). Kill-branch reading: FALLS-to-0 → distance
+      CLOSED, route 04/05. Commits: `2098f55` (hunk+arm) + this ticket
+      write-up. Job `32729140` on spartan-bm065, COMPLETED 0:0,
+      00:20:09. Log `sfs_main/e2e_pota_e3_32729140.log`; job stdout
+      `sfspreproc-docker/slurm-32729140.out` (85 lines); build log
+      `build_sif/e3_build_32729140.log` (exit 0).
 
 ## Out of scope (unchanged from spec.md)
 
