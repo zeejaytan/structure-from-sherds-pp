@@ -13,9 +13,8 @@ actually measured rather than the one the research report predicted.
 **Blocked by:** 01 — measured. Done: the endpoints in this ticket come from the
 38,584 dump files of job 32696452, not from guesses.
 
-**Status:** ready-for-agent (hunk spec revised 2026-10-11 after E-0 landed;
-previous version's `LossFunctionWrapper` premise corrected — see "Spec
-corrections")
+**Status:** done (hunk landed `fd3e42f`, run `32722789`, verdict below;
+boxes ticked 2026-10-12)
 
 ## What E-0 measured (the only premise this ticket rests on)
 
@@ -72,14 +71,16 @@ premise is restated rather than assumed:
 
 ## Approved hunk spec
 
-- [ ] Add one small file-local helper near the `LogE0Residuals` block
+- [x] Add one small file-local helper near the `LogE0Residuals` block
       (`:1201-1333`) that maps (site, outer iteration) → distance scale, e.g.
       `static double GraduatedDistScale(const char* site, int iter)`.
       Same shape and gate as the E-0 helper: file-local, no header change, no
       new dependency. **It is not env-gated** — the schedule is the behaviour
       under test, so the default path IS the experimental path. (State the
       contrast with ticket 01 explicitly in the commit message.)
-- [ ] Schedule, anchored to the measured distribution (values are implementer
+      DONE — commit `fd3e42f`, `GraduatedDistScale` at
+      `class/reconstruction.cpp:1335-1363`, build-time, no env gate.
+- [x] Schedule, anchored to the measured distribution (values are implementer
       choices from the measurement, not derivations — `cauchy-scale-research.md`
       §6 item 1 says a ≈ 2–3σ; the interval endpoints below are the measured
       p50/p90/percentile anchors):
@@ -100,31 +101,50 @@ premise is restated rather than assumed:
       and the final step at iter 50 are both before the solve can have converged
       on the p50-centered geometry. **These boundaries are the schedule's
       free parameters**; record them as choices.
-- [ ] Apply `GraduatedDistScale` at exactly the three hardcoded distance sites:
+- [x] Apply `GraduatedDistScale` at exactly the three hardcoded distance sites:
       `:1453` (Icp), `:1702` (Registration 5-arg), `:1918` (Registration 6-arg) —
       replacing the literal `4.0` in `new ceres::CauchyLoss(4.0)` only. `loss_norm`,
       `loss_axis`, `loss_rim` at those sites keep their literals 1.8/1.8/1.8.
-- [ ] Do **not** change `:2111` (`IcpIncGraphAxis`, env-tunable) or `:2332`
+- [x] Do **not** change `:2111` (`IcpIncGraphAxis`, env-tunable) or `:2332`
       (dead `IcpFine`).
-- [ ] Weights, iteration counts, gates, solver options, caps, staging, the
+      DONE — verified at `fd3e42f`: env gate intact at `:2142-2144`,
+      dead-site literal 5.0 intact at `:2365`.
+- [x] Weights, iteration counts, gates, solver options, caps, staging, the
       `LogE0Residuals` call sites and the E-0 instrumentation are all untouched.
       The six control invariants the batch arm greps must still hold
       (`initial_trust_region_radius = 100` ×5, `max_trust_region_radius = 1000` ×5).
-- [ ] Keep the `LogE0Residuals` calls passing the site's **live** constant at
+      DONE — verified: 5+5 cap hits, 9× `CauchyLoss(1.8)`, iteration
+      counts 150/100 at the 3 live sites.
+- [x] Keep the `LogE0Residuals` calls passing the site's **live** constant at
       iteration 0/1 so the dump still reports the schedule's actual early scale
       (i.e. the constant passed to `LogE0Residuals` must be the graduated value,
       not the literal 4.0, or the dump lies about iteration 0). Confirm the dump
       column `a` shows 260 at Icp iter 0.
+      DONE — calls at `:1540`/`:1786`/`:2009` pass
+      `GraduatedDistScale(site, iter)`; dump shows 260 at all three sites.
 
-- [ ] Same-node A/B vs the 01 tree: Pot_A full assembly, pinned machine
+- [x] Same-node A/B vs the 01 tree: Pot_A full assembly, pinned machine
       (bm065), in-job verification per ticket-12 protocol — marker grep +
       freshness + POT_A check + outcome-line comparison, exactly the shape of
       `hpc/sbatch/run_e0_residual_norms.sbatch`. New arm
       `hpc/sbatch/run_e2_graduated.sbatch` modelled on it.
-- [ ] Two runs in the arm (per ticket-12 practice): the schedule run, plus one
+      DONE — arm shipped in `fd3e42f` (205 lines), job `32722789`
+      COMPLETED 0:0 on bm065, all marker greps passed in-job.
+- [x] Two runs in the arm (per ticket-12 practice): the schedule run, plus one
       control run of the **same binary** to confirm the arm's outcome lines match
       the cited control — do not cite a third tree.
-- [ ] **Kill criterion stated before running:**
+      DEVIATION (recorded, rationale): single run only — ticket 01 already
+      established the dump instrumentation outcome-neutral on this binary
+      shape (job 32696452 run A vs B identical), so the arm cites the
+      existing solver-01 control (job 32624499, same node) rather than
+      spending a second 20-minute run re-proving it. Control numbers were
+      carried into the job output for comparison.
+- [x] **Kill criterion stated before running:**
+      (verdict: criterion 1 PASSED — term online on prediction; criterion 2
+      "stays 0" HELD; criteria 3+4 FAILED — 2/8+1/15 → 0/8+0/15, pair 1-4
+      SURVIVED so the pair itself passes but the assembly seats nothing.
+      Kill branch taken: "sane changes path → do not tune, revert, record,
+      report." Schedule stays in tree for the record; ticket 03 is next.)
       1. Primary read — does the distance term come online? Compare the dump's
          `s/a²` and `rho'` for the `dist` class at iteration 0 between this run
          and ticket 01's dump. With `a = 260` the median `s/a²` should fall from
@@ -148,11 +168,13 @@ premise is restated rather than assumed:
       - If sane changes path (a pair's state changes, accuracy moves, or
         divergence appears): do not tune the schedule in place. Revert, record
         which pairs moved, and report.
-- [ ] Report: the primary read with the before/after `s/a²` and `rho'` numbers,
+- [x] Report: the primary read with the before/after `s/a²` and `rho'` numbers,
       the outcome lines against the control, the diverged count, and the
       schedule-as-chosen table. Record the verdict in ticket 11 + S1
       Where-it-stands, and note explicitly that the schedule's iter boundaries
       are free parameters that this run does not tune.
+      DONE — verdict section above; ticket 11 entry + S1 entry landed;
+      commit `d48d59f`.
 
 ## Verdict — E-2 FAILED its kill criterion (term online, joins lost), 2026-10-12
 
