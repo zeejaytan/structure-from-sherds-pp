@@ -1483,7 +1483,7 @@ void Icp(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(GraduatedDistScale("Icp", iter));	// cauchy-scales ticket 02 (E-2): was CauchyLoss(4.0) -- RELAXED: distance outlier detection (was 3.0, original 5.0). Now phase-derived; not env-gated, the schedule IS the behaviour under test
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(119.0);	// cauchy-scales ticket 03 (E-3): was the GraduatedDistScale Icp-site schedule call -- fixed p50 119.0, weights frozen
 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
@@ -1537,7 +1537,7 @@ void Icp(vector<BreakLine>& L,
 		// axis/rim/P2L on at iter>0 and parameters are re-zeroed each
 		// iteration), so both are start-of-solve states, not warm ones.
 		if (iter <= 1)
-			LogE0Residuals("Icp", iter, GraduatedDistScale("Icp", iter), 1.8, 1.8, 1.8, problem);
+			LogE0Residuals("Icp", iter, 119.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 03 (E-3): live value 119.0
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -1732,7 +1732,7 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(GraduatedDistScale("Registration5", iter));	// cauchy-scales ticket 02 (E-2): was CauchyLoss(4.0) -- RELAXED: distance outlier detection (was 3.0, original 5.0). Now phase-derived; not env-gated, the schedule IS the behaviour under test
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(119.0);	// cauchy-scales ticket 03 (E-3): was the GraduatedDistScale Registration5-site schedule call -- fixed p50 119.0, weights frozen
 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
@@ -1783,7 +1783,7 @@ void Registration(vector<BreakLine>& L,
 		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
 		// Iters 0 and 1 (see the Icp site for why both are cold starts).
 		if (iter <= 1)
-			LogE0Residuals("Registration5", iter, GraduatedDistScale("Registration5", iter), 1.8, 1.8, 1.8, problem);
+			LogE0Residuals("Registration5", iter, 119.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 03 (E-3): live value 119.0
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -1948,7 +1948,7 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(GraduatedDistScale("Registration6", iter));	// cauchy-scales ticket 02 (E-2): was CauchyLoss(4.0) -- RELAXED: distance outlier detection (was 3.0, original 5.0). Now phase-derived; not env-gated, the schedule IS the behaviour under test
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(119.0);	// cauchy-scales ticket 03 (E-3): was the GraduatedDistScale Registration6-site schedule call -- fixed p50 119.0, weights frozen
 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive normal outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// RELAXED: More permissive axis outlier detection (was 1.5, original 2.0)
 		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);		// RELAXED: More permissive rim outlier detection (was 1.5, original 2.0)
@@ -2006,7 +2006,7 @@ void Registration(vector<BreakLine>& L,
 		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
 		// Iters 0 and 1 (see the Icp site for why both are cold starts).
 		if (iter <= 1)
-			LogE0Residuals("Registration6", iter, GraduatedDistScale("Registration6", iter), 1.8, 1.8, 1.8, problem);
+			LogE0Residuals("Registration6", iter, 119.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 03 (E-3): live value 119.0
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
