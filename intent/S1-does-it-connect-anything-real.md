@@ -443,6 +443,45 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — E-3 fixed distance at p50: half-online, joins lost, distance CLOSED (cauchy-scales 03)
+
+What this means first: the "put the points onto each other" rule was set
+to exactly half strength — the middle ground between fully off and fully
+on — and both recovered joins were still lost while the score matched
+E-2's false-match high. So there is no dial setting on this rule that
+keeps the true joins: fully off (2/8), half on (0/8), fully on (0/8).
+This closes the distance direction — it is a finding about the method,
+not a broken measurement, not a wrong comparison.
+
+Cauchy-scales ticket 03, single fixed arm, same-node run on
+spartan-bm065 (job 32729140, COMPLETED 0:0 in 00:20:09, commit
+`2098f55`, 40,121 dump files). Fixed tolerance 119.0 (the measured
+point-to-point median) at the three hardcoded solve sites; helper
+retained as record, weights/caps/solver untouched. The primary read
+landed on the ticket's arithmetic prediction — `s/a²` median
+1.005/0.859/0.856 with pull-weight `ρ′` median 0.50/0.54/0.54 at entry
+(was 780 / 0.0013): the term is exactly half-online, as designed.
+
+Outcome against the cited control (solver-01, same node): Sherd
+accuracy 2/8 → **0/8**, Edge 1/15 → **0/15**, PROFILE 783 → 831,
+DIVERGED-SOLVE 0 → 0 (no new divergence), best assembly 7/8 with score
+262.000 → **266.000** — identical to E-2's score at the same 0/8. Score
+level while accuracy goes to zero is the false-matches signature a
+third time, now at half strength. SURVIVED 14 / FEATURE_MATCHING 1
+unchanged, pair 1-4 still SURVIVED. Not tuned in place per the ticket's
+rule. Full table in `.scratch/cauchy-scales/issues/03-distance-sweep.md`
+verdict; forensics pointer in juglet-sfs ticket 11.
+
+The step-0 scorer read (zero new runs, both logs on disk) answered YES:
+the scorer prefers the wrong assembly — 266 points at 0/8 outscores 262
+at 2/8 with identical pairwise survival, the split happening downstream
+in merge/graph scoring. Tolerance and scoring are separate variables;
+that finding routes to the scorer's owner alongside this verdict.
+Why this matters for S1: the distance term cannot come online anywhere
+without admitting false matches — the 2/8 must come from another class.
+Next: tickets 04 (normals) / 05 (axis). Mechanism statement, not a join
+count; the capability half still needs Tray 000.
+
 ## 2026-10-12 — E-2 graduated distance: term online, joins lost (cauchy-scales 02)
 
 What this means first: when the solver starts, the rule that says "put

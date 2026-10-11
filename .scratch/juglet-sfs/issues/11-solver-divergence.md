@@ -1,5 +1,9 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## CAUCHY E-3 VERDICT 2026-10-12 (job 32729140, bm065): half-online, joins lost — distance CLOSED
+
+Fixed distance tolerance at measured p50 (`a_dist = 119.0`, three hardcoded sites, commit `2098f55`) vs solver-01 control: primary read landed on the ticket's arithmetic prediction (dist `s/a²` p50 1.005/0.859/0.856 at Icp/Reg5/Reg6, pull-weight `ρ′` p50 0.50/0.54/0.54 at iter 0, `a = 119` confirmed in dump — was 780 / 0.0013 at `a = 4.0`), term exactly half-online as designed, but accuracy went 2/8 + 1/15 BACKWARDS to 0/8 + 0/15 while best score sat at 266.000 — identical to E-2's 266, up from control 262. Third reading of the false-matches-outscore-true-pairs signature, now with the term half-online rather than fully online. Divergence stayed 0. SURVIVED 14 / FEATURE_MATCHING 1 unchanged, pair 1-4 still SURVIVED. Not tuned in place per the ticket's rule. Full numbers in cauchy-scales ticket 03 verdict. Route: distance direction CLOSED — tickets 04 (normals) / 05 (axis) next; scorer-prefers-wrong finding routes to scorer owner alongside (step-0 read: 266 at 0/8 outscores 262 at 2/8, pairwise identical, split downstream in merge/graph scoring).
+
 ## CAUCHY E-2 VERDICT 2026-10-12 (job 32722789, bm065): term online, joins lost
 
 Graduated distance schedule (260/181/119/4.0 at iters 0/1-9/10-49/50+,
