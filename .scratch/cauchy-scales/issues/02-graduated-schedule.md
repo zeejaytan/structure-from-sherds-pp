@@ -154,6 +154,61 @@ premise is restated rather than assumed:
       Where-it-stands, and note explicitly that the schedule's iter boundaries
       are free parameters that this run does not tune.
 
+## Verdict — E-2 FAILED its kill criterion (term online, joins lost), 2026-10-12
+
+Job `32722789` (sfs_e2_graduated), COMPLETED 0:0 in 00:20:16 on
+`spartan-bm065`, commit `fd3e42f`. Same node, same inputs as the E-0
+control. Worker died after pushing correct code; lead audited the hunk
+and read the dumps directly.
+
+**Implementation verified correct before trusting the numbers:**
+`GraduatedDistScale` at `class/reconstruction.cpp:1335-1363`, schedule
+table exactly per spec (iter<1 → 260.0, <10 → 181.0, <50 → 119.0, else
+4.0), build-time, not env-gated. Applied at the three hardcoded sites
+only (`:1486` Icp, `:1735` Registration5, `:1951` Registration6);
+`IcpIncGraphAxis` still reads `SFS_CAUCHY_DIST` at `:2142-2144`, dead
+`IcpFine` still `CauchyLoss(5.0)` at `:2365`. Dump calls pass the
+graduated value, not 4.0 (`:1540`, `:1786`, `:2009`) — the dump's `a`
+column does not lie. Six cap invariants intact.
+
+**Primary read — the term came online, on prediction:**
+dist class at iteration 0, `a = 260` confirmed in the dump column at all
+three sites (Icp 260, Reg5 260, Reg6 260; in-run control
+`IcpIncGraphAxis` still `a = 1`):
+
+| site | n | `s/a²` p50 / p90 / max | `ρ′` p50 / p90 |
+|---|---|---|---|
+| Icp | 4,628 | 0.2107 / 0.4846 / 0.5768 | 0.8261 / 0.9665 |
+| Registration5 | 141,014 | 0.1817 / 0.5155 / 0.9483 | 0.8462 / 0.9688 |
+| Registration6 | 99,806 | 0.1782 / 0.5088 / 0.8133 | 0.8487 / 0.9571 |
+
+Ticket predicted `s/a² ≈ 0.20`, `ρ′ ≈ 0.84` from `(115/260)²`. Landed
+on it. E-0 at `a = 4.0` was `s/a²` p50 774–890, `ρ′` p50 0.00128.
+39,944 dump files at `/data/gpfs/projects/punim2657/sfs_main/e2_dumps`.
+
+**Outcome lines vs the cited control (solver-01 job 32624499, same node):**
+
+| | control | E-2 schedule |
+|---|---|---|
+| Sherd accuracy | 2/8 (25.000%) | **0/8 (0.000%)** |
+| Edge accuracy | 1/15 (6.667%) | **0/15 (0.000%)** |
+| PROFILE | 783 | 855 |
+| DIVERGED-SOLVE | 0 | 0 (stays 0 — no new divergence) |
+| Best assembly | 7/8, score 262.000 | 7/8, score 266.000 |
+| SURVIVED / FEATURE_MATCHING | 14 / 1 | 14 / 1 (unchanged) |
+| Pair 1-4 | SURVIVED | still SURVIVED |
+
+**Reading:** a permissive distance bowl at entry brings the term online
+*and* costs both recovered joins. Score went UP (266 vs 262) while
+accuracy went to zero — the signature of false matches admitted, the
+"loose admits false matches" trade `cauchy-scale-research.md` §7 warns
+of. Divergence stayed 0, so this is not instability; the term pulls
+harder on wrong things. Per the ticket's own rule: do not tune the
+schedule in place. The iter boundaries (1/10/50) remain free parameters
+this run does not tune. Route to ticket 03 with these numbers: whether
+the distance term can be brought online anywhere without admitting false
+matches, or whether the 2/8 must be recovered by a different class.
+
 ## Out of scope (unchanged from spec.md)
 
 Weights, iteration counts, gates, caps/anchoring (`solver-convergence/` tickets

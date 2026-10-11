@@ -443,6 +443,42 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — E-2 graduated distance: term online, joins lost (cauchy-scales 02)
+
+What this means first: when the solver starts, the rule that says "put
+one fragment's points onto the other's matching points" was contributing
+almost nothing (pull-weight ~0.001), and waking it up with a permissive
+tolerance cost both recovered joins instead of growing them. So this is
+a finding about the method — not a broken measurement, not a wrong
+comparison.
+
+Cauchy-scales ticket 02, behaviour-change hunk, same-node run on
+spartan-bm065 (job 32722789, COMPLETED 0:0 in 00:20:16, commit
+`fd3e42f`, 39,944 dump files). The schedule (distance tolerance
+260/181/119/4.0 across iteration bands, three hardcoded solve sites;
+in-run control `IcpIncGraphAxis` untouched on env values) worked
+mechanically: the dump's tolerance column really reads 260 at entry,
+and the primary read landed on the ticket's arithmetic prediction —
+point-to-point `s/a²` median 0.18–0.21 (was ~780), pull-weight `ρ′`
+median 0.83–0.85 (was 0.0013). The term is online.
+
+Outcome against the cited control (solver-01, same node): Sherd
+accuracy 2/8 → **0/8**, Edge 1/15 → **0/15**, PROFILE 783 → 855,
+DIVERGED-SOLVE 0 → 0 (no new divergence), best assembly 7/8 with score
+262.000 → **266.000**. Score up while accuracy goes to zero is the
+signature of false matches admitted — the "loose admits false matches"
+trade the research report warned of. SURVIVED 14 / FEATURE_MATCHING 1
+unchanged, pair 1-4 still SURVIVED. Per the ticket's rule the schedule
+was not tuned in place; its iteration boundaries stay free parameters.
+Full table in `.scratch/cauchy-scales/issues/02-graduated-schedule.md`
+verdict; forensics pointer in juglet-sfs ticket 11.
+
+Why this matters for S1: the 2/8 cannot be grown by waking the distance
+term alone — the next question (ticket 03) is whether it can come online
+anywhere without admitting false matches, or the joins must come from a
+different class. Mechanism statement, not a join count; the capability
+half still needs Tray 000.
+
 ## 2026-10-11 — E-0 measured: the point-to-point term is off at entry (cauchy-scales 01)
 
 What was measured, in the conservator's terms first: when the solver

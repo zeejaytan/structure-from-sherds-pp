@@ -1,5 +1,23 @@
 # 11: Solver divergence — translations escape to 1e11–1e14 mm
 
+## CAUCHY E-2 VERDICT 2026-10-12 (job 32722789, bm065): term online, joins lost
+
+Graduated distance schedule (260/181/119/4.0 at iters 0/1-9/10-49/50+,
+three hardcoded sites, commit `fd3e42f`) vs solver-01 control: primary
+read landed on prediction (dist `s/a²` p50 0.18-0.21, `ρ′` p50 0.83-0.85
+at iter 0, `a = 260` confirmed in the dump — was 780 / 0.0013 at
+`a = 4.0`), but accuracy went 2/8 + 1/15 BACKWARDS to 0/8 + 0/15 while
+best score ROSE 262 to 266: false matches admitted, the "loose" half of
+the tight-vs-loose trade. Divergence stayed 0 (not instability).
+SURVIVED 14 / FEATURE_MATCHING 1 unchanged, pair 1-4 still SURVIVED.
+Schedule NOT tuned in place per the ticket's rule; iter boundaries stay
+free parameters. Full numbers in cauchy-scales ticket 02 verdict. Route:
+ticket 03 asks whether the distance term can come online anywhere
+without admitting false matches, or the 2/8 must come from another
+class. Convergence candidates exhausted in this series: cap (bounds, no
+fix), anchor (changes search, no gain), graduated distance (online, joins
+lost).
+
 ## MAKEMULTI ITER TAG 2026-10-10 (uncommitted, pre-01): graph path now labeled
 
 `MakeMultiCorres` gained an `int iter` parameter (signature
