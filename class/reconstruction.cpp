@@ -1257,7 +1257,8 @@ static void LogE0Residuals(const char* site, int iter,
 	size_t off = 0;
 	for (size_t bi = 0; bi < blocks.size(); ++bi) {
 		ceres::ResidualBlockId rb = blocks[bi];
-		ceres::CostFunction* cf = problem.GetCostFunctionForResidualBlock(rb);
+		// GetCostFunctionForResidualBlock returns const (problem.h:384-385).
+		const ceres::CostFunction* cf = problem.GetCostFunctionForResidualBlock(rb);
 		if (cf == NULL) continue;
 		const int dim = cf->num_residuals();
 		if (off + (size_t)dim > residuals.size()) continue;
@@ -1267,7 +1268,8 @@ static void LogE0Residuals(const char* site, int iter,
 			s += v * v;
 		}
 		off += (size_t)dim;
-		ceres::LossFunction* loss = problem.GetLossFunctionForResidualBlock(rb);
+		// GetLossFunctionForResidualBlock returns const (problem.h:389-390).
+		const ceres::LossFunction* loss = problem.GetLossFunctionForResidualBlock(rb);
 		if (loss == NULL) continue;	// block is unweighted; nothing to pull
 		double out[3] = { 0.0, 0.0, 0.0 };
 		loss->Evaluate(s, out);
