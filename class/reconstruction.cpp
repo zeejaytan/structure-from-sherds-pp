@@ -3,6 +3,12 @@
 #include "ground_truth_debug.h"
 #include "robust_icp.h"
 #include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
+// cauchy-scales ticket 01 (E-0 measurement, log-only): std::snprintf /
+// std::ofstream dump, std::strcmp site lookup, std::sqrt norm.
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <fstream>
 
 //############################## other function ##############################//
 bool isConverge(const Matrix4d& T,
@@ -1192,6 +1198,138 @@ void FillMatchedPoints(const vector<Corres>& COR,
 	}
 }
 
+// cauchy-scales ticket 01 (E-0 measurement). LOG-ONLY: env-gated
+// (SFS_E0_DUMP = output dir), zero behavior change when unset. Per residual
+// block of a ceres::Problem, log class, dim, the site constant a, the
+// post-weight ||f||, s/a^2, rho' (the IRLS pull-weight, Cauchy
+// 1/(1+s/a^2)), and the raw-unit conversions. Called immediately BEFORE
+// ceres::Solve so it reads that iteration's start (Evaluate Note 1) and
+// never during a solve (Note 3).
+static void LogE0Residuals(const char* site, int iter,
+	double a_dist, double a_norm, double a_axis, double a_rim,
+	ceres::Problem& problem)
+{
+	const char* dump_dir = std::getenv("SFS_E0_DUMP");
+	if (dump_dir == NULL) return;	// default path: getenv only, nothing runs
+	static int dump_idx = 0;
+	char dump_path[1024];
+	std::snprintf(dump_path, sizeof(dump_path), "%s/dump_e0_%04d.tsv",
+	              dump_dir, dump_idx++);
+	std::ofstream dump(dump_path, std::ios::out | std::ios::trunc);
+	if (!dump.is_open()) return;
+
+	std::vector<ceres::ResidualBlockId> blocks;
+	problem.GetResidualBlocks(&blocks);
+	// Per-site functor weights, so the raw-unit conversion strips exactly
+	// the multiplier the cost functor put into the residual.
+	double w_d = 1.0, w_n = 3.0, w_l = 1.0, w_a = 0.1;
+	if (std::strcmp(site, "IcpIncGraphAxis") == 0) {
+		w_d = 2.0; w_n = 5.0; w_l = 3.0; w_a = 1.0;
+	}
+
+	// One shared context/scratch is fine: Evaluate is unsynchronised over
+	// parameter memory only (it restores the state pointers at exit, see
+	// problem_impl.cc:886-887).
+	ceres::Problem::EvaluateOptions eval_opts;
+	eval_opts.parameter_blocks.clear();
+	eval_opts.residual_blocks = blocks;
+	eval_opts.apply_loss_function = false;
+	eval_opts.num_threads = 1;
+	std::vector<double> residuals;
+	double cost = 0.0;
+	if (!problem.Evaluate(eval_opts, &cost, &residuals, NULL, NULL)) {
+		dump << "site\titer\tblock_index\tclass\tdim\ta\tfnorm\ts_a2\trho_p"
+		     << "\traw_unit\traw_norm\tcor_pair\tcor_point\n";
+		dump << "# EVALUATE FAILED (residuals unavailable)\n";
+		return;
+	}
+
+	dump << "site\titer\tblock_index\tclass\tdim\ta\tfnorm\ts_a2\trho_p"
+	     << "\traw_unit\traw_norm\tcor_pair\tcor_point\n";
+	// Two classes are dim-2 (rim CostFuncRim and the Fixed-P2L
+	// CostFuncFixedLineDist) and the add-order is P2L-before-rim, so the
+	// first dim-2 block of a run is the line distance and the rest are rim.
+	int dim2_run = 0;
+	int pair_index = 0;
+	int cor_point = 0;
+	int axis_point = 0;
+	int rim_point = 0;
+	size_t off = 0;
+	for (size_t bi = 0; bi < blocks.size(); ++bi) {
+		ceres::ResidualBlockId rb = blocks[bi];
+		ceres::CostFunction* cf = problem.GetCostFunctionForResidualBlock(rb);
+		if (cf == NULL) continue;
+		const int dim = cf->num_residuals();
+		if (off + (size_t)dim > residuals.size()) continue;
+		double s = 0.0;
+		for (int k = 0; k < dim; ++k) {
+			const double v = residuals[off + k];
+			s += v * v;
+		}
+		off += (size_t)dim;
+		ceres::LossFunction* loss = problem.GetLossFunctionForResidualBlock(rb);
+		if (loss == NULL) continue;	// block is unweighted; nothing to pull
+		double out[3] = { 0.0, 0.0, 0.0 };
+		loss->Evaluate(s, out);
+
+		const char* cls;
+		double a, w;
+		// cor labels: dist/norm rows of one pair share cor_point.
+		if (dim == 1) {
+			cls = "axis"; a = a_axis; w = w_a;
+			cor_point = axis_point++;
+		}
+		else if (dim == 2) {
+			// 2-dim is ambiguous in principle: rim CostFuncRim and the
+			// Fixed-P2L CostFuncFixedLineDist are both 2-dim. The P2L
+			// constraint is added BEFORE the rim blocks at every site, so
+			// the first dim-2 block of a run is the line distance and every
+			// later dim-2 block in that run is rim. Confirmed empirically by
+			// the first dump's cor_point walk.
+			dim2_run++;
+			if (dim2_run == 1) {
+				cls = "dist_line2"; a = a_dist; w = w_l;
+				cor_point = pair_index++;
+			}
+			else {
+				cls = "rim"; a = a_rim; w = 1.0;
+				cor_point = rim_point++;
+			}
+		}
+		else if (dim == 3) {
+			// parity carry (spec decision 2, confirmed empirically by the
+			// first dump): dist first, norm second, per pair.
+			const bool is_dist = ((int)bi % 2) == 0;
+			cls = is_dist ? "dist" : "norm";
+			a = is_dist ? a_dist : a_norm;
+			w = is_dist ? w_d : w_n;
+			if (is_dist) pair_index++;
+			cor_point = pair_index - 1;
+		}
+		else if (dim == 4) {
+			cls = "dist_line4"; a = a_dist; w = w_l;
+			cor_point = pair_index++;
+		}
+		else {
+			cls = "dist_other"; a = a_dist; w = w_l;
+			cor_point = pair_index++;
+		}
+		const double fnorm = std::sqrt(s);
+		const double s_a2 = s / (a * a);
+		// raw_unit = the block's magnitude in the geometry's own unit
+		// (mm / normal-component / Cao-units / rim mm), raw_norm kept as
+		// the same conversion under a second name so both the ticket's
+		// column list stays stable if the definitions diverge later.
+		const double raw_unit = (w > 0.0 ? fnorm / w : 0.0);
+		dump << site << "\t" << iter << "\t" << (int)bi << "\t" << cls
+		     << "\t" << dim << "\t" << a << "\t" << fnorm << "\t" << s_a2
+		     << "\t" << out[1] << "\t" << raw_unit << "\t" << raw_unit
+		     << "\t" << (pair_index - 1)
+		     << "\t" << cor_point << "\n";
+	}
+	dump.flush();
+}
+
 void Icp(vector<BreakLine>& L,
 	vector<Matrix3d>& R,
 	vector<Vector3d>& t,
@@ -1358,6 +1496,13 @@ void Icp(vector<BreakLine>& L,
 		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
+		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
+		// Iters 0 and 1: iter 0 is the dist+norm-only absent-class case,
+		// iter 1 is the cold-start all-four-classes case (staging turns
+		// axis/rim/P2L on at iter>0 and parameters are re-zeroed each
+		// iteration), so both are start-of-solve states, not warm ones.
+		if (iter <= 1)
+			LogE0Residuals("Icp", iter, 4.0, 1.8, 1.8, 1.8, problem);
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -1600,6 +1745,10 @@ void Registration(vector<BreakLine>& L,
 		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
+		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
+		// Iters 0 and 1 (see the Icp site for why both are cold starts).
+		if (iter <= 1)
+			LogE0Residuals("Registration5", iter, 4.0, 1.8, 1.8, 1.8, problem);
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -1819,6 +1968,10 @@ void Registration(vector<BreakLine>& L,
 		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
+		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
+		// Iters 0 and 1 (see the Icp site for why both are cold starts).
+		if (iter <= 1)
+			LogE0Residuals("Registration6", iter, 4.0, 1.8, 1.8, 1.8, problem);
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -2014,6 +2167,13 @@ void IcpIncGraphAxis(
 		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
 		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
 		ceres::Solver::Summary summary;
+		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
+		// Iter 0 only: here all four classes are ALREADY present at iter 0
+		// (point_to_line=true hardcoded at :1904, axis and rim passed as
+		// args), so one iteration covers the full-class case. a_dist/a_norm
+		// are the LIVE env-tunable values, not the defaults.
+		if (iter == 0)
+			LogE0Residuals("IcpIncGraphAxis", iter, cauchy_dist, cauchy_norm, 1.0, 1.0, problem);
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
