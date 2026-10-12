@@ -443,6 +443,38 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — E-5 tight axis tolerance: suppressed axis, seating holds, permissive earned (cauchy-scales 05)
+
+What this means first: the axis rule was tightened to full
+suppression — and unlike the normal tightening, nothing got worse.
+Seating held at 0/8 while the score rose 239 → 258: suppressing axis
+reshuffled which wrong answer scores best without seating anything.
+The ticket's HOLDS branch fired, so the permissive follow-up
+(`a_axis = 2.8`, knee at the inlier median — the axis analogue of
+E-3's p50 arm) is earned and runs next. It is the last tolerance arm;
+after it comes only the shape diagnostic.
+
+Cauchy-scales ticket 05 Arm T, single tight arm, same-node run on
+spartan-bm065 (job 32753136, COMPLETED 0:0 in 00:15:36, commit
+`e08e764`, 33,154 dump files). Tight tolerance 0.5 at the three
+hardcoded pairwise solve sites; everything else frozen at the E-4
+tree (dist 119.0, norm 0.5, rim 1.8, `w_a = 0.1`). The primary read
+landed on the ticket's arithmetic prediction — `s/a²` median
+27.4/47.6/17.9 with pull-weight `ρ′` median 0.035/0.021/0.053 at
+iter 1 (was 2.45 / 0.29): axis fully suppressed at entry, as
+designed. Rim rows at live 1.8 (123,114 + 140,834 rows) confirm the
+rim-by-citation basis — already inlier-quality, no run spent.
+
+Outcome against the E-4 control (same node): Sherd accuracy 0/8 →
+**0/8**, Edge 0/15 → **0/15**, PROFILE 497 → 730, DIVERGED-SOLVE 0 →
+0 (no new divergence), best assembly 7/8 with score 239.000 →
+**258.000**. Score rose WITHOUT accuracy — the reshuffle signature
+again, this time from removing a term rather than adding one.
+SURVIVED 14 / FEATURE_MATCHING 1 unchanged, pair 1-4 still SURVIVED
+(value 21.0). Not tuned in place per the ticket's rule. Evidence in
+`.scratch/cauchy-scales/issues/05-axis-rim-sweeps.md`; forensics
+pointer in juglet-sfs ticket 11.
+
 ## 2026-10-12 — E-4 tight normal tolerance: true pairs strangled, normals CLOSED (cauchy-scales 04)
 
 What this means first: the "normals must agree" rule was tightened to

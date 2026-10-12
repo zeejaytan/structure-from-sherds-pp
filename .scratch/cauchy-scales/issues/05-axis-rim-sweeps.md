@@ -42,7 +42,7 @@ no measured numbers attached. E-0 has since landed:
 
 ## Approved hunk spec
 
-- [ ] Arm T (tight) hunk: replace the `1.8` axis literal with `0.5`
+- [x] Arm T (tight) hunk: replace the `1.8` axis literal with `0.5`
   at exactly the three hardcoded pairwise sites (`Icp`,
   `Registration` 5-arg, `Registration` 6-arg — axis is the third of
   the four literals, currently `.../reconstruction.cpp:1488` /
@@ -56,12 +56,16 @@ no measured numbers attached. E-0 has since landed:
   `multi_hypothesis_optimizer.cpp:888-890` untouched — dead by
   default (env-gated `ENABLE_MULTI_HYPOTHESIS`, no production sbatch
   sets it). Dead `IcpFine` (2.0) untouched, as in 02/03/04.
-- [ ] Dump calls pass the arm's live value (same live-value rule as
+  DONE: commit `e08e764` (12 +-, sbatch 190 lines).
+- [x] Dump calls pass the arm's live value (same live-value rule as
   02/03/04 — the dump's `a` column must show 0.5 for axis at iter 0,
   or it lies). Current dump lines `:1540`/`:1786`/`:2009` pass
   `(119.0, 0.5, 1.8, 1.8)` → Arm T passes `(119.0, 0.5, 0.5, 1.8)`.
-- [ ] Weights, iteration counts, gates, solver options, caps, staging
+  DONE: dumps pass (119.0, 0.5, 0.5, 1.8), `a = 0.5` verified at all
+  3 pairwise sites; graph env `a = 1.0` untouched.
+- [x] Weights, iteration counts, gates, solver options, caps, staging
   untouched. Six cap invariants still hold (100 ×5, 1000 ×5).
+  DONE: E-4 tree frozen, verified in commit message.
 - [ ] Batch arm `hpc/sbatch/run_e5_axis_tight.sbatch` modelled on
   `run_e4_norm_tight.sbatch`: marker grep (three sites
   `CauchyLoss(0.5)` for axis, dist still 119.0, norm still 0.5,
@@ -71,6 +75,9 @@ no measured numbers attached. E-0 has since landed:
   direct control per 02's recorded deviation (dump
   outcome-neutrality already proven, job 32696452 A vs B;
   solver-01 job 32624499 is the root control).
+  DONE: `run_e5_axis_tight.sbatch` (190 lines), job 32753136
+  COMPLETED 0:0 in 00:15:36 on spartan-bm065, 33,154 dumps,
+  log `sfs_main/e2e_pota_e5_32753136.log` (17M).
 - [ ] **Kill criterion stated before running:** tighter strangles true
   pairs along with false ones (raw median 28.2 vs tight raw knee
   5.0 — true pairs keep ~3% weight, garbage gets ~none). Predicted
@@ -88,15 +95,23 @@ no measured numbers attached. E-0 has since landed:
   do not re-run); (e) SURVIVED 14 / FEATURE_MATCHING 1 unchanged.
   No tuning whatever the outcome. Verdict NOT written here —
   worker reports evidence only; lead lands it in ticket 11 + S1.
-- [ ] Arm P (permissive, CONDITIONAL on Arm T holding or growing):
+  DONE (E-5 verdict 2026-10-12): primary read LANDED (axis `s/a²`
+  p50 27.4/47.6/17.9, `ρ′` 0.035/0.021/0.053 at iter 1 vs predicted
+  ~31.8/~0.031); DIVERGED 0; accuracy HOLDS 0/8 + 0/15 (E-4
+  baseline), pair 1-4 alive (21.0) → HOLDS branch → Arm P EARNED;
+  score 239 → 258 (reshuffle without seating); SURVIVED 14 /
+  FEATURE 1 unchanged. No tuning. Verdict landed in ticket 11 + S1.
+- [ ] Arm P (permissive, EARNED by Arm T HOLDS 2026-10-12):
   `a_axis = 2.8` (weighted units; raw knee `2.8/0.1 = 28` ≈ raw
   inlier median — the axis analogue of E-3's p50 arm) at the same
   three sites. Predicted median `s/a²` ≈ 1.0, `ρ′` ≈ 0.5. Same
   scaffold, same STOPs. Do NOT run alongside or before Arm T.
-- [ ] Rim verdict by citation (no run): E-0 rim `ρ′` p50 0.9695 at
+- [x] Rim verdict by citation (no run): E-0 rim `ρ′` p50 0.9695 at
   live 1.8 — already inlier-quality, no suppression to relieve, no
   headroom. Radius+height mixing recorded: both mm, different
   meaning, one scale; split only if a future ticket needs it.
+  DONE: confirmed by E-5 frozen-tree rows (Reg5 123,114 + Reg6
+  140,834 rows at `a = 1.8`).
 
 ## Out of scope (unchanged from spec.md)
 
