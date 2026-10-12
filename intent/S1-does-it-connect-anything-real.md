@@ -443,6 +443,40 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — E-4 tight normal tolerance: true pairs strangled, normals CLOSED (cauchy-scales 04)
+
+What this means first: the "normals must agree" rule was tightened to
+the strictest principled setting — the graph path's own default — and
+both recovered joins were lost again, this time with the score FALLING
+to 239 (below the control's 262, below E-2/E-3's 266). Tightening kills
+the rotated false matches, but it kills the true pairs first: the
+median true-pair disagreement at entry sits just above the tight knee,
+so true pairs keep only partial weight while the solve proceeds on
+axis/line/rim alone. The ticket's FALLS branch fired, so the permissive
+follow-up does not run. Normals are now closed at both ends — live
+keeps 2/8, tight falls to 0/8 — and the only tolerance classes left are
+axis/rim (05) plus the shape diagnostic (06).
+
+Cauchy-scales ticket 04 Arm T, single tight arm, same-node run on
+spartan-bm065 (job 32743207, COMPLETED 0:0 in 00:11:33, commit
+`cd26465`, 30,525 dump files). Tight tolerance 0.5 (graph path's own
+normal default) at the three hardcoded pairwise solve sites; distance
+kept at E-3's 119.0, axis/rim at 1.8, weights/caps/solver untouched.
+The primary read landed on the ticket's arithmetic prediction —
+`s/a²` median 53.0/70.3/68.7 with pull-weight `ρ′` median
+0.019/0.014/0.014 at entry (was 4.1–5.4 / 0.18): normals ~fully
+suppressed at entry, as designed.
+
+Outcome against the cited control (solver-01, same node): Sherd
+accuracy 2/8 → **0/8**, Edge 1/15 → **0/15**, PROFILE 783 → 497,
+DIVERGED-SOLVE 0 → 0 (no new divergence), best assembly 7/8 with score
+262.000 → **239.000**. Score fell WITH accuracy this time — the
+solve starved rather than admitted garbage. SURVIVED 14 /
+FEATURE_MATCHING 1 unchanged, pair 1-4 still SURVIVED. Not tuned in
+place per the ticket's rule. Evidence in
+`.scratch/cauchy-scales/issues/04-normal-sweep.md`; forensics pointer
+in juglet-sfs ticket 11.
+
 ## 2026-10-12 — E-3 fixed distance at p50: half-online, joins lost, distance CLOSED (cauchy-scales 03)
 
 What this means first: the "put the points onto each other" rule was set
