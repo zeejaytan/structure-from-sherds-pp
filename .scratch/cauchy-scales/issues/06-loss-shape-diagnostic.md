@@ -13,7 +13,8 @@ Runs last among the run tickets. Arm P (`a_axis = 2.8`) is EARNED
 but DEFERRED per user decision 2026-10-12: 06 runs now, P after only
 if 06 is inconclusive.
 
-**Status:** ready-for-agent
+**Status:** done (Arm H run `32756813`; verdict landed in ticket 11
++ S1 2026-10-12 — not kernel-driven, Tukey gated off)
 
 ## Why rewritten (E-5 verdict + interview, 2026-10-12)
 

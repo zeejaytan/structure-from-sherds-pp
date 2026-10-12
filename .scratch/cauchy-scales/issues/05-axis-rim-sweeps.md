@@ -13,7 +13,9 @@ before E-3: knee inside its own inlier spread.
 **Blocked by:** 01 (measured) + 04 (E-4 verdict routes here — normals
 CLOSED, axis next). 06 still runs last (diagnostic, never a fix).
 
-**Status:** ready-for-agent
+**Status:** done (Arm T run `32753136`; verdict landed in ticket 11
++ S1 2026-10-12 — HOLDS, Arm P earned but deferred; rim by
+citation)
 
 ## Why rewritten (E-4 verdict + E-0 axis numbers, 2026-10-12)
 

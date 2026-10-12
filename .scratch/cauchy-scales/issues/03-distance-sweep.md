@@ -14,7 +14,8 @@ wrong assembly, the run still proceeds (tolerance and scoring are
 separate variables) but the verdict must read accuracy and score
 separately.
 
-**Status:** ready-for-human (run `32729140` COMPLETED 2026-10-12; evidence below; verdict for lead in ticket 11 + S1)
+**Status:** done (run `32729140` COMPLETED 2026-10-12; verdict
+landed in ticket 11 + S1 — distance CLOSED)
 
 ## Why rewritten (E-2 verdict, job 32722789)
 

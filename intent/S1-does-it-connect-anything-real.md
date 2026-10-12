@@ -443,6 +443,22 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — cauchy-scales series CLOSED: tolerance is not the knob (E-0…E-6)
+
+What this means first: six same-node runs moved every tolerance the
+solver has — distance online, half-online, normal tight, axis
+tight, Huber kernel — and the seating never grew past the live 2/8.
+The robust kernels are necessary (suppressing them starves the
+solve, loosening them admits garbage that outscores true pairs) but
+tuning them cannot seat the missing six. The remainder belongs to
+the solver setup or the scorer, both already named as standing
+routes. S1 itself stays open until something seats 8/8; the
+tolerance contribution to it is done.
+
+Per-arm entries below (E-2…E-6, newest first); E-0 measurement in
+"Where it stands". Series record: cauchy-scales spec + tickets
+01–06 (all done), forensics in juglet-sfs ticket 11.
+
 ## 2026-10-12 — E-6 Huber diagnostic: same failure under a different kernel, not kernel-driven (cauchy-scales 06)
 
 What this means first: swapping the robustness rule from Cauchy to

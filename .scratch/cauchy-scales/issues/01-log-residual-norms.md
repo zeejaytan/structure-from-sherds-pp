@@ -9,7 +9,8 @@ starts and 2-point sets. Zero behavior change.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent (hunk spec approved 2026-10-11, m00843; see "Approved hunk spec" below)
+**Status:** done (measured job 32696452, verdict below; E-0 gated
+all sweeps as designed)
 
 ## Approved hunk spec (2026-10-11, user m00843 "i agree with recommendation, approve")
 

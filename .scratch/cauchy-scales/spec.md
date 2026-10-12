@@ -2,7 +2,9 @@
 
 **Answers:** S1
 
-**Status:** spec for slicing; nothing implemented yet
+**Status:** done — series closed 2026-10-12 (E-0 measured + E-2…E-6
+run, verdicts in tickets 01–06, forensics in juglet-sfs 11, S1
+entries landed; series synthesis below).
 
 ## Problem statement
 
@@ -85,6 +87,37 @@ experiment, same machine per pair, Pot_A per-pair scoring throughout.
   must move, and what staying identical would mean). Divergence rate and
   convergence quality are read separately: a scale that improves one
   while harming the other is the expected outcome, not a contradiction.
+
+## Series verdict (closed 2026-10-12, jobs 32696452 / 32722789 /
+32729140 / 32743207 / 32753136 / 32756813, all spartan-bm065)
+
+Six runs, one variable each, same node, Pot_A throughout. E-0
+measured the entry distributions (dist `s/a²` p50 ~780 / `ρ′`
+0.0013 at `a=4.0` — switched off; norm 4–5 / 0.18; axis 2.45 /
+0.29; rim inlier-quality 0.97; Cao inlier unit ~28 mm median).
+E-2 (graduated 260/181/119/4.0) and E-3 (fixed p50 119.0) put the
+distance term online and half-online: 0/8 + 0/15 at score 266 both
+times — false matches admitted that outscore true pairs (scorer
+read: 266-at-0/8 vs 262-at-2/8, pairwise identical, split
+downstream). E-4 (tight norm 0.5) strangled true pairs: 0/8 at
+score 239, starvation. E-5 (tight axis 0.5) held 0/8 with score
+239 → 258 — reshuffle without seating. E-6 (Huber at root scales)
+matched the failure: 0/8 at 239 — not kernel-driven.
+
+Synthesis ("tolerance is not the knob"): the kernels carry load —
+every suppression/loosening moved the score in the predicted
+direction — but no setting grew joins past the live 2/8. Cauchy
+(and Huber) are necessary scaffolding, not what stops assembly.
+Distance CLOSED, normals CLOSED both ends, axis tight HOLDS (Arm P
+`a_axis = 2.8` earned but deferred per user 2026-10-12 — runs only
+if a later question needs it), rim cited online without a run,
+shape exonerated (Tukey gated off). Standing routes, both named
+before this series and untouched by it: solver-setup
+(trust-region/init/correspondence — the anchor verdict's unowned
+route) and the scorer's wrong-answer preference. S1 stays open
+until something seats 8/8; this feature's contribution to it is
+done. Paper silence on scales stands recorded — no value here is
+"the paper's".
 
 ## Out of scope
 

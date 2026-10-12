@@ -14,7 +14,8 @@ rotated false matches admitted at an elevated score.
 CLOSED, normals next). 05 reads 04's verdict before arming; 06 still
 runs last (diagnostic, never a fix).
 
-**Status:** ready-for-agent
+**Status:** done (Arm T run `32743207`; verdict landed in ticket 11
++ S1 2026-10-12 — normals CLOSED both ends, Arm P gated off)
 
 ## Why rewritten (E-3 verdict + unit reconciliation, 2026-10-12)
 
