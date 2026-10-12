@@ -46,7 +46,7 @@ order. Settled 2026-10-12:
 
 ## Approved hunk spec
 
-- [ ] Arm H (Huber) hunk: at exactly the three hardcoded pairwise
+- [x] Arm H (Huber) hunk: at exactly the three hardcoded pairwise
   sites (`Icp`, `Registration` 5-arg, `Registration` 6-arg —
   currently `.../reconstruction.cpp:1486-1489` / `:1735-1738` /
   `:1951-1954`, verify at implementation time), restore the four
@@ -58,12 +58,16 @@ order. Settled 2026-10-12:
   sites). `IcpIncGraphAxis` (env-tunable Cauchy) is the in-run
   control, untouched. `multi_hypothesis_optimizer.cpp:887-890`
   untouched — dead by default. Dead `IcpFine` untouched.
-- [ ] Dump calls pass the restored live values `(4.0, 1.8, 1.8,
+  DONE: commit `34cf112` (30 +-, sbatch 180 lines).
+- [x] Dump calls pass the restored live values `(4.0, 1.8, 1.8,
   1.8)` (same live-value rule as 02–05 — the dump's `a` column
   must show the restored values, or it lies). Current dump lines
   `:1540`/`:1786`/`:2009`.
-- [ ] Weights, iteration counts, gates, solver options, caps, staging
+  DONE: dumps pass (4.0, 1.8, 1.8, 1.8), verified at all sites;
+  graph env untouched.
+- [x] Weights, iteration counts, gates, solver options, caps, staging
   untouched. Six cap invariants still hold (100 ×5, 1000 ×5).
+  DONE: verified in commit message.
 - [ ] Batch arm `hpc/sbatch/run_e6_huber.sbatch` modelled on
   `run_e5_axis_tight.sbatch`: marker grep (Huber at three sites,
   root scales, dump-live-value checks, cap checks, POT_A check) +
@@ -72,6 +76,9 @@ order. Settled 2026-10-12:
   solver-01 (job 32624499, same node) as the direct control per
   02's recorded deviation (dump outcome-neutrality already proven,
   job 32696452 A vs B).
+  DONE: `run_e6_huber.sbatch` (180 lines), job 32756813 COMPLETED
+  0:0 in 00:14:55 on spartan-bm065, 38,934 dumps,
+  log `sfs_main/e2e_pota_e6_32756813.log` (18M).
 - [ ] **Kill criterion stated before running:** Huber should show
   less far-init divergence but MORE false-positive convergence
   than Cauchy at the same `a`; Tukey the reverse. Predicted: 0/8
@@ -91,10 +98,15 @@ order. Settled 2026-10-12:
   FEATURE_MATCHING 1 unchanged. No tuning whatever the outcome.
   Verdict NOT written here — worker reports evidence only; lead
   lands it in ticket 11 + S1.
-- [ ] Arm K (Tukey, CONDITIONAL on Huber ranking surprising): same
-  three sites, same restored scales, `TukeyLoss` in place of
-  `HuberLoss`. Same scaffold, same STOPs. Do NOT run alongside or
-  before Arm H.
+  DONE (E-6 verdict 2026-10-12): scaffold health PASS; DIVERGED 0
+  (no far-init divergence under Huber); accuracy 2/8 + 1/15 → 0/8
+  + 0/15 with score 262 → 239 (starvation, NOT predicted
+  amplification) → ranking NOT flipped → NOT kernel-driven;
+  SURVIVED 14 / FEATURE 1 unchanged; pair 1-4 alive (21.0). No
+  tuning, nothing adopted. Verdict landed in ticket 11 + S1.
+- [ ] Arm K (Tukey, NOT RUN — gate was Huber ranking surprising,
+  and it wasn't). Ticket CLOSED with Arm H as the diagnostic
+  record.
 
 ## Out of scope (unchanged from spec.md)
 

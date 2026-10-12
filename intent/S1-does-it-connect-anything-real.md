@@ -443,6 +443,38 @@ gap; structure (weights mapping, OLS/max-rule, correspondence gate, ICP
 poses) owns the remainder. Bisect route recorded in ticket 09: paper
 values are now the control arm.
 
+## 2026-10-12 — E-6 Huber diagnostic: same failure under a different kernel, not kernel-driven (cauchy-scales 06)
+
+What this means first: swapping the robustness rule from Cauchy to
+Huber — at the original scales, everything else identical — produced
+the same seating failure (0/8, pair 1-4 alive, no divergence). The
+wrong-answer preference is not a quirk of the Cauchy curve; it
+survives a kernel change. The tolerance line is now closed: all four
+classes tested or cited, both kernel families tried, and the answer
+never moved the seating. What owns the remainder is the solver setup
+or the scorer — both already named as standing routes, neither
+touched by this series.
+
+Cauchy-scales ticket 06 Arm H, single Huber arm, same-node run on
+spartan-bm065 (job 32756813, COMPLETED 0:0 in 00:14:55, commit
+`34cf112`, 38,934 dump files). All four literals restored to
+solver-01 root (dist 4.0, rest 1.8) with `CauchyLoss` → `HuberLoss`
+at the three hardcoded pairwise solve sites; weights/caps/solver
+untouched. Scaffold health passed — dump `a`-column shows the
+restored values at all sites, graph env path untouched.
+
+Outcome against solver-01 (same node): Sherd accuracy 2/8 →
+**0/8**, Edge 1/15 → **0/15**, PROFILE 783 → 690, DIVERGED-SOLVE 0 →
+0 (Huber showed no far-init divergence where Cauchy held 0 — and no
+false-positive amplification either), best assembly 7/8 with score
+262.000 → **239.000**. Score fell WITH accuracy — the starvation
+pattern, not the predicted amplification. SURVIVED 14 /
+FEATURE_MATCHING 1 unchanged, pair 1-4 still SURVIVED (value 21.0).
+Nothing adopted per the ticket's rule. Tukey does NOT run — its gate
+was Huber ranking surprising, and it wasn't. Evidence in
+`.scratch/cauchy-scales/issues/06-loss-shape-diagnostic.md`;
+forensics pointer in juglet-sfs ticket 11.
+
 ## 2026-10-12 — E-5 tight axis tolerance: suppressed axis, seating holds, permissive earned (cauchy-scales 05)
 
 What this means first: the axis rule was tightened to full
