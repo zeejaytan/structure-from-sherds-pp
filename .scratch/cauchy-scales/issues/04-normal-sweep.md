@@ -46,7 +46,7 @@ Two problems:
 
 ## Approved hunk spec
 
-- [ ] Arm T (tight) hunk: replace the `1.8` normal literal with `0.5`
+- [x] Arm T (tight) hunk: replace the `1.8` normal literal with `0.5`
   at exactly the three hardcoded pairwise sites (`Icp`,
   `Registration` 5-arg, `Registration` 6-arg — current lines
   `:1487`/`:1736`/`:1952`, verify at implementation time). Anchor is
@@ -58,12 +58,12 @@ Two problems:
   `multi_hypothesis_optimizer.cpp:888-890` untouched — dead by
   default (env-gated `ENABLE_MULTI_HYPOTHESIS`, no production sbatch
   sets it). Dead `IcpFine` (5.0) untouched, as in 02/03.
-- [ ] Dump calls pass the arm's live value (same live-value rule as
+- [x] Dump calls pass the arm's live value (same live-value rule as
   02/03 — the dump's `a` column must show 0.5 for norm at iter 0, or
   it lies). Current dump lines `:1540`/`:1786`/`:2009`.
-- [ ] Weights, iteration counts, gates, solver options, caps, staging
+- [x] Weights, iteration counts, gates, solver options, caps, staging
   untouched. Six cap invariants still hold (100 ×5, 1000 ×5).
-- [ ] Batch arm `hpc/sbatch/run_e4_norm_tight.sbatch` modelled on
+- [x] Batch arm `hpc/sbatch/run_e4_norm_tight.sbatch` modelled on
   `run_e3_p50.sbatch`: marker grep (three sites `CauchyLoss(0.5)` for
   norm, dist still 119.0, dump-live-value checks, cap checks, POT_A
   check) + freshness + one Pot_A full assembly, pinned
@@ -71,7 +71,7 @@ Two problems:
   existing solver-01 control (job 32624499, same node) per 02's
   recorded deviation (dump outcome-neutrality already proven, job
   32696452 A vs B).
-- [ ] **Kill criterion stated before running:** tighter kills rotated
+- [x] **Kill criterion stated before running:** tighter kills rotated
   false matches but risks true pairs under noisy normals (median
   entry chord ~0.25–0.61 sits just above the tight raw knee 0.167 —
   true pairs keep partial weight, garbage gets ~none). Predicted at
