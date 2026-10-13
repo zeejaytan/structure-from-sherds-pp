@@ -1,3 +1,5 @@
+#include <iomanip>  // ticket 08: fixed-precision LCS dump
+#include <sstream>  // ticket 08: ostringstream for LCS dump
 #include <iostream>
 #include "glog/logging.h"
 #include <time.h>
@@ -403,6 +405,111 @@ int main(int argc, char** argv)
 	for (auto& connection : LCS_out) {
 		cout << "  Pieces " << connection.shard_y_ << "-" << connection.shard_x_
 		     << ": survived (area=" << connection.area_ << ")" << endl;
+	}
+
+	// Ticket 08: byte-stable LCS dump (log-only). Sorted copy with
+	// fixed precision so two runs can be byte-compared (md5
+	// sfs_lcs_dump.txt) without list-order or printf-%g noise. This
+	// is the full proposed-pair set per run the ticket asks for.
+	{
+		std::vector<LCSIndex> dump(LCS_out.begin(), LCS_out.end());
+		std::sort(dump.begin(), dump.end(), [](const LCSIndex& a, const LCSIndex& b) {
+			if (a.shard_y_ != b.shard_y_) return a.shard_y_ < b.shard_y_;
+			if (a.shard_x_ != b.shard_x_) return a.shard_x_ < b.shard_x_;
+			if (a.start_.x != b.start_.x) return a.start_.x < b.start_.x;
+			if (a.start_.y != b.start_.y) return a.start_.y < b.start_.y;
+			if (a.end_.x != b.end_.x) return a.end_.x < b.end_.x;
+			if (a.end_.y != b.end_.y) return a.end_.y < b.end_.y;
+			if (a.size_ != b.size_) return a.size_ < b.size_;
+			if (a.inliner_ != b.inliner_) return a.inliner_ < b.inliner_;
+			if (a.score_ != b.score_) return a.score_ < b.score_;
+			return a.area_ < b.area_;
+		});
+		cout << "*** LCS-DUMP-BEGIN *** count=" << dump.size() << endl;
+		std::ofstream dump_file("sfs_lcs_dump.txt", std::ios::trunc);
+		dump_file << std::fixed << std::setprecision(6);
+		for (auto& c : dump) {
+			std::ostringstream oss;
+			oss << std::fixed << std::setprecision(6);
+			oss << c.shard_y_ << "-" << c.shard_x_
+			    << " sx=" << c.start_.x << " sy=" << c.start_.y
+			    << " ex=" << c.end_.x << " ey=" << c.end_.y
+			    << " size=" << c.size_ << " inl=" << c.inliner_
+			    << " score=" << c.score_ << " area=" << c.area_
+			    << " axis=" << c.axis_angle_
+			    << " ax=" << c.axis_index_x_ << "," << c.axis_index_y_;
+			cout << "*** LCS-DUMP *** " << oss.str() << endl;
+			dump_file << oss.str() << "\n";
+		}
+		cout << "*** LCS-DUMP-END ***" << endl;
+		dump_file.close();
+
+		// Ticket 08 acceptance step 1: same input twice in ONE process.
+		// SFS_LCS_TWICE=1 re-runs FeatureComp+PairwisePruning on the
+		// same in-memory shard and reports IDENTICAL vs DIFFER.
+		// IDENTICAL across twice-in-process but DIFFER across processes
+		// => seed/thread/address-space cause. DIFFER in-process =>
+		// order-sensitive or stateful mutation -- report as distribution.
+		const char* twice = std::getenv("SFS_LCS_TWICE");
+		if (twice && (*twice == '1' || *twice == 't')) {
+			list<LCSIndex> LCS_out2;
+			FeatureComp(shard, LCS_out2, 25, MINIMUM_NUMBER, 0);
+			PairwisePruning(shard, LCS_out2);
+			std::vector<string> s1, s2;
+			for (auto& c : dump) {
+				std::ostringstream oss;
+				oss << std::fixed << std::setprecision(6);
+				oss << c.shard_y_ << "-" << c.shard_x_
+				    << " sx=" << c.start_.x << " sy=" << c.start_.y
+				    << " ex=" << c.end_.x << " ey=" << c.end_.y
+				    << " size=" << c.size_ << " inl=" << c.inliner_
+				    << " score=" << c.score_ << " area=" << c.area_
+				    << " axis=" << c.axis_angle_
+				    << " ax=" << c.axis_index_x_ << "," << c.axis_index_y_;
+				s1.push_back(oss.str());
+			}
+			std::vector<LCSIndex> dump2(LCS_out2.begin(), LCS_out2.end());
+			std::sort(dump2.begin(), dump2.end(), [](const LCSIndex& a, const LCSIndex& b) {
+				if (a.shard_y_ != b.shard_y_) return a.shard_y_ < b.shard_y_;
+				if (a.shard_x_ != b.shard_x_) return a.shard_x_ < b.shard_x_;
+				if (a.start_.x != b.start_.x) return a.start_.x < b.start_.x;
+				if (a.start_.y != b.start_.y) return a.start_.y < b.start_.y;
+				if (a.end_.x != b.end_.x) return a.end_.x < b.end_.x;
+				if (a.end_.y != b.end_.y) return a.end_.y < b.end_.y;
+				if (a.size_ != b.size_) return a.size_ < b.size_;
+				if (a.inliner_ != b.inliner_) return a.inliner_ < b.inliner_;
+				if (a.score_ != b.score_) return a.score_ < b.score_;
+				return a.area_ < b.area_;
+			});
+			for (auto& c : dump2) {
+				std::ostringstream oss;
+				oss << std::fixed << std::setprecision(6);
+				oss << c.shard_y_ << "-" << c.shard_x_
+				    << " sx=" << c.start_.x << " sy=" << c.start_.y
+				    << " ex=" << c.end_.x << " ey=" << c.end_.y
+				    << " size=" << c.size_ << " inl=" << c.inliner_
+				    << " score=" << c.score_ << " area=" << c.area_
+				    << " axis=" << c.axis_angle_
+				    << " ax=" << c.axis_index_x_ << "," << c.axis_index_y_;
+				s2.push_back(oss.str());
+			}
+			bool identical = (s1.size() == s2.size());
+			if (identical) {
+				for (size_t i = 0; i < s1.size(); i++) {
+					if (s1[i] != s2[i]) { identical = false; break; }
+				}
+			}
+			cout << "*** LCS-TWICE *** " << (identical ? "IDENTICAL" : "DIFFER")
+			     << " first=" << s1.size() << " second=" << s2.size() << endl;
+			if (!identical) {
+				size_t n = std::max(s1.size(), s2.size());
+				for (size_t i = 0; i < n; i++) {
+					string a = (i < s1.size() ? s1[i] : "<missing>");
+					string b = (i < s2.size() ? s2[i] : "<missing>");
+					if (a != b) cout << "*** LCS-TWICE-DIFF *** [" << i << "] run1=" << a << " run2=" << b << endl;
+				}
+			}
+		}
 	}
 
 	// Ticket 06 Test 2 (pair injection): the oracle override can only

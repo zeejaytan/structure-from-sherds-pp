@@ -10,7 +10,20 @@ a trustworthy join count)
 
 **Blocked by:** none -- observable now, independent of 06's gate finding
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** laptop chat — log-only LCS dump in `main_headless_correct.cpp`, pending Spartan same-node A/B
+
+## Progress (2026-10-13)
+
+Cheap log-only step landed in `main_headless_correct.cpp` (+107, uncommitted):
+sorted post-pruning LCS dump with fixed precision 6 to stdout
+(`*** LCS-DUMP ***` lines) and `sfs_lcs_dump.txt`, plus opt-in
+`SFS_LCS_TWICE=1` in-process rerun printing `*** LCS-TWICE ***
+IDENTICAL|DIFFER`. Run plan (same node, `--nodelist` pinned per
+ticket 12 rule): `md5sum sfs_lcs_dump.txt` across two processes, plus
+one `SFS_LCS_TWICE=1` run. IDENTICAL in-process but DIFFER across
+processes => seed/thread/address-space cause; DIFFER in-process =>
+order-sensitive/stateful, report as distribution.
 
 **Needs-eye:** none yet. No geometry claim; this is about which pairs get
 proposed. If the fix changes placements, stage correct-vs-attempt then.
