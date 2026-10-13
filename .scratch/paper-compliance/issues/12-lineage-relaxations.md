@@ -68,6 +68,101 @@ assembly baseline exists anywhere — the probe covers breaklines, not
 matching); small-piece handling (the lineage's original worry) must be
 re-checked if Juglet assembly ever runs. Next row per ticket order.
 
+## Row-5 work (2026-10-13, worker)
+
+Finding pre-A/B: the `ROBUSTNESS FIX: Adaptive segment contribution` gates
+live ONLY in CountInlier overloads 1 & 2 (feature_matching.cpp:1053-1072,
+:1128-1149). The whole live assembly path — both inlierCalculate overloads
+(reconstruction.cpp:791-868) and all four call sites (:1607/:1823/:2055/
+:2250) — uses overload 3 (num_points vector<double>, :1157-1215), which
+accumulates unconditionally (no gate). Repo-wide grep: zero callers of
+overloads 1&2. Expectation: disable-vs-keep returns a byte-identical
+no-op pair; verdict then DISABLE-as-dead-code-cleanup (adopt upstream
+uniform `if (dummy_inlier > MINIMUM_NUMBER / 2)` per 869e696^, Row-2 rule),
+acos clamp + INLIER DEBUG prints untouched (one variable: the gate only).
+If the pair comes back NON-identical, the dead-code read is wrong and the
+numbers decide (experiment is self-checking either way).
+
+Arms (same-node bm065, Pot_A pota_e2e_fresh, `bin 8`; HEAD drifted
+26db0e5 -> 6a67119 (ticket-09 comment-only at FM:1974, clear of the
+CountInlier hunks) while queued — both arms pull the same HEAD, still one
+variable; actual built HEAD is echoed in each job log):
+- KEEP (adaptive as-is): job 32856411, RUNNING on bm065 since 18:12
+  (pulled 6a67119, POT_A verified, in-container rebuild exit 0,
+  freshness clean, binary build_sif/Hierarchy-Clear-row5keep), script
+  hpc/sbatch/run_row5_countinlier_keep.sbatch, log e2e_pota_row5keep_<job>.log.
+- OFF (transient in-job revert of both gates, restored post-run, tree left
+  clean): job 32858323, script hpc/sbatch/run_row5_countinlier_off.sbatch
+  (python patcher asserts each gate block found exactly once; verified on
+  laptop against HEAD: 6+/34- across the two hunks only), binary
+  build_sif/Hierarchy-Clear-row5off, log e2e_pota_row5off_<job>.log.
+Both scripts: revert ticket-08 JUGLET data_path.h residue pre-pull,
+ff-only pull, rows-1-4 marker verify, POT_A verify, flock-serialised
+in-container rebuild (shared Hierarchy-Clear untouched), freshness check,
+input census, outcome greps. Scripts shipped to sfs_main/ via scp
+(uncommitted; for session review/commit). No commits by worker.
+
+OUTCOME 2026-10-13 (jobs 32856411 KEEP vs 32858323 OFF, same node
+bm065, both built HEAD 6a67119, sacct COMPLETED ExitCode 0:0 both,
+15:24 vs 14:34): VERDICT DISABLE — adaptive gate removed, upstream
+uniform adopted WITH numbers (Row-2 rule: a revert that removes nothing
+without loss is adopted as upstream's).
+
+A/B table (KEEP vs OFF — identical every line):
+
+| measure | KEEP 32856411 | OFF 32858323 |
+|---|---|---|
+| directed joins | 0/8 + 0/15 | 0/8 + 0/15 |
+| best state | #0, 7/8 pcs, 239.000 | identical |
+| SURVIVED (whole-log) | 29 | 29 |
+| GT breakdown | FM 1 / ICP_CORR 2 / SURVIVED 14, per-pair values identical (1-4: 21.0) | identical |
+| AXIS / OVERLAP / SCORE rejections | 67 / 58 / 0 | 67 / 58 / 0 |
+| veto (Opposing normals) | 0 | 0 |
+| diverged | 0 | 0 |
+| profile RESULT / PASSED | 88 / 88 | 88 / 88 |
+| INLIER DEBUG lines | 0 | 0 |
+| run outputs | results_2026_10_13_1826 | results_2026_10_13_1841, all 7 piece xyz md5-identical, assembly_data.txt identical modulo run-dir stamp |
+
+Remaining log diff is timing/concurrency artifacts only (`Analysis
+time:` ms values, stdout interleave splits/merges of MAKEMULTI/LEGACY
+lines — same content, different flush boundaries). Pair 1-4 MAKEMULTI
+traces show the same iter/raw/kept pattern modulo that interleave noise.
+
+No-regression: outputs byte-identical — removing the gate changes
+nothing anywhere. Baseline moved since rows 1-4 (then 2/8+1/15 best 264
+diverged 140; now 0/8+0/15 best 239 diverged 0) from intervening landed
+work (solver-01 trust cap diverged->0, ticket-09 overlap, ticket-08);
+matching stage intact (SURVIVED per-pair values identical to row-3 era,
+1-4 still 21.0). Pair 1-4 proposes but no longer seats at this HEAD —
+cross-row read, not this ticket's variable.
+
+Comment-cite LANDED in class/feature_matching.cpp (commit 23bd1f0 —
+lead note: the worker-staged 14+/34- hunk was swept into the ticket-11
+commit by a lead `git commit` that committed the whole index; message says
+"no code touched" which is wrong for that hunk — see the commit question
+below; content reviewed and accepted: upstream-uniform gate in both
+overloads, acos clamps + INLIER DEBUG + contributing_segments counter
+kept, ROBUSTNESS FIX adjectives replaced):
+- overload 1: `// TICKET-12 ROW 5 2026-10-13: reverted to upstream uniform
+  gate (was lineage "ROBUSTNESS FIX" adaptive, 869e696). Same-node A/B
+  disable-vs-keep (jobs 32856411 vs 32858323, bm065): byte-identical on
+  all measures ...` (full text in the staged hunk).
+- overload 2: `// TICKET-12 ROW 5 2026-10-13: upstream uniform gate
+  (adaptive removed; same-node A/B jobs 32856411 vs 32858323, bm065,
+  byte-identical -- see first CountInlier overload for the full cite).`
+
+Hygiene: OFF-arm trap ran from the run dir so its `git checkout --`
+restoring feature_matching.cpp failed in-job (fatal: not a git
+repository); restored manually post-run — Spartan checkout verified
+clean (`git status --porcelain -- class/` empty, adaptive marker back).
+data_path.h on Spartan now at committed POT_A (ticket-08's uncommitted
+JUGLET residue reverted pre-pull by design; ticket-08 scripts re-apply
+JUGLET in-job as needed). My run artifacts left on Spartan (untracked):
+run_row5_*.sbatch, e2e_pota_row5*.log, slurm-*.out, build_sif/
+Hierarchy-Clear-row5keep/-row5off, results_2026_10_13_1826/1841.
+Caveat (same as rows 1-4/6): Juglet impact unmeasured. Next row per
+ticket order (row 7: priority-list scoring).
+
 **Answers:** S1
 
 **Blocked by:** nothing — assembly A/B measurements; one variable each

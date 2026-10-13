@@ -363,10 +363,12 @@ flagged.
   `PairwisePruning` is 05's live matcher path; 05 deviation #4 covers only
   the `MergeSimPair` grouping gate (different stage).
 - **F2 — `CountInlier` adaptive segment contribution (cluster, LIVE) —
-  still open → owned by ticket-12 row 5 (next up).**
-  Segments ≥30 keep the old rule; 15–29 need ≥1 inlier; <15 need 8% density;
-  plus acos clamps and a global `MINIMUM_NUMBER` zeroing. Reached via
-  `inlierCalculate` on the live path. 05 deviation #7 covers `CountPCInlier`
+  CLOSED 2026-10-13 (ticket-12 row 5, DISABLE).** Was: segments ≥30 the
+  old rule; 15–29 ≥1 inlier; <15 8% density. Same-node A/B disable-vs-keep
+  (jobs 32856411 vs 32858323, bm065) byte-identical on every measure — the
+  gates live only in overloads 1&2, which have zero callers (live path uses
+  overload 3, unconditional). Upstream uniform gate restored in both
+  overloads. 05 deviation #7 covers `CountPCInlier`
   bands (different function). 05 does not know this one.
 - **F3 — `RejectOutlier` tightening `(20,0.7)`→`(2.0,0.85)` + `cor>8`
   (cluster, LIVE) — CLOSED.** Was three `Make*Corres` sites in
