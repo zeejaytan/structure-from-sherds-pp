@@ -163,11 +163,114 @@ Hierarchy-Clear-row5keep/-row5off, results_2026_10_13_1826/1841.
 Caveat (same as rows 1-4/6): Juglet impact unmeasured. Next row per
 ticket order (row 7: priority-list scoring).
 
+## Row-7 work (2026-10-13, worker)
+
+Site read (no ambiguity — lead decision not needed): the lineage scorer
+lives ONLY in live `MakeHierarchyPriorityList`
+(class/ranking_system.cpp:183-244, NOT env-gated — the file's only
+getenv uses are ticket-05 gates / oracle / profile dump, elsewhere).
+Outside-edge loop (:186-212) and inside-edge loop (:223-241) each do
+CalculateMatchingScore (local inlier) + ConnectivityOptimizer ::
+CalculateGlobalConnectivityScore + `combined_score = 0.7 *
+(inlier/100) + 0.3 * global`, sorted by InlierCompare whose PRIMARY is
+combined_score (:1092-1097). Upstream = no combined score, so the revert
+arm is local-only ordering: drop the optimizer instance + both global
+calls + both 0.7/0.3 assignments + the GLOBAL CONNECTIVITY debug print,
+keep CalculateMatchingScore + emplace_back + the InlierCompare sort
+(combined 0.0 everywhere ties, secondary inlier/node/i_edge comparison
+IS the upstream ordering; unused #include stays, harmless).
+
+Arms (same-node bm065, Pot_A pota_e2e_fresh, `bin 8`; both arms pull the
+same HEAD at run time — HEAD was c786c75 at dispatch, actual built HEAD
+echoed in each log; Spartan checkout was at 6a67119 class-clean pre-run):
+- KEEP (scorer as-is): job 32904171, script
+  hpc/sbatch/run_row7_priority_keep.sbatch, binary
+  build_sif/Hierarchy-Clear-row7keep, log e2e_pota_row7keep_<job>.log.
+- OFF (transient in-job revert of ranking_system.cpp scorer, restored
+  post-run via `git -C $ASM checkout` trap — row-5 lesson: trap must not
+  depend on cwd; tree left clean): job 32904174 (first attempt 32904172
+  FAILED in 2s on `.git/index.lock` — both arms started together and
+  raced KEEP's pull; re-shipped OFF script adds a 30x20s retry loop
+  around checkout+pull, no other change), script
+  hpc/sbatch/run_row7_priority_off.sbatch (anchor-assert patcher:
+  1x optimizer init + 2x "// Calculate global connectivity score"
+  anchors, emplace-bounded region delete; verified laptop-side on a copy:
+  global calls 2->0, 0.7 assigns 2->0, local scoring + emplace 2 each
+  intact, InlierCompare kept; bash -n + heredoc compile checked),
+  binary build_sif/Hierarchy-Clear-row7off, log
+  e2e_pota_row7off_<job>.log.
+Both scripts: revert ticket-08 JUGLET data_path.h residue pre-pull,
+ff-only pull, rows-1-5 marker verify (incl. ROW 5 uniform gate +
+`combined_score = 0.7` x2 pre-patch), POT_A verify, flock-serialised
+(.row7_build.lock) in-container rebuild, freshness check (OFF excludes
+ranking_system.cpp), input census, outcome greps (accuracy lines,
+SURVIVED/diverged/veto/overlap/profile, GLOBAL CONNECTIVITY prints —
+KEEP should show some, OFF must show zero — pair 1-4 lines, GT).
+Scripts shipped to sfs_main/ via scp, submitted pinned
+`--nodelist=spartan-bm065` (both PD on bm065 at submit). No commits by
+worker.
+
+OUTCOME 2026-10-13/14 (jobs 32904171 KEEP vs 32904174 OFF, same
+node bm065, both built HEAD c786c75, sacct COMPLETED ExitCode 0:0 both,
+12:14 vs 12:58): VERDICT ADOPT UPSTREAM — the 0.7/0.3
+ConnectivityOptimizer scorer is removed (local-only ordering), WITH
+numbers (Row-2 rule: a revert that removes nothing without loss is
+adopted as upstream's).
+
+A/B table (KEEP vs OFF):
+
+| measure | KEEP 32904171 | OFF 32904174 |
+|---|---|---|
+| directed joins | 0/8 + 0/15 | 0/8 + 0/15 |
+| best state | #0, 7/8 pcs, 239.000 | #0, 7/8 pcs, 260.000 |
+| SURVIVED (whole-log) | 29 | 29 |
+| GT correspondence stage | FM/ICP_CORR lines identical (1-3: 3.0, 1-2: 2.0, both < 6.0) | identical |
+| SURVIVED per-pair values | 14 pairs, 1-4: 21.0 | identical all 14 |
+| OVERLAP REJECTION | 58 | 58 |
+| veto (Opposing normals) | 0 | 0 |
+| diverged | 0 | 0 |
+| profile RESULT / PASSED | 88 / 88 | 101 / 101 |
+| GLOBAL CONNECTIVITY prints | 126 | 0 (arm discriminator — scorer truly out) |
+| pair-1-4 log lines / MERGETABLE [1-4] | 1413 / 8 | 1167 / 6 |
+| final outputs | assembly 239, piece xyz as listed | assembly 260, most piece xyz differ — different wrong states, both 0/8 |
+
+Scores move, joins don't (same pattern as row 3: 264 vs 246 there).
+Matching stage byte-identical (scorer is downstream of it, as read).
+OFF's higher best score (260 vs 239) and more profile passes (101 vs
+88) buy zero pairs — and resolve the directing evidence: the cauchy
+E-2/E-3 read (266-score 0/8 outscoring 262 at 2/8, pairwise identical)
+is this scorer preferring wrong, now measured owned-and-removed.
+
+Staged verdict edit (HELD for lead — worker landed nothing; note the
+site is class/ranking_system.cpp, not reconstruction.cpp as the brief
+assumed): delete the optimizer instance (:183-184), both scorer regions
+(:190-209, :228-237) and rely on InlierCompare's inlier fallthrough,
+2+/32- mirroring the verified transient patch; replacement comment:
+`// TICKET-12 ROW 7 2026-10-14: upstream local-only ordering (lineage
+0.7/0.3 ConnectivityOptimizer scorer removed, verified no combined
+score upstream). Same-node A/B scorer-vs-local (jobs 32904171 vs
+32904174, bm065): identical pairs 0/8+0/15, SURVIVED 29 + per-pair
+values identical, overlap 58 both, diverged 0 both; scores move only
+(best 239 vs 260, profile 88 vs 101).`
+
+Hygiene: first OFF attempt 32904172 FAILED in 2s on
+`.git/index.lock` (both arms started together, raced KEEP's pull);
+re-shipped OFF script with a 30x20s checkout+pull retry loop, no other
+change — resubmit 32904174 clean. OFF trap restored ranking_system.cpp
+in-job; Spartan checkout verified clean (`git status --porcelain --
+class/` empty, HEAD c786c75). data_path.h at committed POT_A. Run
+artifacts left on Spartan (untracked): run_row7_*.sbatch,
+e2e_pota_row7*.log, slurm-3290417*.out, build_sif/row7*_build_*.log,
+build_sif/Hierarchy-Clear-row7keep/-row7off,
+results_2026_10_14_0434/0436. Caveat (same as rows 1-6): Juglet impact
+unmeasured. Next row per ticket order (none — row 7 was last: rows
+6,3,2,1,4,5,7 all measured).
+
 **Answers:** S1
 
 **Blocked by:** nothing — assembly A/B measurements; one variable each
 
-**Status:** ready-for-agent
+**Status:** resolved 2026-10-14 (all 7 rows measured: 6 KEEP, 3 ADOPT, 2 ADOPT, 1 KEEP, 4 DISABLED, 5 DISABLE, 7 ADOPT-UPSTREAM; follow-ups: Juglet assembly impact unmeasured throughout, Huber revert + 05 addendum owned elsewhere)
 
 **Needs-eye:** none — gate counts and pair movement, no geometry claim.
 
@@ -217,10 +320,10 @@ adjective). Order by blast radius: 6 (length gate affects every LCS),
 
 ## Acceptance criteria
 
-- [ ] Per-row A/B with numbers; end value per row with measurement cite
+- [x] Per-row A/B with numbers; end value per row with measurement cite
       in the code comment (bare adjectives gone). Rows 4–5 are
       lineage-ADDED (no upstream value to revert to): their experiments
       are disable-vs-keep, not value-vs-value.
-- [ ] No-regression rule per experiment
-- [ ] Any row kept at lineage value carries the ticket number, not
+- [x] No-regression rule per experiment
+- [x] Any row kept at lineage value carries the ticket number, not
       "Evidence-based"

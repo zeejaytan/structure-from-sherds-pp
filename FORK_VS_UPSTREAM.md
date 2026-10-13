@@ -375,15 +375,15 @@ flagged.
   `Registration` plus the now-removed `Icp` inner-loop call. Live sites now
   at upstream (20, 0.7) (ticket 12 row 3, ADOPT). 05's silent inventory
   listed only the surviving `(20,0.65)` instances.
-- **F4 — Beam-loop scoring changes (cluster, LIVE).**
-  `CombineChunk isSimilarTrans 0.436`→`0.2` ("BEAM SEARCH FIX") and the
-  0.7/0.3 `combined_score` (via `ConnectivityOptimizer`, called from live
-  `MakeHierarchyPriorityList`, compiled into `hierarchy_core` — NOT
-  env-gated, unlike the dead optimizers). 05's "hub-guided scoring" silent
-  line may or may not be this; 05's liveness table does not name
-  `ConnectivityOptimizer`. Still open → owned by ticket-12 row 7; 05
-  CORRECTIONS now records the GGCE scorer row (or, at minimum, 05's
-  one-liner needs a line cite to this code).
+- **F4 — Beam-loop scoring changes (cluster, LIVE) — SPLIT 2026-10-14.**
+  The 0.7/0.3 `combined_score` part is CLOSED: ticket-12 row 7 removed the
+  `ConnectivityOptimizer` scorer (jobs 32904171 vs 32904174, identical
+  pairs, scores-only movement) — local-only ordering restored. Still open:
+  `CombineChunk isSimilarTrans 0.436`→`0.2` ("BEAM SEARCH FIX"), unmeasured.
+  05's "hub-guided scoring" silent line may or may not be this; 05's
+  liveness table does not name `ConnectivityOptimizer`. 05 CORRECTIONS now
+  records the GGCE scorer row (or, at minimum, 05's one-liner needs a line
+  cite to this code).
 - **F5 — Silent shard-drop gates in the PRODUCTION binary (cluster, LIVE
   input stage) — CLOSED (verified in tree).** Was
   `main_headless_correct.cpp:172–180` dropping axis-less and <50-point

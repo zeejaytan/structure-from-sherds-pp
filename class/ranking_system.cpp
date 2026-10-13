@@ -180,34 +180,13 @@ void RankingSubgraph::MakeHierarchyPriorityList(int index,
 	priority.sort(NodeCompare);
 	CombineChunk(priority);
 
-	// Initialize ConnectivityOptimizer for global connectivity analysis
-	ConnectivityOptimizer connectivity_optimizer;
+	// TICKET-12 ROW 7 2026-10-14: removed 0.7/0.3 ConnectivityOptimizer combined scorer (upstream has none). Same-node A/B jobs 32904171 (KEEP) vs 32904174 (OFF) on bm065: pairs identical 0/8+0/15 both, best 239.000 vs 260.000 (scores move, joins don't). Row-2 rule -> ADOPT UPSTREAM (delete). Local-only ordering via CalculateMatchingScore + InlierCompare inlier fallthrough (combined_score 0.0 everywhere ties primary).
 	
 	for (auto iter = priority.begin(); iter != priority.end(); ++iter) {
 		// Calculate local matching score (existing functionality)
 		CalculateMatchingScore(*iter, graph[index].sub_graph_);
 		
-		// Calculate global connectivity score
-		// Convert list to vector for ConnectivityOptimizer interface
-		std::vector<LCSIndex> lcs_vector(lcs_reference_.begin(), lcs_reference_.end());
-		iter->global_connectivity_score = connectivity_optimizer.CalculateGlobalConnectivityScore(
-			*iter, index, graph, lcs_vector
-		);
-		
-		// Combine local and global scores with precise weighting
-		// Local score weight: 0.7, Global score weight: 0.3
-		// This preserves existing behavior while adding global awareness
-		double local_score_normalized = static_cast<double>(iter->inlier) / 100.0;  // Normalize inlier score
-		iter->combined_score = 0.7 * local_score_normalized + 0.3 * iter->global_connectivity_score;
-		
-		// Debug output for global connectivity analysis
-		if (iter->global_connectivity_score > 0.1) {  // Only show significant scores
-			cout << "*** GLOBAL CONNECTIVITY *** Node " << iter->node 
-				 << ": local=" << local_score_normalized 
-				 << ", global=" << iter->global_connectivity_score
-				 << ", combined=" << iter->combined_score << endl;
-		}
-		
+
 		graph[index].priority_list_.emplace_back(*iter);
 	}
 
@@ -225,17 +204,7 @@ void RankingSubgraph::MakeHierarchyPriorityList(int index,
 				// Calculate local matching score (existing functionality)
 				CalculateMatchingScore(*iter, graph[index].sub_graph_);
 				
-				// Calculate global connectivity score
-				// Convert list to vector for ConnectivityOptimizer interface
-				std::vector<LCSIndex> lcs_vector(lcs_reference_.begin(), lcs_reference_.end());
-				iter->global_connectivity_score = connectivity_optimizer.CalculateGlobalConnectivityScore(
-					*iter, index, graph, lcs_vector
-				);
-				
-				// Combine local and global scores with precise weighting
-				double local_score_normalized = static_cast<double>(iter->inlier) / 100.0;
-				iter->combined_score = 0.7 * local_score_normalized + 0.3 * iter->global_connectivity_score;
-				
+
 				graph[index].priority_list_.emplace_back(*iter);
 			}
 		}

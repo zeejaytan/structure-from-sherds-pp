@@ -69,7 +69,13 @@ relaxation earned nothing and upstream 1.5 is adopted; a third row
 so the (2.0,0.85) tightening earned nothing and upstream (20,0.7) is
 adopted; a fourth row (opposing-normals veto enabled) lost the only
 correct pair 1-4 and collapsed 2/8 to 0/8, so the veto stays disabled
-with numbers. The solver walk is now bounded (trust-region cap:
+with numbers; a fifth row (CountInlier adaptive gate) came back
+byte-identical on every measure — dead code in overloads nothing calls —
+so upstream's uniform rule is restored; the axis-gate row kept upstream
+0.610 (first fully-correct pair 1-4); and the final row removed the
+0.7/0.3 priority-list scorer, which moved scores (239 vs 260) without
+moving a single pair — resolving the earlier read that the scorer
+preferred the wrong assembly. All seven rows are now measured. The solver walk is now bounded (trust-region cap:
 diverged 140 to 0 with sane placements identical, same pair passing),
 but convergence is untouched — poses elsewhere still far off. The
 second solver candidate, anchoring one sherd's pose per pairwise
@@ -90,7 +96,7 @@ The second test pot (Tray 000) is still unmeasured, and it is the
 one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
-Next: finish ticket 12, then measure Tray 000.
+Next: ticket 12 is measured out — next the Eq.6 joint-refinement run, then Tray 000.
 Viewer: `juglet_sfs29`
 
 ## Why it matters
@@ -590,6 +596,8 @@ the scorer prefers the wrong assembly — 266 points at 0/8 outscores 262
 at 2/8 with identical pairwise survival, the split happening downstream
 in merge/graph scoring. Tolerance and scoring are separate variables;
 that finding routes to the scorer's owner alongside this verdict.
+(Resolved 2026-10-14: ticket-12 row 7 removed the scorer with numbers —
+identical pairs, scores-only movement.)
 Why this matters for S1: the distance term cannot come online anywhere
 without admitting false matches — the 2/8 must come from another class.
 Next: tickets 04 (normals) / 05 (axis). Mechanism statement, not a join
