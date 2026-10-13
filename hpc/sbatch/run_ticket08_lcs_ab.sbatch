@@ -41,6 +41,18 @@ git pull --ff-only || { echo "ERROR: pull failed (diverged?)"; exit 1; }
 git log --oneline -1
 echo ""
 
+# Ticket 08 is Juglet-specific, but the checkout's committed dataset is
+# POT_A (cauchy-scales E2E series owns that line). Flip to JUGLET in-job
+# with sed AFTER pull so the repo file is untouched: the JUGLET block
+# uses host-absolute JUGLET_BASE paths, so the --bind /data:/data below
+# suffices (same as run_juglet.sbatch). POT_A would need a /Dataset
+# bind and yields zero connections + segfault without it (job 32850374).
+echo "=== Selecting JUGLET dataset (in-job only, repo untouched) ==="
+sed -i 's/^#define POT_A/\/\/#define POT_A/' class/data_path.h
+sed -i 's|^// #define JUGLET|#define JUGLET //|' class/data_path.h
+grep -n "^#define POT_A\|^#define JUGLET\|^//#define POT_A\|^// #define JUGLET" class/data_path.h | head -n 5
+echo ""
+
 echo "=== Verifying Configuration ==="
 if grep -q "^#define JUGLET" class/data_path.h; then
     echo "JUGLET is defined in class/data_path.h"
@@ -48,6 +60,20 @@ else
     echo "ERROR: JUGLET not defined in class/data_path.h"
     exit 1
 fi
+echo ""
+
+# Verify bundle inputs (every missing file silently switches its shard OFF)
+echo "=== Verifying Juglet Bundle ==="
+BUNDLE="/data/gpfs/projects/punim2657/sfs_preprocessing/Juglet_Dataset_20260916/SfS_pp"
+for kind in "Breaklines/Juglet_Piece_*_Breakline_0.pcd:9" \
+            "Mesh/Juglet_Piece_*_Mesh.obj:9" \
+            "Axes/Juglet_Piece_*_Axis.xyz:9" \
+            "Surfaces/Juglet_Piece_*_Surface_0.xyz:9"; do
+    pat="${kind%%:*}"; exp="${kind##*:}"
+    got=$(ls ${BUNDLE}/${pat} 2>/dev/null | wc -l)
+    echo "  ${pat}: ${got} (expected ${exp})"
+    [ "${got}" -ne "${exp}" ] && { echo "ERROR: bundle incomplete"; exit 1; }
+done
 echo ""
 
 echo "=== Building SFS++ (JUGLET) in container ==="
