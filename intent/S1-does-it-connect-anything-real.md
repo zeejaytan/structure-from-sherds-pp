@@ -96,7 +96,9 @@ The second test pot (Tray 000) is still unmeasured, and it is the
 one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
-Next: ticket 12 is measured out — next the Eq.6 joint-refinement run, then Tray 000.
+Next: ticket 12 is measured out and the Eq.6 joint step came back a
+strict no-op (identical runs, ~40% extra time) — solver-DOF moves are
+done on this pot; next the Cauchy E-0 gate, then Tray 000.
 Viewer: `juglet_sfs29`
 
 ## Why it matters
