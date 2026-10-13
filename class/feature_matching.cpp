@@ -1971,7 +1971,7 @@ void RegistrationPruning(vector<Geom>& shard,
 			L[iter->shard_x_ - 1],
 			A_dummy,
 			length,
-			50.0); // Restored to normal threshold - hub guidance should handle connectivity
+			50.0); // Ticket 09 SHAPE 2026-10-13: KEPT 50 = paper Table II S (cf. PAPER-CONFIG 2026-10-01 at FM:1739/FM:2048/RS:1869/RS:2028). SHAPE verdict per ticket 10 T5 directing numbers (true 35-297, false [5,6] 40-60 inside, 50 kills true [1-5] @144/155): threshold never stands alone, pair with score/pose sanity.
 
 		//#################### Update LCS_out information ####################//
 		iter->overlap_ = overlap || has_intersection; // Mark as overlap if intersection detected

@@ -402,8 +402,7 @@ Std-dev run (job 31843205): profile 87/2 (was 4/19), only kills a false
 graphs over 21 states (best 232) that are all wrong: 0/8 + 0/15.
 Ticket 06 resolved (statistic fixed+measured, fit parked, guard done).
 Profile layer cleared; what remains is poses (07/T6: 62–179° off) and
-merge scoring/selection (08, assembly-09). Ticket 09 stays open (its
-re-run criterion needs the fix that moves 0/8, not this one).
+merge scoring/selection (08, assembly-09). 2026-10-13: ticket 09 resolved as SHAPE record (all five overlap stages KEPT at 50=paper, FM:1974 bare comment cited, no value moves); T6 re-measurement still open.
 
 ## 2026-10-01 — battery executed: statistic convicted, poses convicted, fit cosmetic
 
