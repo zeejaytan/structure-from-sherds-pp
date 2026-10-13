@@ -10,8 +10,31 @@ a trustworthy join count)
 
 **Blocked by:** none -- observable now, independent of 06's gate finding
 
-**Status:** in-progress
-**Working in:** laptop chat — log-only LCS dump in `main_headless_correct.cpp`, pending Spartan same-node A/B
+**Status:** in-progress — LCS stage attributed DETERMINISTIC (same-node A/B done 2026-10-13)
+**Working in:** laptop chat — verdict in; next: probe downstream (ranking/beam) for pair-choice jitter
+
+## Progress (2026-10-13, verdict)
+
+Same-node A/B (job 32851381, `t08_lcs_ab`, COMPLETED 0:0) on JUGLET input:
+- dump_A: 60 pairs, md5=558e70881928cb86867e9a981c87b76b
+- dump_B: 60 pairs, md5=558e70881928cb86867e9a981c87b76b
+- dump_C: 60 pairs, same md5
+- `*** LCS-ACROSS *** IDENTICAL (cross-process byte-identical)`
+- `*** LCS-TWICE *** IDENTICAL first=60 second=60` (twice, in-process rerun)
+
+So FeatureComp + PairwisePruning output is fully deterministic on the
+same node / same binary / byte-identical input — both across processes
+and in-process. The seed/thread suspects at the LCS stage are OUT:
+no unseeded-RNG or OpenMP reduction jitter survives the sorted
+fixed-precision dump compare.
+
+That moves the instability downstream: the 4-run pair flood in Evidence
+(6-7 vs 4-9/7-9/3-8/… vs 3-7/7-8/3-4 vs 7-9/7-8/5-7) must come from
+*after* the LCS dump — ranking/priority tie-breaks, beam-state copying
+(`RankingSubgraph::Copy`), or assembly-stage choices — or from
+cross-node / differing-input runs (ticket 12 rule), not from LCS
+generation. Next cheap probe: dump the ranked/priority pair order per
+run the same way and byte-compare that.
 
 ## Progress (2026-10-13)
 
