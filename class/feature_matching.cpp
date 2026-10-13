@@ -1050,23 +1050,15 @@ void CountInlier(int& inlier, const vector<Corres>& COR, double threshold, doubl
 
 		total_potential_inliers += dummy_inlier;
 
-		// ROBUSTNESS FIX: Adaptive segment contribution based on geometric significance
-		bool segment_contributes = false;
-		int segment_size = COR[i].cor.size();
-
-		if (segment_size >= 30) {
-			// Large segments: use original threshold (backward compatibility)
-			segment_contributes = (dummy_inlier > MINIMUM_NUMBER / 2);
-		} else if (segment_size >= 15) {
-			// Medium segments: require at least 1 inlier
-			segment_contributes = (dummy_inlier >= 1);
-		} else {
-			// Small segments (geometric features from NURBS): density-based
-			double inlier_density = (double)dummy_inlier / segment_size;
-			segment_contributes = (inlier_density >= 0.08); // 8% coverage for small features
-		}
-
-		if (segment_contributes) {
+		// TICKET-12 ROW 5 2026-10-13: reverted to upstream uniform gate (was
+		// lineage "ROBUSTNESS FIX" adaptive, 869e696). Same-node A/B
+		// disable-vs-keep (jobs 32856411 vs 32858323, bm065): byte-identical
+		// on all measures (0/8+0/15, best 239.0, SURVIVED 29 identical
+		// values, all 7 outputs md5-identical) -- the adaptive gate is dead
+		// code on the live path (which uses overload 3 below, no gate) and
+		// earns nothing.
+		if (dummy_inlier > MINIMUM_NUMBER / 2)
+		{
 			inlier += dummy_inlier;
 			contributing_segments++;
 		}
@@ -1125,23 +1117,11 @@ void CountInlier(int& inlier,
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
-		// ROBUSTNESS FIX: Adaptive segment contribution (same logic as first CountInlier)
-		bool segment_contributes = false;
-		int segment_size = COR[i].cor.size();
-
-		if (segment_size >= 30) {
-			// Large segments: use original threshold (backward compatibility)
-			segment_contributes = (dummy_inlier > MINIMUM_NUMBER / 2);
-		} else if (segment_size >= 15) {
-			// Medium segments: require at least 1 inlier
-			segment_contributes = (dummy_inlier >= 1);
-		} else {
-			// Small segments (geometric features from NURBS): density-based
-			double inlier_density = (double)dummy_inlier / segment_size;
-			segment_contributes = (inlier_density >= 0.08); // 8% coverage for small features
-		}
-
-		if (segment_contributes) {
+		// TICKET-12 ROW 5 2026-10-13: upstream uniform gate (adaptive removed;
+		// same-node A/B jobs 32856411 vs 32858323, bm065, byte-identical --
+		// see first CountInlier overload for the full cite).
+		if (dummy_inlier > MINIMUM_NUMBER / 2)
+		{
 			shard_inlier[s_x] += dummy_inlier;
 			shard_inlier[s_y] += dummy_inlier;
 			weight[s_x] = weight[s_x] + 1;
