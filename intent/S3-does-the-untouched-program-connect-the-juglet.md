@@ -1,7 +1,7 @@
 # S3 — Does the authors' untouched program find any joins on the Juglet?
 
-**Status:** open — verification complete 2026-10-14 (bundle census, infra inventory, gauges pinned); run not yet dispatched. ·
-**Blocked by:** `.scratch/pristine-juglet-sfs` ticket 01 (Juglet-side data block + bind)
+**Status:** resolved 2026-10-15 — the untouched program agrees: no genuine joins (verdict below). Render staged; conservator witness pending. ·
+**Blocked by:** none (was: ticket 01 — landed as 978b96c)
 
 **What this asks.** S1 settled what *our* copy does on the Juglet: an honest **0/10**,
 with the cause proven in preprocessing (one wall face traced per sherd, inner-vs-outer
@@ -38,18 +38,35 @@ keeps k=5/b=3 and the graph_dummy quirk). Input is the ticket-07 real-curves bun
 **Non-contact edges (answer key minus physical contacts, gaps 3.3–18.9 mm):**
 1-5, 1-6, 4-5, 4-6, 5-9, 6-8, 7-8, 8-9. Honest denominator 0/10.
 
+**2026-10-15 verdict — untouched agrees (0 genuine joins).** Two pristine runs
+(jobs 32993790, 32994273, both COMPLETED 0:0, deterministic identical scores):
+gate probe STRICT **0/18** at ground truth; assembly SA **2/9**, EA **0/18**.
+Attribution is exact (a scorer replica faithful to upstream `CountResult`
+reproduces the binary bit-for-bit): the "2 seated" are pieces 1+6 via a single
+directed pass 6→1 (12.7° rotation, 39.3 mm shift — inside the 20°/50 mm gate);
+the reverse direction fails, and 1-6 is one of the eight NON-contacts above, so
+no physical join was found in either direction on any touching pair. Absolute
+poses: 0/9 within tolerance (best 35.4°/95.5 mm on different sherds). Reading:
+one marginal pass on a non-physical edge, one direction out of 36 trials, with
+the gate rejecting truth itself — chance, not a join. Honest score **0/10**.
+This is case 1, the method failing on this material — not a broken ruler (Pot A
+control 8/8 beside it; GT checksums match) and not a wrong answer key (honest
+denominator used). Our modifications are ruled out as the cause of the S1 zero.
+
 **Done when:**
-- [ ] Gate probe on the Juglet bundle recorded (pass count at GT)
-- [ ] Pristine Juglet assembly run recorded (SA/EA, k/b, job ID)
-- [ ] Reassembly rendered and witnessed (Needs-eye on ticket 03)
-- [ ] Verdict written here: untouched agrees (0, cause stands) or diverges (joins found)
+- [x] Gate probe on the Juglet bundle recorded — STRICT 0/18 at GT (2026-10-15)
+- [x] Pristine Juglet assembly run recorded — SA 2/9 / EA 0/18, k=5/b=3, jobs 32993790 + 32994273
+- [ ] Reassembly rendered and witnessed — staged (`visual-qa/preview/manifest-juglet-pristine.json`, frame_ok, coincidence 2.13 mm); witnessed look + conservator note pending
+- [x] Verdict written here — untouched agrees (0 genuine joins, 2026-10-15)
 
 ## Where it stands
 
-The untouched Pot A control seats 8/8 with 15/15 edges, so the instrument is proven.
-The Juglet bundle is censused and the gauges are pinned; what remains is adding the
-Juglet-side data block plus bind (ticket 01), running the untouched binary on it
-(ticket 02), and scoring plus witnessing the result (ticket 03).
+The untouched program agrees with our copy: no genuine joins on the Juglet (honest
+0/10), beside the 8/8 Pot A control from the identical setup. The S1 cause finding
+stands, with our modifications ruled out as its source. What remains is the
+conservator's look at the staged pair (left: correct juglet; right: the attempt),
+then this question's render box is checked.
 
-Weight: one control pot at 8/8; the Juglet arm unmeasured — a single-object lead either way, not a conclusion.
-Next: ticket 01 (JUGLET_ORIG block + Juglet bind), then the Spartan run.
+Weight: one control pot at 8/8 and one test object at honest 0/10 — a clean lead, not a conclusion.
+Next: conservator witnesses the staged pair; Tray 000 remains the pot that could show the method working.
+Viewer: `manifest-juglet-pristine`
