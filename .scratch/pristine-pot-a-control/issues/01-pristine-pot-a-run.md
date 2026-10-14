@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately — after the 4 preconditions below are confirmed by the lead)
 
-**Status:** ready-for-agent
+**Status:** ready-for-human (all machine work done 2026-10-14; only Needs-eye witnessing remains)
 
 **Spec:** `../spec.md` (pristine Pot A control spec; this ticket executes its capability-half arm only — no code edits, no intent edits by the worker beyond the S1 write-back line)
 
@@ -41,3 +41,54 @@ python <probe>.py /Dataset/SfS_pp --pot POT_A_ORIG 2>&1 | tee gate_probe.log
 ```
 
 ## Comments
+
+## Comments (worker report 2026-10-14, pristine-runner)
+
+RESULT: gate probe 15/15, E2E SA 8/8 (100%) + EA 15/15 (100%) — exactly the
+Table V Pot A bar. A 0-result would have been valid; the instrument passed.
+
+- Isolation: tree `/data/gpfs/projects/punim2657/sfs_main/archive_2025_sfs_modified_src`
+  (NOTE: under `sfs_main/`, not punim2657 root as step 1 wrote).
+  `rev-parse HEAD` = `9195c0167e2077a564bd7c91156063252feeb506`,
+  `status --porcelain` empty. SHA-authority note: no discrepancy — measured
+  clone matches the pinned SHA, citation stands.
+- Binding: host `/data/gpfs/projects/punim2657/sfs_main/original_samples/SfS_pp`
+  → container `/Dataset/SfS_pp` (verbatim O2 flag). Pot_A census: Mesh 8,
+  Breaklines 16, Axes 8, Surfaces 16 (Surface_0+_1), Ground Truth 9
+  (8 T + `Pot_A_simple_graph.txt`), Ground Truth Axes 8. No `Surface_F.pcd`
+  files exist; upstream `ReadPCD` logs the miss and returns gracefully
+  (verified in source), so the run is unaffected. Never `sfs_legacy_temp`.
+- Purity: zero `class/` changes (tree untouched, verified clean post-run).
+  Declared INFRA: `hpc/containers/container-pristine-assembly.def` (upstream
+  @9195c01 + X11/Xvfb/xdotool), `hpc/tools/main_pristine_batch.cpp` (upstream
+  main.cpp minus viewer/display calls only — keeps NO_BASE_INFO, TOP_k=5,
+  BRANCH_b=3, graph_dummy quirk), /Dataset bind, `hpc/sbatch/` scripts.
+  Upstream `main.cpp` md5 `08ab67111b4becb74a48f6c67387b1d4` both sides.
+- O4 path: Rank 1 (Xvfb, zero change) proven infeasible — diag job 32976970
+  (COMPLETED 0:0): VTK render segfaults under Xvfb on all 3 GL variants
+  (exit 139/134/139). Rank 2 shim used, with diff on file. Fork
+  `main_headless*.cpp` never touched. `sfspreproc.sif` never used.
+- Gate probe: `python artifacts/juglet_run1/gate_probe_b0.py pota_orig`
+  (laptop-side; login-node python3 lacks scipy) → `STRICT pass rate at GT
+  (_0-only): 15/15`. All 17 bundle files md5-identical to cluster inputs
+  (e.g. Breakline_0 01: `5b0bc197…`, graph: `6961e1ab…`).
+- E2E: job 32982520 (COMPLETED 0:0, 00:03:29), shim compiled out-of-source
+  in-container (pristine objects 100%, link.txt reused with main.cpp.o→shim.o
+  swap), binary `./Hierarchy-Batch 8`. Log: `Total number pruned : 70`,
+  `Sherd accuracy : 8 / 8 (100%)`, `Edge accuracy : 15 / 15 (100%)`, no
+  co-first tie. `1. Acc.txt`: `Time : 427804 Sec` (clock() ticks quirk),
+  `8 / 8 (100 %)`, `15 / 15 (100 %)` (2nd line mislabelled upstream).
+  Result dir `sfs_main/pristine_pota_32982520/Result_snapshot/` (new files
+  2026-10-14 22:47: `1. Acc.txt`, `Top_1_*` edgelines/OBJs, `T_*.txt`;
+  pre-existing Nov-2025 `N.edge/surface.xyz`, legacy ply untouched).
+  Prior harness-side failures (no-DISPAY 32976144, segfault 32976442, quote
+  bugs 32977882 FAILED 1:0 / 32979091 FAILED 2:0, link-name 32982520's
+  predecessor FAILED 2:0) — none touched the pristine tree.
+- Needs-eye: pair 2-5 staged as `visual-qa/viewer/pairs/pristine_pota_25.json`
+  (manifest `visual-qa/preview/manifest_pristine_pota_25.json`, image-only
+  staging, out of the manifest registry); GT vs attempt coincidence median
+  0.54 mm / p90 1.16 mm after one global rigid alignment (1.23°, 10.71 mm,
+  same transform both sherds; raw attempt kept as `pair25_attempt.ply`).
+  Witnessing left OPEN for the conservator — checkbox stays open.
+- S1: `intent/S1-does-it-connect-anything-real.md` gained the 2026-10-14
+  pristine-control section (gate rate, SA/EA, job ID, capability sentence).

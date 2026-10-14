@@ -704,3 +704,30 @@ does not move the capability half, which still needs Tray 000.
   files, clears of always-false flags, edits inside uncalled functions).
   If any of these ever executes differently, the waiver is void — but on
   today's files there is nothing to execute.
+
+## 2026-10-14 — pristine Pot A control: the pipeline seats 8/8 on suitable material
+
+What this means first: the authors' own software, untouched, joined all 8
+sherds of the ordinary round pot correctly, finding all 15 true seams. So the
+instrument works on suitable material — the Juglet zero reads as material
+scope (thick handmade sherds whose break traces the join test cannot see),
+not a broken pipeline. One pot, one run: a control lead, not a universal claim.
+
+- **Gate probe 15/15** reproduced on the authors' Pot A data (laptop-side run
+  of `artifacts/juglet_run1/gate_probe_b0.py pota_orig`; all 17 bundle files
+  md5-verified byte-identical to the cluster inputs).
+- **E2E at the Table V gauge (k=5/b=3): Sherd accuracy 8/8 (100%), Edge
+  accuracy 15/15 (100)** — exactly the paper's Table V Pot A bar (SfS++ SA
+  100 / EA 100). Job 32982520, COMPLETED 0:0 in 00:03:29. (87.3% is the
+  10-pot ALL mix, Table VII — never the bar.)
+- **Purity:** upstream @ `9195c01`, `git status` clean; zero `class/`
+  changes. Declared INFRA only: container recipe
+  (`hpc/containers/container-pristine-assembly.def`), batch entry shim
+  (`hpc/tools/main_pristine_batch.cpp`, upstream main minus viewer calls,
+  after Xvfb proven infeasible — diag job 32976970 segfaulted 139/134/139),
+  `/Dataset` bind, sbatch files. Missing `Surface_F.pcd` files tolerated by
+  upstream's own graceful `ReadPCD` return.
+- **Eye:** pair 2-5 staged (`visual-qa/viewer/pairs/pristine_pota_25.json`,
+  manifest `visual-qa/preview/manifest_pristine_pota_25.json`); attempt vs GT
+  surface coincidence median 0.54 mm, p90 1.16 mm. Needs-eye witnessing left
+  open for the conservator.

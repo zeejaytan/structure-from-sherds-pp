@@ -1,0 +1,59 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%help
+  Pristine SfS++ assembly container (control arm, ticket 01-pristine-pot-a-run).
+  - Clones upstream SeongJong-Yoo/structure-from-sherds-pp @ 9195c01, no patches.
+  - Adds X11/Xvfb/xdotool so the GUI-only main.cpp runs headless (O4 Rank 1:
+    pristine + virtual display, zero source change).
+
+%labels
+  Author    zeejaytan
+  Version   1.0.0
+  Stage     pristine-assembly-control
+
+%environment
+  export DEBIAN_FRONTEND=noninteractive
+  export PATH="/opt/sfs-pristine/build:${PATH}"
+
+%post
+  export DEBIAN_FRONTEND=noninteractive
+  export TZ=UTC
+  export NPROC=$(nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 4)
+
+  echo "[INSTALL] apt dependencies (proven set from container.def + X11/Xvfb)"
+  apt-get update -qq && apt-get install -y --no-install-recommends \
+        build-essential cmake git \
+        libeigen3-dev libboost-all-dev libflann-dev libqhull-dev \
+        libopenblas-dev liblapack-dev gfortran \
+        libgoogle-glog-dev libgflags-dev libsuitesparse-dev \
+        libvtk9-dev libvtk9-qt-dev libglew-dev freeglut3-dev \
+        libpcl-dev libusb-1.0-0-dev libceres-dev libcgal-dev \
+        xvfb xdotool x11-utils \
+        libgl1 libglu1-mesa libgl1-mesa-dri && \
+      rm -rf /var/lib/apt/lists/*
+
+  echo "[CLONE] upstream pristine @ 9195c01"
+  cd /opt
+  git clone https://github.com/SeongJong-Yoo/structure-from-sherds-pp.git sfs-pristine
+  cd /opt/sfs-pristine
+  git checkout 9195c0167e2077a564bd7c91156063252feeb506
+  echo "[VERIFY] checked-out SHA:"
+  git rev-parse HEAD
+  test "$(git rev-parse HEAD)" = "9195c0167e2077a564bd7c91156063252feeb506"
+  test -z "$(git status --porcelain)"
+
+  echo "[CMAKE] configure"
+  mkdir -p build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  echo "[MAKE] compile"
+  make -j${NPROC}
+  ls -lh Hierarchy-Clear
+
+%runscript
+  exec "$@"
+
+%test
+  test -x /opt/sfs-pristine/build/Hierarchy-Clear && \
+    echo "pristine Hierarchy-Clear binary present"
+  which Xvfb xdotool
