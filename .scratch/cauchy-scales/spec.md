@@ -4,7 +4,11 @@
 
 **Status:** done — series closed 2026-10-12 (E-0 measured + E-2…E-6
 run, verdicts in tickets 01–06, forensics in juglet-sfs 11, S1
-entries landed; series synthesis below).
+entries landed; series synthesis below). Postscript 2026-10-14:
+ticket 07 reverted the E-6 Huber hunk left live in the tree (it had
+starved pair 1-4 for three days); Cauchy restored, E-6 control
+reproduced exactly (2/8+1/15 @ 262). Refinement stands: divergence
+not kernel-driven, true-pair survival kernel-gated.
 
 ## Problem statement
 
