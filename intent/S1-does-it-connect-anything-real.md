@@ -718,7 +718,7 @@ not a broken pipeline. One pot, one run: a control lead, not a universal claim.
   md5-verified byte-identical to the cluster inputs).
 - **E2E at the Table V gauge (k=5/b=3): Sherd accuracy 8/8 (100%), Edge
   accuracy 15/15 (100)** — exactly the paper's Table V Pot A bar (SfS++ SA
-  100 / EA 100). Job 32982520, COMPLETED 0:0 in 00:03:29. (87.3% is the
+  100 / EA 100). Scoring run job 32983523 (image-build job 32982520), COMPLETED 0:0. (87.3% is the
   10-pot ALL mix, Table VII — never the bar.)
 - **Purity:** upstream @ `9195c01`, `git status` clean; zero `class/`
   changes. Declared INFRA only: container recipe
@@ -729,5 +729,7 @@ not a broken pipeline. One pot, one run: a control lead, not a universal claim.
   upstream's own graceful `ReadPCD` return.
 - **Eye:** pair 2-5 staged (`visual-qa/viewer/pairs/pristine_pota_25.json`,
   manifest `visual-qa/preview/manifest_pristine_pota_25.json`); attempt vs GT
-  surface coincidence median 0.54 mm, p90 1.16 mm. Needs-eye witnessing left
-  open for the conservator.
+  surface coincidence median 0.54 mm, p90 1.16 mm. Whole-pot pair staged
+  2026-10-15 (`pristine_pota_whole.json`, median 0.69 mm / p90 1.36 mm).
+  Witnessed by the conservator 2026-10-15: "baseline verified, it rebuilt
+  perfectly" — the capability-half of S1 is settled on this control.

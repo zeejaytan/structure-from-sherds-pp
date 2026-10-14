@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately — after the 4 preconditions below are confirmed by the lead)
 
-**Status:** ready-for-human (all machine work done 2026-10-14; only Needs-eye witnessing remains)
+**Status:** resolved (machine work 2026-10-14; conservator witnessed 2026-10-15: "baseline verified, it rebuilt perfectly")
 
 **Spec:** `../spec.md` (pristine Pot A control spec; this ticket executes its capability-half arm only — no code edits, no intent edits by the worker beyond the S1 write-back line)
 
@@ -26,7 +26,7 @@
 - [ ] Purity: zero `class/` algorithm/threshold/weight/solver changes vs the pinned SHA (`git diff --stat` empty except declared INFRA shims); every shim listed with path + one-line INFRA reason (dataset-select macro, `/Dataset` bind, build script, O4 entry); no preprocessing产物混入.
 - [ ] Gate probe reported: ground-truth-placement join-gate pass rate on Pot A (bar: 15/15 per S1 precedent vs Juglet 0/18); command + log excerpt pasted (placeholder: `python <probe>.py /Dataset/SfS_pp --pot POT_A_ORIG 2>&1 | tee gate_probe.log` — worker replaces `<probe>.py` with lead-confirmed probe path per spec seam S2, fork-side read-only if so declared).
 - [ ] E2E reported at Table V Pot A gauge: single full assembly (`k=5,b=3`) scored SA/EA against paper Table V `A (8)` SfS++ SA 100 / EA 100 (`papers/text/sfspp-2502.13986v1.md:344-356`, V-B `τR=20° τt=50mm :374-378`); report SA x/8, EA x/15, best score, job ID + `sacct` State/ExitCode, result dir. A 0-result honestly reported counts as a valid answer. **87.3% is NOT the bar** (it is the 10-pot `ALL (142)` mix, Table VII `:400-407,411`) — ticket states this explicitly in its report.
-- [ ] Needs-eye: one joined pair (or best miss if 0 joins) staged as a visual-qa pair and witnessed before numbers are trusted.
+- [x] Needs-eye: one joined pair (pair 2-5) + whole-pot pair staged as visual-qa pairs and witnessed by the conservator 2026-10-15 ("baseline verified, it rebuilt perfectly").
 
 **Needs-eye:** `visual-qa/preview/manifest*.json` pair staged by worker (one join render, view resolving the seam scale) + conservator note in the pair log; image-only staging stays out of the `manifest*.json` registry per `docs/agents/issue-tracker.md`.
 
@@ -90,5 +90,7 @@ Table V Pot A bar. A 0-result would have been valid; the instrument passed.
   0.54 mm / p90 1.16 mm after one global rigid alignment (1.23°, 10.71 mm,
   same transform both sherds; raw attempt kept as `pair25_attempt.ply`).
   Witnessing left OPEN for the conservator — checkbox stays open.
+- Job-ID correction (whole-pot staging, 2026-10-15): the scoring run is job 32983523 (Result_snapshot/ + sbatch_outer.log "batch binary exit 0, Sherd accuracy 8/8, Edge accuracy 15/15" live under sfs_main/pristine_pota_32983523/); 32982520 holds the shim build. Read "E2E 32982520" in the lines above as the 32982520-lineage scoring run 32983523. build_pair25.py header independently cites 32983523; its T values match the fetched matrices verbatim.
+- Whole-pot pair staged 2026-10-15 (visual-qa/viewer/pairs/pristine_pota_whole.json, manifest visual-qa/preview/manifest_pristine_pota_whole.json; 8/8 pieces per side, coincidence median 0.69 mm / p90 1.36 mm). Conservator witness 2026-10-15 (chat): "yes, baseline verified, it rebuilt perfectly" -- ticket resolved on this verdict.
 - S1: `intent/S1-does-it-connect-anything-real.md` gained the 2026-10-14
   pristine-control section (gate rate, SA/EA, job ID, capability sentence).
