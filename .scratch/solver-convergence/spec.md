@@ -2,7 +2,13 @@
 
 **Answers:** S1
 
-**Status:** spec for slicing; nothing implemented yet
+**Status:** done — both tickets resolved 2026-10-10…2026-10-14.
+Closeout: trust-region cap HOLDS (01 — diverged 140→0, sane identical;
+our first knowing paper deviation, initial 100/max 1000); newcomer
+anchor Eq.5 FAILED backwards and reverted (02); free-all global step
+Eq.6 strict no-op at ~40% extra time (02 appendix). Solver-DOF moves
+exhausted on Pot_A: with nothing seating, no joint step has anything
+to relax — pairwise starvation binds, not cross-pair drift.
 
 ## Problem statement
 

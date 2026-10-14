@@ -2,7 +2,16 @@
 
 **Answers:** S1
 
-**Status:** spec for slicing; nothing implemented yet
+**Status:** done — all 12 tickets resolved 2026-09-29…2026-10-14.
+Closeout: smoother arm removed (04); weights/iterations mapped
+reproducible with no recovery (07, E1–E3); normal gate + grouping back
+to paper 25° (08, V2a); overlap gates KEPT at paper 50 with SHAPE
+verdict — thresholds don't separate, plausibility kills true merges
+(09); dead code deleted (10); fork fully attributed, UNATTRIBUTED 0
+(11, re-audited 2026-10-13); all 7 lineage rows measured — axis kept,
+score/filter adopted upstream, veto stays off, dead gate + scorer
+removed (12). Standing residue: fork-doc F4 split (isSimilarTrans
+open), F8 idempotent duplicate, INLIER 3.0 unknown (minor).
 
 ## Problem statement
 
