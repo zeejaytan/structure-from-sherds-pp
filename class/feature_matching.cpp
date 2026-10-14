@@ -908,9 +908,9 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	cout << "*** PROFILE VALIDATION *** Starting with " << profile.size() << " points, threshold=" << threshold << endl;
 	bool out = true;
 	// Ticket 06 guard (battery garbage finding 2026-10-01): corrupt input
-	// must FAIL LOUDLY. Was: empty profile �?? .back() on empty (UB); insane
-	// z-range from garbage transforms (e.g. t_z=-1.48e11) �?? bin-count int
-	// overflow �?? validation loop skipped �?? vacuous PASS. A corrupt config
+	// must FAIL LOUDLY. Was: empty profile → .back() on empty (UB); insane
+	// z-range from garbage transforms (e.g. t_z=-1.48e11) → bin-count int
+	// overflow → validation loop skipped → vacuous PASS. A corrupt config
 	// passing plausibility is how the 5-8 abort family starts.
 	for (size_t gi = 0; gi < profile.size(); gi++) {
 		if (!std::isfinite(profile[gi](0)) || !std::isfinite(profile[gi](2))) {
@@ -966,7 +966,7 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		double den = sqrt(coeff(0) * coeff(0) + 1);
 		// Ticket 06 fix 1 (battery T1 convicted 2026-10-01): paper std-dev
 		// rule. Was max-absolute-deviation (any single point > threshold
-		// kills) �?? flipped 20/20 recorded failures with 0 new false
+		// kills) — flipped 20/20 recorded failures with 0 new false
 		// passes under stddev on identical bins. Distances orthogonal for
 		// ALL points (the convicted variant); fit stays OLS (T2: refit
 		// cosmetic, skipped). Population stddev (÷n), matching the battery.

@@ -219,3 +219,21 @@ descriptor series. Any future profile/descriptor measurement (tickets 06,
 07) must state which bundle arm it ran on (pre/post-18-fix); a
 measurement on a polluted bundle cannot attribute profile failures to the
 fit statistic.
+
+## Correction addendum (2026-10-14)
+
+Three entries in the paper-silent inventory above are stale — the code
+they describe was removed by ticket-10 Group B (`bfe3406`, in-tree
+removal notes cite "Ticket 10"):
+
+- mode-1 `Q_size` branch ("all three callers pass mode=0 — live-dead"):
+  branch deleted (`feature_matching.cpp`, removal note at the site).
+- hub-guidance disabled comment block (`:442–456`): block deleted from
+  `main_headless_correct.cpp`. (The live `hub_guidance_` member in
+  `enhanced_ranking_system.h` is a different thing and is unaffected.)
+- dead `EnhancedStateManager manager` (`:260`): declaration deleted from
+  `main_headless_correct.cpp` (removal note at `:269`).
+
+Ticket 10's dead-code list was otherwise predictive: all 9 files it
+named (Group A, `d1d0663`) are now deleted. Status, Answers, and
+checkboxes above are untouched by this addendum (lead's).

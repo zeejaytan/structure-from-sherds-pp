@@ -587,7 +587,7 @@ int main(int argc, char** argv)
 
 		if (two_phase_result.success) {
 			cout << "*** TWO-PHASE ASSEMBLY SUCCESS *** "
-			     << two_phase_result.local_components_generated << " �? "
+			     << two_phase_result.local_components_generated << " → "
 			     << two_phase_result.final_components << " components" << endl;
 			cout << "    Connectivity improvement: " << (two_phase_result.connectivity_improvement * 100.0) << "%" << endl;
 			cout << "    Overall quality: " << (two_phase_result.overall_improvement * 100.0) << "%" << endl;
@@ -1148,7 +1148,7 @@ int main(int argc, char** argv)
 	
 	assembly_data << endl;
 	assembly_data << "TRANSFORMATION DATA:" << endl;
-	assembly_data << "�? Transformation matrices successfully extracted and applied!" << endl;
+	assembly_data << "✅ Transformation matrices successfully extracted and applied!" << endl;
 	assembly_data << "All surface points have been transformed to final assembly positions" << endl;
 	assembly_data.close();
 	
@@ -1217,11 +1217,11 @@ int main(int argc, char** argv)
 			vis_script << "        ply_filename = f'{ply_dir}/piece_" << (i+1) << "_assembled_surface.ply'" << endl;
 			vis_script << "        piece_colors = np.tile(color_rgb[" << i << "], (len(full_data), 1))" << endl;
 			vis_script << "        write_ply(ply_filename, full_data, piece_colors)" << endl;
-			vis_script << "        print(f'�? Exported {ply_filename} with {len(full_data)} points')" << endl;
+			vis_script << "        print(f'✓ Exported {ply_filename} with {len(full_data)} points')" << endl;
 			vis_script << "        all_assembled_points.extend(full_data)" << endl;
 			vis_script << "        all_assembled_colors.extend(piece_colors)" << endl;
 			vis_script << "    except Exception as e:" << endl;
-			vis_script << "        print(f'�? Failed to process {filename}: {e}')" << endl;
+			vis_script << "        print(f'✗ Failed to process {filename}: {e}')" << endl;
 		}
 	}
 
@@ -1230,7 +1230,7 @@ int main(int argc, char** argv)
 	vis_script << "if all_assembled_points:" << endl;
 	vis_script << "    combined_filename = f'{ply_dir}/pot_a_complete_assembly.ply'" << endl;
 	vis_script << "    write_ply(combined_filename, np.array(all_assembled_points), np.array(all_assembled_colors))" << endl;
-	vis_script << "    print(f'�? Exported combined assembly: {combined_filename} with {len(all_assembled_points)} points')" << endl;
+	vis_script << "    print(f'✓ Exported combined assembly: {combined_filename} with {len(all_assembled_points)} points')" << endl;
 	vis_script << "" << endl;
 	vis_script << "print(f'\\n=== PLY FILES CREATED ===')" << endl;
 	vis_script << "print(f'Directory: {ply_dir}/')" << endl;
