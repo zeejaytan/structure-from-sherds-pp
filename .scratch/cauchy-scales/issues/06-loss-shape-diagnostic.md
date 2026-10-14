@@ -114,3 +114,13 @@ order. Settled 2026-10-12:
 Weights, iteration counts, gates, caps/anchoring, correspondence gate,
 Juglet half, "the paper's" values. Adopting any shape. Arm P still
 deferred, not skipped.
+
+## Postscript (ticket 07, 2026-10-14)
+
+The Huber hunk stayed live three days past this verdict and starved
+pair 1-4 the whole time (post-row-7 trees read 0/8); restoring Cauchy
+recovered 2/8+1/15 @ 262 exactly (E-6 control reproduced). Refinement
+of "NOT kernel-driven": runaway divergence is not kernel-driven
+(DIVERGED 0 under both kernels), but the true pair's survival IS
+kernel-gated. Nothing about the verdict changes — Huber stays
+unadopted — but the cost of leaving an experiment live is now measured.

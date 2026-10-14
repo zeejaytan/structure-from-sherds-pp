@@ -75,7 +75,11 @@ so upstream's uniform rule is restored; the axis-gate row kept upstream
 0.610 (first fully-correct pair 1-4); and the final row removed the
 0.7/0.3 priority-list scorer, which moved scores (239 vs 260) without
 moving a single pair — resolving the earlier read that the scorer
-preferred the wrong assembly. All seven rows are now measured. The solver walk is now bounded (trust-region cap:
+preferred the wrong assembly. All seven rows are now measured. Cleanup
+then caught a leftover with teeth: the E-6 Huber experiment was still
+live in the tree, starving pair 1-4 (post-row-7 trees read 0/8);
+restoring Cauchy recovered 2/8+1/15 @ 262 exactly — the E-6 control
+reproduced, so the zeros agree again. The solver walk is now bounded (trust-region cap:
 diverged 140 to 0 with sane placements identical, same pair passing),
 but convergence is untouched — poses elsewhere still far off. The
 second solver candidate, anchoring one sherd's pose per pairwise
@@ -96,9 +100,8 @@ The second test pot (Tray 000) is still unmeasured, and it is the
 one that can show the method works at all.
 
 Weight: one pot measured, at zero; the capability half rests on Tray 000.
-Next: ticket 12 is measured out and the Eq.6 joint step came back a
-strict no-op (identical runs, ~40% extra time) — solver-DOF moves are
-done on this pot; next the Cauchy E-0 gate, then Tray 000.
+Next: tickets 12 and 02-Eq.6 measured out, Cauchy restored (1-4 seats
+again) — next Tray 000, the pot that can show the method works at all.
 Viewer: `juglet_sfs29`
 
 ## Why it matters

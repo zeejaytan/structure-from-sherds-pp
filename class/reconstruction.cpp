@@ -1450,10 +1450,10 @@ void Icp(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::HuberLoss(4.0);	// cauchy-scales ticket 06 Arm H (Huber diagnostic, Icp-site): restored to solver-01 root 4.0 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: solver-01 root 1.8 + Cauchy->Huber (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Icp-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraint(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1699,10 +1699,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::HuberLoss(4.0);	// cauchy-scales ticket 06 Arm H (Huber diagnostic, Registration5-site): restored to solver-01 root 4.0 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: solver-01 root 1.8 + Cauchy->Huber (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Registration5-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1915,10 +1915,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::HuberLoss(4.0);	// cauchy-scales ticket 06 Arm H (Huber diagnostic, Registration6-site): restored to solver-01 root 4.0 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: restored to solver-01 root 1.8 + Cauchy->Huber, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::HuberLoss(1.8);	// cauchy-scales ticket 06 Arm H: solver-01 root 1.8 + Cauchy->Huber (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Registration6-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);

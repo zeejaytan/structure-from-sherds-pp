@@ -405,10 +405,12 @@ flagged.
   know (05-dev-2 covers weights/scales only): initial 100 / max 1000 ×5
   solve sites, ADOPTED 2026-10-10 (A/B diverged 140→0, sane identical).
   DEVIATION-measured. Owned by solver-01 ticket.
-- **NEW G2: Arm-H Huber** — 05-unknown + un-reverted post-verdict:
-  `HuberLoss(4.0/1.8/1.8/1.8)` ×3 solve sites (cauchy-scales Arm H,
-  IN-FLIGHT — E-6 verdict landed yet still in tree, needs revert ticket).
-  Owned by cauchy-scales 06.
+- **NEW G2: Arm-H Huber** — REVERTED 2026-10-14 (cauchy-scales ticket
+  07): `HuberLoss(4.0/1.8/1.8/1.8)` ×3 solve sites ran three days past
+  the E-6 verdict and starved pair 1-4 (post-row-7 trees 0/8); Cauchy
+  restored at the same scales, E-6 control reproduced exactly
+  (2/8+1/15 @ 262). Refinement: divergence not kernel-driven, true-pair
+  survival kernel-gated. Owned by cauchy-scales 06 (postscript added).
 - **NEW G3 (minor): Registration-150 extends 05-dev-1's fix** — `Icp`
   `max_iteration` 50→150 plus `Registration` ×2 (ticket 07 control, job
   32087141). Owned by 07.
