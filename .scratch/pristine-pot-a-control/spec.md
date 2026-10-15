@@ -4,7 +4,7 @@
 
 **Answers:** S1
 
-**Status:** draft (spec only — no code, no sbatch, no intent edits)
+**Status:** closed 2026-10-15 — control arm executed (gate 15/15, E2E 8/8 + 15/15, witnessed), open items O1–O4 confirmed 2026-10-14, result written into S1. Follow-on preprocessing check (same date, lead-run): untouched upstream preprocessing does NOT regenerate the authors' inputs — see Close section.
 
 ## 目标 (S1 能力半臂)
 
@@ -46,3 +46,30 @@
 ## 非目标
 
 - 不碰代码、不 `sbatch`、不改 `intent/`；不重调阈值；不把 Juglet 结论外推为普遍无能力（S1 Gate: Juglet 失败是 scope，非 capability）。
+
+## Close (2026-10-15, lead)
+
+Control arm closed per ticket `issues/01-pristine-pot-a-run.md` worker report
+2026-10-14 + conservator witness 2026-10-15 ("baseline verified, it rebuilt
+perfectly"): gate probe 15/15, E2E SA 8/8 + EA 15/15 at the Table V gauge
+(scoring job 32983523), purity held (upstream @ `9195c01`, INFRA shims only).
+Open items O1–O4 were confirmed by the lead 2026-10-14 (see ticket
+Preconditions); O4 Rank 1 (Xvfb) proven infeasible on the assembly image
+(diag job 32976970, segfaults 139/134/139) — Rank 2 batch-entry shim used
+and declared INFRA.
+
+Follow-on, same date (lead-run team tasks task-1–3, evidence in
+`C:\PR\SfSpp_preprocessing\artifacts\untouched_pota_verify_20261015/`):
+running the **preprocessing** side untouched (upstream DominicoRyu @
+`d5ee6865`, fresh headless container image `be24a382…`, zero source shims)
+on the authors' own Pot A scans does NOT reproduce the inputs the control
+ran on — fresh edge files carry no `#` segment headers so untouched
+assembly loads 0 of 8, and fresh surfaces for pieces 2–8 sit +1.8–3.5 mm
+too high in Z (piece 1 correct at 0.52 mm); fresh-vs-authors gate 6/15.
+The untouched MATLAB axis program is incomplete as released (missing
+loader, Windows-only paths, a dimension error on current MATLAB, and a
+59-line refinement file existing only in our fork) — axes leg closed as a
+documented gap. So the control proves the assembler works on suitable
+material *given the authors' prepared inputs*; regenerating those inputs
+from scans with the released preprocessing is unverified-to-failing.
+Nothing in this close changes code, thresholds, or the Juglet scope verdict.

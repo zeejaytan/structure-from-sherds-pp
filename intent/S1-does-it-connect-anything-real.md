@@ -733,3 +733,47 @@ not a broken pipeline. One pot, one run: a control lead, not a universal claim.
   2026-10-15 (`pristine_pota_whole.json`, median 0.69 mm / p90 1.36 mm).
   Witnessed by the conservator 2026-10-15: "baseline verified, it rebuilt
   perfectly" — the capability-half of S1 is settled on this control.
+
+Closeout 2026-10-15: pristine-pot-a-control spec + ticket 01 closed (all boxes
+checked with worker-report evidence above); preprocessing follow-on result
+recorded here and in E1 `Where it stands`; board rebuilt in the same commit.
+## 2026-10-15 — follow-on: untouched preprocessing does NOT regenerate the authors' inputs
+
+What this means first: the control above proves the assembler works *given
+the authors' prepared inputs*. Running the **preprocessing** side untouched
+on the authors' own Pot A scans does not reproduce those inputs — so the
+chain from scans is unverified-to-failing, and the control's inputs remain
+irreplaceable by the released code. Same verdict class as the Juglet arm:
+**case 1, the method genuinely failing** — the gate and the answer key both
+check out (ORIG arm 8/8 + 15/15 in the same job; GT hashes identical).
+
+- **Fresh C++ outputs vs authors' inputs, all at published GT:** piece 1
+  correct (0.52 mm median, 100% of the authors' tracing within 2 mm);
+  pieces 2–8 shifted near-rigidly upward (+1.8–3.5 mm Z, 2.9–3.8 mm
+  overall). Point counts match — positions don't. The shift is already in
+  the fresh *surfaces* (piece 2: 3.65 mm), so edge tracing faithfully
+  followed shifted input; the damage enters at the surface step.
+- **Two blockers, ordered:** (1) *fatal file format* — fresh edge files
+  carry no `#` segment headers the untouched reader requires
+  (`data_structure.cpp:178`), so assembly loads 0 of 8 and places nothing
+  (then crashes on the empty input — consequence, not a separate defect);
+  only our fork writes headers. (2) *surface geometry* — even with headers
+  fixed, fresh-vs-authors gate is 6/15 (only piece 1's seams pass).
+- **MATLAB axes incomplete as released:** missing loader file,
+  Windows-only paths, a dimension error on current MATLAB, and a 59-line
+  refinement file existing only in our fork — axes leg closed as a
+  documented gap per conservator call. Untouched source throughout
+  (upstream DominicoRyu @ `d5ee6865`, fresh headless container
+  `be24a382…`, virtual display for the viewer-globals abort).
+- **Eye:** fresh (red) vs authors' (blue) at GT staged at
+  `artifacts/visual-qa/task3_fresh_vs_orig/` (`whole_*`, `seam12_*` ~4 mm
+  gap, `seam24_*` coherent shift) + `desc.md` — awaiting conservator
+  witness; numbers above stand regardless.
+- Evidence: `C:\PR\SfSpp_preprocessing\artifacts\untouched_pota_verify_20261015/`
+  (`TASK3_EVIDENCE.md`, gate/eye-check scripts, sbatch, both binary logs);
+  Spartan isolated tree + rundir `sfs_main/task3_pota_verify_33036311/`.
+
+Weight: one pot, one run per arm — but full-population counts with a
+reproduced 15/15 control, so chance explains nothing. Consequence: every
+Pot_A number measured from the authors' data (15/15 gates, E-6 rows) was
+measuring prepared inputs, never this pipeline's output from scans.
