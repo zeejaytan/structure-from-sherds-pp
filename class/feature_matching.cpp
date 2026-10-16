@@ -1770,11 +1770,11 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double lowest_score(9999);
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
-			if (iter->axis_angle_ > 0.610) {	// TICKET-12 ROW 1 2026-10-05: restored to upstream 0.610 (35deg) for the A/B (was lineage 1.571/90deg). One variable: this hunk only.
+			if (iter->axis_angle_ > 0.436) {	// POTA38 C2-restore: true upstream 0.436 (25deg); ac64c3f's "upstream 0.610" proven false (cure src sfs_p22fix_src:1715 = 0.436); abl2 causal ORIG 0/8->8/8 (job 33153903).
 				// DEBUG: Track blue-red-green rejections
 				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
 					cout << "*** AXIS ANGLE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": axis_angle=" << iter->axis_angle_ << " (>" << 0.610 << ")" << endl;
+						 << ": axis_angle=" << iter->axis_angle_ << " (>" << 0.436 << ")" << endl;
 				}
 				iter = lcs_basket[i].erase(iter);
 			}
