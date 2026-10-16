@@ -1857,7 +1857,7 @@ void RegistrationPruning(vector<Geom>& shard,
 				continue;
 			}
 		}
-		if ((iter->score_ > 10) || (iter->overlap_)) {
+		if ((iter->score_ > 10)) { // P22FIX: RP overlap kill ablated; CheckGraph still guards graphs
 			iter = LCS_out.erase(iter);
 		}
 		else

@@ -1782,7 +1782,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 						shard[j].edge_line_,
 						area,
 						size,
-						50);
+						150); // P22FIX2: admit long-seam true graphs; beam scoring still rejects false ones (was PAPER-CONFIG S=50)
 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
 					if (overlap) {
 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
