@@ -21,9 +21,9 @@
 class RankingSubgraph;
 
 #define CERES_FUNC_TOL			1.0e-3
-#define MINIMUM_NUMBER			6  // TICKET-12 ROW 6 2026-10-05: restored to upstream value for the A/B (was lineage 1: 3 for small pieces, then 1 for NURBS). Tests whether the floor kills 2-pt divergent solves without killing thin-true pairs (1-2 good attempts run 8-81 inliers).
-#define INLIER_THRESHOLD		3.0  // Relaxed distance threshold
-#define ANGLE_THRESHOLD			0.5236  // V2b WON 2026-10-02 (job 32102549: 15deg loses the 2/8). Back to paper 30deg. Ticket 08 resolved.
+#define MINIMUM_NUMBER			6
+#define INLIER_THRESHOLD		1.5
+#define ANGLE_THRESHOLD			0.262
 
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;
@@ -45,12 +45,6 @@ void AxisAlignment(BreakLine& data,
 	Vector3d& t_out,
 	int axis_index = 0);
 
-// UNIFIED POTTERY-AWARE VALIDATION SYSTEM
-void UnifiedPotteryValidation(Corres& cor,
-	double dist_TH,
-	double angle_TH);
-
-// LEGACY: Redirects to unified system for backward compatibility
 void RejectOutlier(Corres& cor,
 	double dist_TH,
 	double angle_TH);

@@ -1,14 +1,5 @@
 #include "reconstruction.h"
 #include "../class/ranking_system.h"
-#include "ground_truth_debug.h"
-#include "robust_icp.h"
-#include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
-// cauchy-scales ticket 01 (E-0 measurement, log-only): std::snprintf /
-// std::ofstream dump, std::strcmp site lookup, std::sqrt norm.
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#include <fstream>
 
 //############################## other function ##############################//
 bool isConverge(const Matrix4d& T,
@@ -132,83 +123,26 @@ void AxisAlignment(BreakLine& data,
 	data.axis_point_[axis_index] = { 0, 0, 0 };
 }
 
-// UNIFIED POTTERY-AWARE VALIDATION: Replaces old RejectOutlier system
-void UnifiedPotteryValidation(Corres& cor, double dist_TH, double angle_TH = 0.65)
+void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
 {
 	vector<double> distance(cor.cor.size()), Norm(cor.cor.size());
 	int num_inliers = 0;
 
-	// Debug output for important connections
-	bool is_red_blue = (cor.index_A == 1 && cor.index_B == 3) || (cor.index_A == 3 && cor.index_B == 1);
-	bool is_pieces_1_2 = (cor.index_A == 1 && cor.index_B == 2) || (cor.index_A == 2 && cor.index_B == 1);
-	if (is_red_blue || is_pieces_1_2) {
-		if (is_pieces_1_2) {
-			cout << "*** UNIFIED POTTERY VALIDATION DEBUG *** Pieces 1-2" << endl;
-		} else {
-			cout << "*** UNIFIED POTTERY VALIDATION DEBUG *** Red-Blue Connection" << endl;
-		}
-		cout << "Initial correspondences: " << cor.cor.size() << endl;
-		cout << "Distance threshold: " << dist_TH << ", Using pottery-first validation" << endl;
-	}
-
 	Corres dummy;
 	dummy.index_A = cor.index_A;
 	dummy.index_B = cor.index_B;
-	int dist_rejects = 0, pottery_rejects = 0;
-
 	for (int i = 0; i < cor.cor.size(); i++) {
 		Norm[i] = (cor.cor[i].n_A.dot(cor.cor[i].n_B));
 		distance[i] = (cor.cor[i].p_A - cor.cor[i].p_B).norm();
 
-		// UNIFIED POTTERY VALIDATION: Single coherent validation system
-		bool correspondence_valid = false;
-		if (isPotteryValidationEnabled()) {
-			correspondence_valid = SimplePotteryValidator::validatePotteryCorrespondence(
-				cor.index_A, cor.index_B, cor.cor[i].p_A, cor.cor[i].n_A, cor.cor[i].p_B, cor.cor[i].n_B, dist_TH);
-		} else {
-			// FALLBACK: Legacy distance + normal validation for non-pottery
-			// Juglet ticket 06: normal-agreement direction env-tunable.
-			// robust_icp's identical check uses abs(dot) (opposing normals
-			// pass); this gate used raw dot (agree-only). GT-placed TRUE
-			// mates show ~129-deg-opposed means (opposite wall faces), so
-			// raw dot rejects truth itself. SFS_NORMAL_ABS=1 aligns this
-			// gate with robust_icp. Default 0 preserves behavior.
-			static bool nabs_init = false; static bool nabs = false;
-			if (!nabs_init) { nabs_init = true; const char* e = std::getenv("SFS_NORMAL_ABS"); nabs = (e && (*e == '1' || *e == 't')); std::cout << "[GATE] normal_abs=" << (nabs ? 1 : 0) << std::endl; }
-			bool dist_ok = (std::abs(distance[i]) < dist_TH);
-			double ndot = nabs ? std::abs(Norm[i]) : Norm[i];
-			bool normal_ok = (ndot > angle_TH);
-			correspondence_valid = dist_ok && normal_ok;
-		}
-
-		if (is_red_blue) {
-			cout << "Correspondence " << i << ": distance=" << distance[i]
-				 << ", normal_dot=" << Norm[i] << " -> " << (correspondence_valid ? "ACCEPTED" : "REJECTED") << endl;
-		}
-
-		if (correspondence_valid) {
+		if ((std::abs(distance[i]) < dist_TH) && (Norm[i]) > angle_TH) {
 			dummy.cor.push_back(cor.cor[i]);
+
 			num_inliers++;
-		} else {
-			if (distance[i] >= dist_TH) dist_rejects++;
-			else pottery_rejects++;
 		}
 	}
-
-	if (is_red_blue || is_pieces_1_2) {
-		cout << "Final correspondences: " << num_inliers << " (rejected: "
-			 << dist_rejects << " distance, " << pottery_rejects << " pottery)" << endl;
-	}
-
 	cor.cor.clear();
 	cor = dummy;
-}
-
-// LEGACY FUNCTION: Keep for backward compatibility, redirect to unified system
-void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
-{
-	cout << "*** LEGACY REDIRECT *** RejectOutlier -> UnifiedPotteryValidation" << endl;
-	UnifiedPotteryValidation(cor, dist_TH, angle_TH);
 }
 
 void MakeBlock(BreakLine& L,
@@ -318,8 +252,6 @@ void MakeCor(Corres& c_in,
 				dummy.line_n_B = line_nB;
 				dummy.index_A = *ptr_index_A;
 				dummy.index_B = *ptr_index_B;
-				// V2a REVERTED 2026-10-02 (job 32099332: loses the 2/8, no
-				// gains -- paper value at the wrong stage hurts). Ticket 08.
 				c_in.cor.push_back(dummy);
 			}
 		}
@@ -332,7 +264,6 @@ void MakeCor(Corres& c_in,
 			dummy.line_n_B = p_B.line_normal_.col(i);
 			dummy.index_A = *ptr_index_A;
 			dummy.index_B = i;
-			// V2a REVERTED (same job, same verdict).
 			c_in.cor.push_back(dummy);
 		}
 	}
@@ -526,12 +457,12 @@ void MakeSingleCorres(vector<Corres>& COR,
 		int i_B = cor_making_index[i];
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, L[c_node - 1], L[i_B], onetoone);
-		RejectOutlier(cor_line, 20, 0.7);  // TICKET-12 ROW 3 2026-10-09: ADOPTED upstream (20, 0.7). Same-node A/B vs lineage (2.0,0.85) (jobs 32610367 vs 32613911, bm065): headline tie 2/8+1/15, same pair 1-4 both ways, SURVIVED 29 identical -- the tightening earns nothing.
+		RejectOutlier(cor_line, 20, 0.7);
 
 		cor_line.index_A = c_node;
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
-		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
+		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
 			cor_counter++;
 			cor_index[i] = true;
 		}
@@ -590,7 +521,7 @@ void MakeMergeCorres(vector<Corres>& COR,
 		int i_mov = pair_index[i].first, i_fix = pair_index[i].second;
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, L[i_mov], L[i_fix], onetoone);
-		RejectOutlier(cor_line, 20, 0.7);  // TICKET-12 ROW 3 2026-10-09: ADOPTED upstream (20, 0.7). Same-node A/B vs lineage (2.0,0.85) (jobs 32610367 vs 32613911, bm065): headline tie 2/8+1/15, same pair 1-4 both ways, SURVIVED 29 identical -- the tightening earns nothing.
+		RejectOutlier(cor_line, 20, 0.7);
 
 		cor_line.index_A = i_mov + 1;
 		cor_line.index_B = i_fix + 1;
@@ -620,8 +551,7 @@ void MakeMultiCorres(vector<Corres>& COR,
 	const vector<bool>& true_node,
 	MatrixXd& simple_graph,
 	MatrixXd& table,
-	bool onetoone,
-	int iter)
+	bool onetoone)
 {
 	int num_shard = true_node.size();
 	//########## First make KD tree
@@ -654,23 +584,13 @@ void MakeMultiCorres(vector<Corres>& COR,
 		int i_A = pair_index[i].first, i_B = pair_index[i].second;
 		Corres cor_line;
 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
-		int pre_reject_n = cor_line.cor.size();
-		// Juglet ticket 06: re-match gate env-tunable. Upstream used
-		// (20, 0.7); fork tightened to (2.0, 0.85). On handmade ware the
-		// refined placements sit ~10 mm off, inside upstream capture.
-		static bool rej_init = false; static double rej_dist = 20, rej_norm = 0.7;  // TICKET-12 ROW 3 2026-10-09: ADOPTED upstream (20, 0.7). Same-node A/B vs lineage (2.0,0.85) (jobs 32610367 vs 32613911, bm065): headline tie 2/8+1/15, same pair 1-4 both ways, SURVIVED 29 identical -- the tightening earns nothing.
-		if (!rej_init) { rej_init = true; const char* e = std::getenv("SFS_REJECT_DIST"); if (e && *e) rej_dist = std::stod(e); const char* e2 = std::getenv("SFS_REJECT_NORM"); if (e2 && *e2) rej_norm = std::stod(e2); std::cout << "[GATE] reject_dist=" << rej_dist << " reject_norm=" << rej_norm << std::endl; }
-		RejectOutlier(cor_line, rej_dist, rej_norm);
+		RejectOutlier(cor_line, 20, 0.7);
 
 		cor_line.index_A = i_A + 1;
 		cor_line.index_B = i_B + 1;
 		COR_dummy[i] = cor_line;
-		if (pre_reject_n > 0) {
-			cout << "*** MAKEMULTI *** pair " << i_A + 1 << "-" << i_B + 1 << " iter=" << iter
-				<< " raw=" << pre_reject_n << " kept=" << cor_line.cor.size() << endl;
-		}
 		// If the number of breakline correspondence is over 6, fill out the table
-		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
+		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
 			cor_counter++;
 			cor_index[i] = true;
 
@@ -743,7 +663,7 @@ void MakeCorWithSur(vector<Corres>& COR_line,
 		cor_line.index_B = i_B + 1;
 		COR_line_dummy[i] = cor_line;
 		// If the number of breakline correspondence is over 6, fill out the table
-		if (cor_line.cor.size() > 8) {	// FIXED: Require more correspondences for reliable pottery assembly
+		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
 			cor_counter++;
 			cor_index[i] = true;
 
@@ -762,7 +682,7 @@ void MakeCorWithSur(vector<Corres>& COR_line,
 			for (int c = 0; c < tmp_frac.cor.size(); c++) {
 				tmp_frac.cor[c].n_B = -1 * tmp_frac.cor[c].n_B;
 			}
-			RejectOutlier(tmp_frac, 10, 0.65);
+			RejectOutlier(tmp_frac, 10, 0.7);
 
 			// Make inner surface correspondence
 			MakeCor(tmp_sur, cor_line, shard[i_A].sur_out_, shard[i_B].sur_out_, 4);
@@ -794,9 +714,6 @@ bool inlierCalculate(int& inlier,
 	const vector<BreakLine>& L,
 	bool volume_weight)
 {
-	cout << "*** USING LEGACY ICP *** Direct legacy inlier calculation (robust ICP removed)" << endl;
-
-	// Use proven legacy CountInlier system directly
 	vector<double> num_points(L.size(), 0);
 	for (int i = 0; i < L.size(); i++) {
 		num_points[i] = L[i].point_.cols();
@@ -805,14 +722,14 @@ bool inlierCalculate(int& inlier,
 		cor,
 		num_points,
 		INLIER_THRESHOLD,
-		ANGLE_THRESHOLD);
+		ANGLE_THRESHOLD);	
 
 	if (inlier < MINIMUM_NUMBER) {
 		return false;
 	}
 
 	if (volume_weight) {
-		double den(0), input_w(0), volume_weight_val(1);
+		double den(0), input_w(0), volume_weight(1);
 		for (int i = 0; i < true_node.size(); i++) {
 			if (true_node[i]) {
 				den += 100.0;
@@ -821,12 +738,9 @@ bool inlierCalculate(int& inlier,
 		}
 
 		input_w = input_w / den;
-		volume_weight_val = (exp(input_w) - exp(-input_w)) / (exp(input_w) + exp(-input_w));
-		inlier = (int)(volume_weight_val * (double)inlier);
+		volume_weight = (exp(input_w) - exp(-input_w)) / (exp(input_w) + exp(-input_w));
+		inlier = (int)(volume_weight * (double)inlier);
 	}
-
-	cout << "*** INLIER CALCULATION COMPLETE *** Final inlier count: " << inlier
-	     << ", Success: LEGACY" << endl;
 
 	return true;
 }
@@ -1117,8 +1031,6 @@ void UsePreCorres(Corres& cor_in,
 	bool fix)
 {
 	MakeSection(L, p_A, p_B, lcs);
-	{ int nA = (int)p_A.point_.cols(), nB = (int)p_B.point_.cols(); int LA = (int)L[lcs.shard_y_-1].point_.cols(), LB = (int)L[lcs.shard_x_-1].point_.cols(); cout << "*** USEPRE *** pair " << lcs.shard_y_ << "-" << lcs.shard_x_ << " ranges Ax[" << lcs.start_.y << "," << lcs.end_.y << "]/L" << LA << " Bx[" << lcs.start_.x << "," << lcs.end_.x << "]/L" << LB << endl; }
-	MakeSection(L, p_A, p_B, lcs);
 	for (int j = 0; j < p_A.point_.cols(); j++) {
 		CorPair dummy;
 		dummy.p_A = p_A.point_.col(j);
@@ -1198,140 +1110,6 @@ void FillMatchedPoints(const vector<Corres>& COR,
 	}
 }
 
-// cauchy-scales ticket 01 (E-0 measurement). LOG-ONLY: env-gated
-// (SFS_E0_DUMP = output dir), zero behavior change when unset. Per residual
-// block of a ceres::Problem, log class, dim, the site constant a, the
-// post-weight ||f||, s/a^2, rho' (the IRLS pull-weight, Cauchy
-// 1/(1+s/a^2)), and the raw-unit conversions. Called immediately BEFORE
-// ceres::Solve so it reads that iteration's start (Evaluate Note 1) and
-// never during a solve (Note 3).
-static void LogE0Residuals(const char* site, int iter,
-	double a_dist, double a_norm, double a_axis, double a_rim,
-	ceres::Problem& problem)
-{
-	const char* dump_dir = std::getenv("SFS_E0_DUMP");
-	if (dump_dir == NULL) return;	// default path: getenv only, nothing runs
-	static int dump_idx = 0;
-	char dump_path[1024];
-	std::snprintf(dump_path, sizeof(dump_path), "%s/dump_e0_%04d.tsv",
-	              dump_dir, dump_idx++);
-	std::ofstream dump(dump_path, std::ios::out | std::ios::trunc);
-	if (!dump.is_open()) return;
-
-	std::vector<ceres::ResidualBlockId> blocks;
-	problem.GetResidualBlocks(&blocks);
-	// Per-site functor weights, so the raw-unit conversion strips exactly
-	// the multiplier the cost functor put into the residual.
-	double w_d = 1.0, w_n = 3.0, w_l = 1.0, w_a = 0.1;
-	if (std::strcmp(site, "IcpIncGraphAxis") == 0) {
-		w_d = 2.0; w_n = 5.0; w_l = 3.0; w_a = 1.0;
-	}
-
-	// One shared context/scratch is fine: Evaluate is unsynchronised over
-	// parameter memory only (it restores the state pointers at exit, see
-	// problem_impl.cc:886-887).
-	ceres::Problem::EvaluateOptions eval_opts;
-	eval_opts.parameter_blocks.clear();
-	eval_opts.residual_blocks = blocks;
-	eval_opts.apply_loss_function = false;
-	eval_opts.num_threads = 1;
-	std::vector<double> residuals;
-	double cost = 0.0;
-	if (!problem.Evaluate(eval_opts, &cost, &residuals, NULL, NULL)) {
-		dump << "site\titer\tblock_index\tclass\tdim\ta\tfnorm\ts_a2\trho_p"
-		     << "\traw_unit\traw_norm\tcor_pair\tcor_point\n";
-		dump << "# EVALUATE FAILED (residuals unavailable)\n";
-		return;
-	}
-
-	dump << "site\titer\tblock_index\tclass\tdim\ta\tfnorm\ts_a2\trho_p"
-	     << "\traw_unit\traw_norm\tcor_pair\tcor_point\n";
-	// Two classes are dim-2 (rim CostFuncRim and the Fixed-P2L
-	// CostFuncFixedLineDist) and the add-order is P2L-before-rim, so the
-	// first dim-2 block of a run is the line distance and the rest are rim.
-	int dim2_run = 0;
-	int pair_index = 0;
-	int cor_point = 0;
-	int axis_point = 0;
-	int rim_point = 0;
-	size_t off = 0;
-	for (size_t bi = 0; bi < blocks.size(); ++bi) {
-		ceres::ResidualBlockId rb = blocks[bi];
-		// GetCostFunctionForResidualBlock returns const (problem.h:384-385).
-		const ceres::CostFunction* cf = problem.GetCostFunctionForResidualBlock(rb);
-		if (cf == NULL) continue;
-		const int dim = cf->num_residuals();
-		if (off + (size_t)dim > residuals.size()) continue;
-		double s = 0.0;
-		for (int k = 0; k < dim; ++k) {
-			const double v = residuals[off + k];
-			s += v * v;
-		}
-		off += (size_t)dim;
-		// GetLossFunctionForResidualBlock returns const (problem.h:389-390).
-		const ceres::LossFunction* loss = problem.GetLossFunctionForResidualBlock(rb);
-		if (loss == NULL) continue;	// block is unweighted; nothing to pull
-		double out[3] = { 0.0, 0.0, 0.0 };
-		loss->Evaluate(s, out);
-
-		const char* cls;
-		double a, w;
-		// cor labels: dist/norm rows of one pair share cor_point.
-		if (dim == 1) {
-			cls = "axis"; a = a_axis; w = w_a;
-			cor_point = axis_point++;
-		}
-		else if (dim == 2) {
-			// 2-dim is ambiguous in principle: rim CostFuncRim and the
-			// Fixed-P2L CostFuncFixedLineDist are both 2-dim. The P2L
-			// constraint is added BEFORE the rim blocks at every site, so
-			// the first dim-2 block of a run is the line distance and every
-			// later dim-2 block in that run is rim. Confirmed empirically by
-			// the first dump's cor_point walk.
-			dim2_run++;
-			if (dim2_run == 1) {
-				cls = "dist_line2"; a = a_dist; w = w_l;
-				cor_point = pair_index++;
-			}
-			else {
-				cls = "rim"; a = a_rim; w = 1.0;
-				cor_point = rim_point++;
-			}
-		}
-		else if (dim == 3) {
-			// parity carry (spec decision 2, confirmed empirically by the
-			// first dump): dist first, norm second, per pair.
-			const bool is_dist = ((int)bi % 2) == 0;
-			cls = is_dist ? "dist" : "norm";
-			a = is_dist ? a_dist : a_norm;
-			w = is_dist ? w_d : w_n;
-			if (is_dist) pair_index++;
-			cor_point = pair_index - 1;
-		}
-		else if (dim == 4) {
-			cls = "dist_line4"; a = a_dist; w = w_l;
-			cor_point = pair_index++;
-		}
-		else {
-			cls = "dist_other"; a = a_dist; w = w_l;
-			cor_point = pair_index++;
-		}
-		const double fnorm = std::sqrt(s);
-		const double s_a2 = s / (a * a);
-		// raw_unit = the block's magnitude in the geometry's own unit
-		// (mm / normal-component / Cao-units / rim mm), raw_norm kept as
-		// the same conversion under a second name so both the ticket's
-		// column list stays stable if the definitions diverge later.
-		const double raw_unit = (w > 0.0 ? fnorm / w : 0.0);
-		dump << site << "\t" << iter << "\t" << (int)bi << "\t" << cls
-		     << "\t" << dim << "\t" << a << "\t" << fnorm << "\t" << s_a2
-		     << "\t" << out[1] << "\t" << raw_unit << "\t" << raw_unit
-		     << "\t" << (pair_index - 1)
-		     << "\t" << cor_point << "\n";
-	}
-	dump.flush();
-}
-
 void Icp(vector<BreakLine>& L,
 	vector<Matrix3d>& R,
 	vector<Vector3d>& t,
@@ -1349,9 +1127,9 @@ void Icp(vector<BreakLine>& L,
 	vector<bool> true_node(num_shard, false);
 	double** trans = new double* [num_shard];	// trans : transfortation
 	double** s = new double* [num_shard];		// s : rotaion representer
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1); // E3 REVERTED 2026-10-01 (job 31890296: no recovery, same regime). Weights hypothesis exhausted. Ticket 07.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1);
 	double w_r(1.0), w_h(1.0);
-	int max_iteration = 150, ceres_iteration = 100; // PAPER-CONFIG 2026-10-01: paper line 240 ICP max 150 outer (was 50). Weights mapping in ticket 07 (E1-E3: reproducible, all tested, none recovers).
+	int max_iteration = 50, ceres_iteration = 100;
 
 	COR.resize(num_edge);				// number of correspondence s same as number of edges
 	if (num_edge != 1) {
@@ -1406,38 +1184,24 @@ void Icp(vector<BreakLine>& L,
 		else {
 			//if not then just use whole breakline data to make correspondence.
 			MakeCor(cor_in, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
-			// CRITICAL FIX: Do NOT run pottery validation during ICP iterations!
-			// Pottery validation with 3mm touching threshold kills ICP refinement on iteration 1,
-			// preventing convergence to <1mm precision. Ground truth pieces TOUCH perfectly,
-			// but iteration 0 feature-match alignment has 5-12mm distances that need ICP refinement.
-			// RejectOutlier(cor_in, 20, 0.65);  // REMOVED - was killing ICP after iteration 0
+			RejectOutlier(cor_in, 20, 0.7);
 		}
 
 		COR.push_back(cor_in);
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
 
-		//############### Check correspondence number ###############//
+		//############### Check correspondence number ###############// 
 		bool miss_cor = false;
 		//#pragma omp parallel for
 		for (int i = 0; i < COR.size(); i++) {
 			if (COR[i].cor.size() < MINIMUM_NUMBER) {
 				miss_cor = true;
 				cycle.score = 11.0;
-
-				// GROUND TRUTH DEBUG: Track correspondence failures
-				int piece1 = COR[i].index_A;
-				int piece2 = COR[i].index_B;
-				if (GroundTruthDebugger::isGroundTruthConnection(piece1, piece2)) {
-					GroundTruthDebugger::trackConnection(piece1, piece2,
-						GroundTruthDebugger::ICP_CORRESPONDENCE_STAGE,
-						"Insufficient correspondences after outlier rejection",
-						COR[i].cor.size(), MINIMUM_NUMBER);
-				}
 				break;
 			}
 
-			// Fill out edge table
+			// Fill out edge table 
 			int s_A = COR[i].index_A - 1;
 			int s_B = COR[i].index_B - 1;
 			true_node[s_A] = true;
@@ -1446,14 +1210,12 @@ void Icp(vector<BreakLine>& L,
 		if (miss_cor)
 			break;
 
-		{ int ccn = 0; double cdist = 0; for (size_t cqi = 0; cqi < COR.size(); cqi++) { ccn += (int)COR[cqi].cor.size(); for (size_t cki = 0; cki < COR[cqi].cor.size(); cki++) cdist += (COR[cqi].cor[cki].p_A - COR[cqi].cor[cki].p_B).norm(); } cout << "*** ICPCOR *** pair " << cycle.nodes[0] << "-" << cycle.nodes[1] << " iter=" << iter << " objs=" << COR.size() << " pts=" << ccn << " meandist=" << (ccn ? cdist / ccn : -1) << endl; }
-
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Icp-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
 
 		if (point_to_line) {
 			P2LConstraint(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1493,45 +1255,15 @@ void Icp(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
-		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
-		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		options.function_tolerance = CERES_FUNC_TOL;
+		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
-		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
-		// Iters 0 and 1: iter 0 is the dist+norm-only absent-class case,
-		// iter 1 is the cold-start all-four-classes case (staging turns
-		// axis/rim/P2L on at iter>0 and parameters are re-zeroed each
-		// iteration), so both are start-of-solve states, not warm ones.
-		if (iter <= 1)
-			LogE0Residuals("Icp", iter, 4.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 06 Arm H: restored live values (4.0, 1.8, 1.8, 1.8)
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
 		for (int i = 0; i < num_node; i++) {
 			int node = cycle.nodes[i] - 1;
 			UpdateTrans(L[node], s[node], trans[node], R, t, R_i, t_i, node);
-		}
-		// Ticket 11 guard (2026-10-02): diverged solves REJECTED LOUDLY.
-		// LM walks translations to 1e11+ mm on underdetermined sets
-		// (measured 1.7e13 on pair 1-2); downstream then works in fantasy
-		// land (vacuous profile passes, length_error aborts). Sane
-		// placements live at hundreds of mm (GT max 427); 20000mm is 50x
-		// safe. Uses the existing failure channels (score 11 / inlier 0).
-		// !(x<20000) also catches NaN. Same guard in both Registration
-		// overloads below: one variable (the guard), three call sites.
-		{
-			bool t_sane = true;
-			for (int i = 0; i < num_node; i++) {
-				const int node = cycle.nodes[i] - 1;
-				if (!(t_i[node].norm() < 20000.0)) { t_sane = false; break; }
-			}
-			if (!t_sane) {
-				cout << "*** DIVERGED-SOLVE *** Icp translation insane -- rejecting loudly" << endl;
-				cycle.score = 11.0;
-				cycle.inlier = 0;
-				break;
-			}
 		}
 		shard_A = m_LCS[cycle.edges[0]].shard_y_ - 1;
 		shard_B = m_LCS[cycle.edges[0]].shard_x_ - 1;
@@ -1541,7 +1273,6 @@ void Icp(vector<BreakLine>& L,
 			T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
 		}
 		Matrix4d T = T1.inverse() * T2;
-		{ double ttot = 0; for (int qi = 0; qi < num_shard; qi++) ttot += t[qi].norm(); cout << "*** ICPITER *** iter=" << iter << " acc_t_norm=" << ttot << endl; }
 
 		bool isfinish = false;
 		// If all transformation matries are not chaged then stop the iteration
@@ -1564,22 +1295,13 @@ void Icp(vector<BreakLine>& L,
 			BreakLine p_A = L[shard_A - 1], p_B = L[shard_B - 1];
 			vector<Corres> cor_conv;
 			MakeCor(cor_pair, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
-			RejectOutlier(cor_pair, 20, 0.65);
+			RejectOutlier(cor_pair, 20, 0.7);
 			cor_conv.push_back(cor_pair);
 			
 			MatchingScore(cycle.score, cor_conv);
-
-			// DEBUG: Log inlier calculation details
-			int temp_inlier_before = cycle.inlier;
 			bool inlier_cal = inlierCalculate(cycle.inlier, true_node, cor_conv, L);
-			std::cout << "*** INLIER CALCULATION DEBUG *** Before=" << temp_inlier_before
-			          << " After=" << cycle.inlier << " Success=" << (inlier_cal ? "true" : "false")
-			          << " Score=" << std::fixed << std::setprecision(3) << cycle.score << std::endl;
-
 			if (!inlier_cal) {
 				cycle.score = 11.0;
-				std::cout << "*** INLIER THRESHOLD FAIL *** Inlier count " << cycle.inlier
-				          << " < MINIMUM_NUMBER " << MINIMUM_NUMBER << ", score reset to 11.0" << std::endl;
 			}
 
 			break;
@@ -1610,9 +1332,9 @@ void Registration(vector<BreakLine>& L,
 	MatrixXd Table(num_shard, num_shard);
 	double* trans = new double[3];
 	double* s = new double[3];
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0);
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 150, ceres_iteration = 100; // CONTROL WON 2026-10-02 (job 32087141: 0/8 at 50 vs 2/8 at 150, all else identical). Registration-150 restored. Ticket 07.
+	int max_iteration = 50, ceres_iteration = 100;
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
@@ -1620,7 +1342,6 @@ void Registration(vector<BreakLine>& L,
 		c_node = lcs.shard_y_;
 		set_node = lcs.shard_x_;
 	}
-	{ double tin = 0; for (size_t rgi = 0; rgi < R.size(); rgi++) tin += t[rgi].norm(); cout << "*** REGIN *** Pieces " << lcs.shard_y_ << "-" << lcs.shard_x_ << " in_t_norm=" << tin << endl; }
 
 	// Iterate until R_i and t_i are not changed
 	bool point_to_line = false;
@@ -1666,13 +1387,7 @@ void Registration(vector<BreakLine>& L,
 		}
 
 		else {
-			// Juglet ticket 06: SFS_LCS_ONLY=1 reuses the LCS
-			// pre-correspondences every iteration instead of dense
-			// re-matching (see the 6-arg overload below for rationale).
-			static bool dense_init_b = false; static bool use_dense_b = true;
-			if (!dense_init_b) { dense_init_b = true; const char* e = std::getenv("SFS_LCS_ONLY"); if (e && *e && string(e) != "0") use_dense_b = false; std::cout << "[GATE] dense_rematch_5arg=" << use_dense_b << std::endl; }
-			if (use_dense_b) { MakeSingleCorres(COR, L, true_node, c_node, onetoone); }
-			else { Corres cor_s5; cor_s5.index_A = shard_A, cor_s5.index_B = shard_B; BreakLine p_sA = L[shard_A - 1], p_sB = L[shard_B - 1]; UsePreCorres(cor_s5, L, p_sA, p_sB, lcs, c_node, true); COR.push_back(cor_s5); }
+			MakeSingleCorres(COR, L, true_node, c_node, onetoone);
 		}
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
@@ -1699,10 +1414,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Registration5-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1742,28 +1457,14 @@ void Registration(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
-		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
-		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		options.function_tolerance = CERES_FUNC_TOL;
+		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
-		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
-		// Iters 0 and 1 (see the Icp site for why both are cold starts).
-		if (iter <= 1)
-			LogE0Residuals("Registration5", iter, 4.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 06 Arm H: restored live values (4.0, 1.8, 1.8, 1.8)
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
 		int count(0);	// For stop condition
 		UpdateTrans(L[c_node - 1], s, trans, R, t, R_i, t_i, c_node - 1);
-		// Ticket 11 guard (2026-10-02): same diverged-solve reject as Icp
-		// above (one variable, three call sites).
-		if (!(t_i[c_node - 1].norm() < 20000.0)) {
-			cout << "*** DIVERGED-SOLVE *** Registration translation insane -- rejecting loudly" << endl;
-			lcs.score_ = 11.0;
-			lcs.inliner_ = 0;
-			break;
-		}
 
 		Matrix4d T = Matrix4d::Identity();
 		for (int j = 0; j < 3; j++) {
@@ -1815,9 +1516,9 @@ void Registration(vector<BreakLine>& L,
 	MatrixXd Table(num_shard, num_shard);
 	double* trans = new double[3];
 	double* s = new double[3];
-	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0); // E3 REVERTED 2026-10-01 (job 31890296: no recovery). Weights hypothesis exhausted. IcpIncGraphAxis keeps its own scheme -- separate experiment.
+	double w_d(1.0), w_n(3.0), w_line(1.0), w_a(0.1), w_r(1.0), w_h(1.0);
 	bool pre_cor = true, onetoone = true;
-	int max_iteration = 150, ceres_iteration = 100; // CONTROL WON 2026-10-02 (job 32087141: 0/8 at 50 vs 2/8 at 150, all else identical). Registration-150 restored. Ticket 07.
+	int max_iteration = 50, ceres_iteration = 100;
 
 	int c_node = lcs.shard_x_;
 	int set_node = lcs.shard_y_;
@@ -1878,16 +1579,7 @@ void Registration(vector<BreakLine>& L,
 		}
 
 		else {
-			// Juglet ticket 06: SFS_LCS_ONLY=1 reuses the LCS
-			// pre-correspondences every iteration instead of dense
-			// re-matching. Dense re-matching manufactures false matches
-			// between co-centered sherds; refitting them feeds the Ceres
-			// runaway (e5 placements). LCS index pairs track the moving
-			// pieces, so this stays a proper fixed-correspondence fit.
-			static bool dense_init = false; static bool use_dense_rematch = true;
-			if (!dense_init) { dense_init = true; const char* e = std::getenv("SFS_LCS_ONLY"); if (e && *e && string(e) != "0") use_dense_rematch = false; std::cout << "[GATE] dense_rematch=" << use_dense_rematch << std::endl; }
-			if (use_dense_rematch) { MakeMergeCorres(COR, L, true_node, merge_node, onetoone); }
-			else { Corres cor_dense_off; cor_dense_off.index_A = shard_A, cor_dense_off.index_B = shard_B; BreakLine p_dA = L[shard_A - 1], p_dB = L[shard_B - 1]; UsePreCorres(cor_dense_off, L, p_dA, p_dB, lcs, c_node, true); COR.push_back(cor_dense_off); }
+			MakeMergeCorres(COR, L, true_node, merge_node, onetoone);
 		}
 
 		pre_cor = false;		// Pre-correspondences are used at only first time.
@@ -1915,10 +1607,10 @@ void Registration(vector<BreakLine>& L,
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(4.0);	// cauchy-scales ticket 07 (Huber revert, Registration6-site): Huber->Cauchy at solver-01 root 4.0, weights frozen
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8, weights frozen
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.8);	// cauchy-scales ticket 07 (Huber revert): Huber->Cauchy at solver-01 root 1.8 (was RELAXED 1.8, original 2.0)
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
 
 		if (point_to_line) {
 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
@@ -1965,15 +1657,9 @@ void Registration(vector<BreakLine>& L,
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
-		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
-		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		options.function_tolerance = CERES_FUNC_TOL;
+		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
-		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
-		// Iters 0 and 1 (see the Icp site for why both are cold starts).
-		if (iter <= 1)
-			LogE0Residuals("Registration6", iter, 4.0, 1.8, 1.8, 1.8, problem);	// cauchy-scales ticket 06 Arm H: restored live values (4.0, 1.8, 1.8, 1.8)
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -1987,14 +1673,6 @@ void Registration(vector<BreakLine>& L,
 				UpdateTrans(L[i], s, trans, R, t, R_i, t_i, i);
 			else if (merge_node[i])
 				EdgeLineMove(L[i], R_m, t_m);
-		}
-		// Ticket 11 guard (2026-10-02): same diverged-solve reject (one
-		// variable, three call sites).
-		if (!(t_i[c_node - 1].norm() < 20000.0)) {
-			cout << "*** DIVERGED-SOLVE *** Registration translation insane -- rejecting loudly" << endl;
-			lcs.score_ = 11.0;
-			lcs.inliner_ = 0;
-			break;
 		}
 
 		Matrix4d T = Matrix4d::Identity();
@@ -2052,12 +1730,11 @@ void IcpIncGraphAxis(
 	MatrixXd dummy_table(num_shard, num_shard);
 	double** trans = new double* [num_shard];	// trans : transfortation
 	double** s = new double* [num_shard];		// s : rotaion representer
-	double w_d(2.0), w_n(5.0), w_line(3.0);  // FIXED: Increased constraint weights
+	double w_d(1.0), w_n(3.0), w_line(1.0);
 	double w_r(1.0), w_h(1.0);
-	double w_a(1.0);  // FIXED: Increased axis weight from 0.1 to 1.0
-	{ static bool gate_once4 = false; if (!gate_once4) { gate_once4 = true; const char* e = std::getenv("SFS_AXIS_WEIGHT"); if (e && *e) w_a = std::stod(e); std::cout << "[GATE] axis_weight=" << w_a << std::endl; } }
+	double w_a(0.1);
 	bool cor_onetoone = true, point_to_line = true;
-	int max_iteration = 200, ceres_iteration = 200;  // FIXED: More iterations
+	int max_iteration = 100, ceres_iteration = 100;
 
 	for (int i = 0; i < num_shard; ++i) {
 		trans[i] = new double[3];
@@ -2099,19 +1776,14 @@ void IcpIncGraphAxis(
 
 		//############### Make correspondence ###############// 
 		COR.clear();
-		MakeMultiCorres(COR, shard, graph.node_, dummy_table, dummy_table, cor_onetoone, iter);
+		MakeMultiCorres(COR, shard, graph.node_, dummy_table, dummy_table, cor_onetoone);
 
-		//############### Set nonlinear equation ###############//
+		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
-		// Juglet ticket 06: robust-kernel scales env-tunable. Init error on
-		// handmade ware (~10-15 mm) exceeds the fork-tightened capture
-		// range (1.0 mm dist); upstream used 5.0/2.0. One print per run.
-		static bool cauchy_init = false; static double cauchy_dist = 1.0, cauchy_norm = 0.5;
-		if (!cauchy_init) { cauchy_init = true; const char* e = std::getenv("SFS_CAUCHY_DIST"); if (e && *e) cauchy_dist = std::stod(e); const char* e2 = std::getenv("SFS_CAUCHY_NORM"); if (e2 && *e2) cauchy_norm = std::stod(e2); std::cout << "[GATE] cauchy_dist=" << cauchy_dist << " cauchy_norm=" << cauchy_norm << std::endl; }
-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(cauchy_dist);	// FIXED: Stricter distance constraint
-		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(cauchy_norm);	// FIXED: Stricter normal constraint
-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(1.0);	// FIXED: Stricter axis constraint
-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(1.0);		// FIXED: Stricter rim constraint
+		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);	// 5
+		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);	// 2
+		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);	// 1.5
+		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);		// 5
 
 		int num_cor_points(0);
 		//######################### correspondence distance ###########################// 
@@ -2164,18 +1836,9 @@ void IcpIncGraphAxis(
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
-		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
-		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		options.function_tolerance = CERES_FUNC_TOL;
+		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
-		// cauchy-scales ticket 01: E-0 measurement, log-only (env SFS_E0_DUMP).
-		// Iter 0 only: here all four classes are ALREADY present at iter 0
-		// (point_to_line=true hardcoded at :1904, axis and rim passed as
-		// args), so one iteration covers the full-class case. a_dist/a_norm
-		// are the LIVE env-tunable values, not the defaults.
-		if (iter == 0)
-			LogE0Residuals("IcpIncGraphAxis", iter, cauchy_dist, cauchy_norm, 1.0, 1.0, problem);
 		ceres::Solve(options, &problem, &summary);
 
 		//############### Update the transformation matrix to data ###############//
@@ -2195,7 +1858,7 @@ void IcpIncGraphAxis(
 				T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
 			}
 			Matrix4d T = T1.inverse() * T2;
-			if (isConverge(T, 0.02, 0.2))  // FIXED: Stricter convergence for pottery assembly
+			if (isConverge(T, 0.05, 1.0))
 				count++;
 		}
 
@@ -2207,24 +1870,17 @@ void IcpIncGraphAxis(
 				graph.node_, 
 				graph.simple_graph_, 
 				Table, 
-				cor_onetoone, iter);
-
-			{ int mre_n = 0; for (size_t mci = 0; mci < cor_conv.size(); mci++) mre_n += (int)cor_conv[mci].cor.size();
-			string mepairs; for (size_t mei = 0; mei < edges.size(); mei++) { mepairs += to_string(edges[mei].shard_y_) + "-" + to_string(edges[mei].shard_x_) + " "; }
-			cout << "*** MERGETABLE *** edges=" << edges.size() << " [" << mepairs << "] corObjs=" << cor_conv.size() << " corPts=" << mre_n << " tablesum=" << Table.sum() << endl; }
+				cor_onetoone);
 
 			if (!isEdgeRemoved(Table, edges)) {
 				bool inlier_cal = inlierCalculate(inlier, graph.node_, cor_conv, shard);
 				if (inlier_cal) {
 					FillMatchedPoints(cor_conv, graph.matched_index_);
 				}
-				else {
-					cout << "*** ICPINLIER *** inlierCalculate false" << endl;
+				else
 					inlier = -1;
-				}
 			}
 			else {
-				cout << "*** ICPINLIER *** isEdgeRemoved true" << endl;
 				inlier = -1;
 			}
 			break;
@@ -2308,24 +1964,6 @@ void IcpFine(
 
 		if (COR_sur.empty() || COR_frac.empty())
 			break;
-		// Preproc-01 removal lane: COR_frac entries with empty per-pair
-		// correspondence used to pass silently (no Surface_F files exist,
-		// so every entry was empty and P2PConstraint added zero residuals).
-		// Fail LOUDLY here so re-enabling this path without frac files can
-		// never silently solve without the fracture term again.
-		{
-			bool any_empty_frac = false;
-			for (size_t cf = 0; cf < COR_frac.size(); cf++) {
-				if (COR_frac[cf].cor.empty()) {
-					cerr << "[FATAL] COR_frac pair " << cf
-					     << " has empty fracture correspondence -- Surface_F "
-					        "files missing or no frac match. Refusing silent solve."
-					     << endl;
-					any_empty_frac = true;
-				}
-			}
-			if (any_empty_frac) break;
-		}
 
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
@@ -2371,10 +2009,8 @@ void IcpFine(
 		options.max_num_iterations = ceres_iteration;
 		options.minimizer_progress_to_stdout = false;
 		options.linear_solver_type = ceres::SPARSE_SCHUR;
-		options.function_tolerance = 1.0e-6;  // FIXED: Tighter tolerance than default 1.0e-3
-		options.initial_trust_region_radius = 100;  // SOLVER-01 2026-10-10 ADOPTED: same-node A/B vs row-3 tree (jobs 32613911 vs 32624499, bm065): diverged 140->0, sane identical, same pair 1-4. Scene-scale first step (default 1e4 = 10m on 300mm pot).
-		options.max_trust_region_radius = 1000;  // SOLVER-01 2026-10-10 ADOPTED (same jobs): ceiling on expansion (default 1e16). GT max 427mm; correspondences ~100mm. Same field+value at all 5 Solve sites.
-		options.num_threads = 1; // TICKET-12 THREAD TEST 2026-10-03: single-threaded Ceres to test whether multithreaded FP summation is the nondeterminism source. Matching proven byte-identical across runs; divergence enters at/after solving. All five solve sites (incl. dead IcpFine, for uniformity if ever called).
+		options.function_tolerance = CERES_FUNC_TOL;
+		options.num_threads = NUMBER_OF_THREAD;
 		ceres::Solver::Summary summary;
 		ceres::Solve(options, &problem, &summary);
 
@@ -2413,7 +2049,7 @@ void IcpFine(
 				true_node,
 				graph,
 				graph,
-				false, iter);
+				false);
 			cout << "#################### Fine reconstruction is converge ####################" << endl;
 			iter = max_iteration;
 			break;

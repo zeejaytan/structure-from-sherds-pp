@@ -34,7 +34,7 @@ public:
 	// From Lanczos differential
 	MatrixXd LanczosDiffLow(MatrixXd const& a,
 		int order,
-		int circle);
+		int circle); 
 
 private:
 	double sum_kernel_;

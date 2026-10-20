@@ -21,17 +21,12 @@
 #include <pcl/console/parse.h>
 #include <pcl/common/transforms.h>
 
-// Forward declaration for ConnectivityOptimizer
-class ConnectivityOptimizer;
-
 struct Chunk {
 	Chunk() :
 		node(0),
 		i_edge(0),
 		inlier(0),
-		graph_index(-1),
-		global_connectivity_score(0.0),
-		combined_score(0.0) {};
+		graph_index(-1) {};
 
 	bool operator ==(const Chunk& a) {
 		if (this->node != a.node) return false;
@@ -57,8 +52,6 @@ struct Chunk {
 	vector<int> i_edge;			// edge index about LCS list
 	int inlier;					// number of inlier of this chunk 
 	int graph_index;			// This indicates a graph in the state. -1 indicates priority was generated from unmatched shards
-	double global_connectivity_score;	// Global connectivity impact score from ConnectivityOptimizer
-	double combined_score;			// Final combined score (local + global)
 };
 
 struct TransHistory {
@@ -181,7 +174,7 @@ struct PTR_PriorityList {
 
 class State {
 public:
-    State() : state_score_(0) {};
+	State() : state_score_(0) {};
 	explicit State(int num_shard) 
 		: state_score_(0), 
 		true_node_(num_shard, false) { };
@@ -191,7 +184,7 @@ public:
 	void MakeTotalHierarchyPriority(void);	
 
 	// Fill out reconstructed shards into true_node_
-    void SynchronizeTrueNode(void);
+	void SynchronizeTrueNode(void);		
 
 	// Fill out reconstructed points as true value into total_matched_matrix
 	void UpdateMatchedMatrix(vector<Geom>& shard);		
@@ -215,7 +208,7 @@ public:
 	string StringOutHistory(int index);
 
 public:
-    vector<RankingSubgraph> graph_;
+	vector<RankingSubgraph> graph_;
 	vector<PTR_PriorityList> total_priority_;
 	vector<bool> true_node_;
 	vector<TransHistory> history_;

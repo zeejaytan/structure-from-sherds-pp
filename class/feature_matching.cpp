@@ -1,6 +1,5 @@
 #include "feature_matching.h"
 #include "../class/ranking_system.h"
-#include <map>
 
 //############################## Other function ##############################//
 void NoOverrange(vector<Geom>& shard, LCSIndex& reout)
@@ -609,61 +608,6 @@ void SortRegion(vector<int>& region, const int& num)
 	sort(region.begin(), region.end());
 }
 
-// Check if two breaklines have opposing surface normals at the matched segment
-bool CheckOpposingNormals(BreakLine& L0, BreakLine& L1, const LCSIndex& match)
-{
-	int cols0 = static_cast<int>(L0.point_.cols());
-	int cols1 = static_cast<int>(L1.point_.cols());
-	
-	// Use matched segment boundaries from LCSIndex
-	int start0 = max(0, min(match.start_.x - 1, cols0 - 1)); // Convert to 0-based index
-	int end0 = max(0, min(match.end_.x - 1, cols0 - 1));
-	int start1 = max(0, min(match.start_.y - 1, cols1 - 1)); // Convert to 0-based index  
-	int end1 = max(0, min(match.end_.y - 1, cols1 - 1));
-	
-	// Ensure valid ranges
-	if (start0 > end0) swap(start0, end0);
-	if (start1 > end1) swap(start1, end1);
-	
-	int segment_length0 = end0 - start0 + 1;
-	int segment_length1 = end1 - start1 + 1;
-	int sample_size = min(15, min(segment_length0, segment_length1));
-	
-	if (sample_size < 3) return false; // Not enough segment data
-	
-	// Compare normals at corresponding points within the matched segments
-	int opposing_count = 0;
-	int total_comparisons = 0;
-	
-	for (int i = 0; i < sample_size; i++) {
-		int idx0 = start0 + (i * segment_length0) / sample_size;
-		int idx1 = start1 + (i * segment_length1) / sample_size;
-		
-		Vector3d normal0(L0.normal_(0, idx0), L0.normal_(1, idx0), L0.normal_(2, idx0));
-		Vector3d normal1(L1.normal_(0, idx1), L1.normal_(1, idx1), L1.normal_(2, idx1));
-		
-		double dot_product = normal0.dot(normal1);
-		total_comparisons++;
-		
-		// Count opposing normals (dot product < -0.9 means > 154° apart) (RELAXED)
-		if (dot_product < -0.9) {
-			opposing_count++;
-		}
-	}
-	
-	// Reject match only if majority of segment has opposing normals
-	double opposing_ratio = (double)opposing_count / total_comparisons;
-	
-	if (opposing_ratio > 0.9) { // More than 90% of segment has opposing normals (RELAXED)
-		cout << "OPPOSING NORMALS DETECTED in matched segment: " 
-			 << opposing_count << "/" << total_comparisons 
-			 << " (" << (opposing_ratio * 100) << "%) points opposing" << endl;
-		return true;
-	}
-	
-	return false;
-}
-
 bool OverlapCheck_3d(BreakLine& L0,
 	BreakLine& L1,
 	double& area,
@@ -905,23 +849,7 @@ bool OverlapCheck_3d(BreakLine& L0,
 
 bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshold)
 {
-	cout << "*** PROFILE VALIDATION *** Starting with " << profile.size() << " points, threshold=" << threshold << endl;
 	bool out = true;
-	// Ticket 06 guard (battery garbage finding 2026-10-01): corrupt input
-	// must FAIL LOUDLY. Was: empty profile → .back() on empty (UB); insane
-	// z-range from garbage transforms (e.g. t_z=-1.48e11) → bin-count int
-	// overflow → validation loop skipped → vacuous PASS. A corrupt config
-	// passing plausibility is how the 5-8 abort family starts.
-	for (size_t gi = 0; gi < profile.size(); gi++) {
-		if (!std::isfinite(profile[gi](0)) || !std::isfinite(profile[gi](2))) {
-			cout << "*** PROFILE VALIDATION *** REJECT: non-finite point -- corrupt input, failing loud" << endl;
-			return false;
-		}
-	}
-	if (profile.empty()) {
-		cout << "*** PROFILE VALIDATION *** REJECT: empty profile" << endl;
-		return false;
-	}
 	// Fist, sort profile curve based on height
 	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
 		return a(2) < b(2);
@@ -930,14 +858,6 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	MinMaxValue z_total;
 	z_total.max_value = profile.back()(2);
 	z_total.min_value = profile.front()(2);
-	{
-		const double zrange = z_total.max_value - z_total.min_value;
-		if (!(zrange >= 0.0) || zrange > 1e6) {
-			cout << "*** PROFILE VALIDATION *** REJECT: absurd z-range " << zrange
-			     << "mm -- corrupt placement, failing loud" << endl;
-			return false;
-		}
-	}
 
 	int Q_size = floor((z_total.max_value - z_total.min_value) / bin_size) + 1;
 	int s_index(0);
@@ -964,32 +884,14 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		double dist(0);
 		MatrixXd coeff = CalculateLeastSquare(profile, start, end);
 		double den = sqrt(coeff(0) * coeff(0) + 1);
-		// Ticket 06 fix 1 (battery T1 convicted 2026-10-01): paper std-dev
-		// rule. Was max-absolute-deviation (any single point > threshold
-		// kills) — flipped 20/20 recorded failures with 0 new false
-		// passes under stddev on identical bins. Distances orthogonal for
-		// ALL points (the convicted variant); fit stays OLS (T2: refit
-		// cosmetic, skipped). Population stddev (÷n), matching the battery.
-		// Off-by-one also fixed: the old loop tested [start,end), leaving
-		// each bin's last point untested; the paper's statistic runs over
-		// the bin. Empty bins (start>end) are skipped, as before.
-		if (start > end) {
-			continue;
-		}
-		double sum = 0.0, sumsq = 0.0;
-		int cnt = 0;
-		for (int j = start; j <= end; j++) {
-			dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
-			sum += dist;
-			sumsq += dist * dist;
-			cnt++;
-		}
-		if (cnt > 0) {
-			const double mean = sum / cnt;
-			double var = sumsq / cnt - mean * mean;
-			if (var < 0.0) var = 0.0;
-			const double stddev = sqrt(var);
-			if (stddev > threshold) {
+		for (int j = start; j < end; j++) {
+			if (abs(coeff(0)) > 1) {
+				dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
+			}
+			else {
+				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
+			}
+			if (dist > threshold) {
 				out = false;
 				break;
 			}
@@ -999,7 +901,78 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 		}
 	}
 
-	cout << "*** PROFILE VALIDATION *** RESULT: " << (out ? "PASSED" : "FAILED") << endl;
+	return out;
+}
+
+bool ProfileCheckingWithInlier(vector<Vector3d>& profile,
+	double bin_size,
+	double threshold,
+	double th_inlier,
+	int& inlier)
+{
+	int pc_inlier(0), pc_base(0);
+	bool out = true;
+	// Fist, sort profile curve based on height
+	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
+		return a(2) < b(2);
+		});
+
+	MinMaxValue z_total;
+	z_total.max_value = profile.back()(2);
+	z_total.min_value = profile.front()(2);
+
+	int Q_size = floor((z_total.max_value - z_total.min_value) / bin_size) + 1;
+	int s_index(0);
+	for (int i = 0; i < Q_size; i++) {
+		MinMaxValue bin;
+		bin.min_value = bin_size * i + z_total.min_value;
+		bin.max_value = bin_size * (i + 1) + z_total.min_value;
+
+		int start = s_index;
+		for (int j = s_index; j < profile.size(); j++) {
+			if (profile[j](2) > bin.max_value) {
+				break;
+			}
+			else if (profile[j](2) < bin.min_value) {
+				cout << "ProfileChecking : Error - out of scope" << endl;
+				break;
+			}
+			else {
+				s_index++;
+			}
+		}
+		int end = s_index - 1;
+
+		double dist(0);
+		MatrixXd coeff = CalculateLeastSquare(profile, start, end);
+		double den = sqrt(coeff(0) * coeff(0) + 1);
+		for (int j = start; j < end; j++) {
+			if (abs(coeff(0)) > 1) {
+				dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
+			}
+			else {
+				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
+			}
+			if (dist > threshold) {
+				out = false;
+				break;
+			}
+			else if (dist < th_inlier) {
+				pc_inlier++;
+			}
+
+			pc_base++;
+		}
+		if (!out) {
+			break;
+		}
+	}
+
+	if (out) {
+		double weight = pow(((double)pc_inlier / (double)pc_base), 2) * 0.2 + 1;
+		inlier = (int)(weight * (double)inlier);
+	}
+
 	return out;
 }
 
@@ -1030,64 +1003,19 @@ void CountInlier(int& inlier, const vector<Corres>& COR, double threshold, doubl
 	double dist(0), angle(0);
 	int num = COR.size();
 
-	// DEBUG: Track high-inlier connections for analysis
-	int total_potential_inliers = 0;
-	int total_segments = num;
-	int contributing_segments = 0;
-
 	for (int i = 0; i < num; i++) {
 		int size = COR[i].cor.size();
 		int dummy_inlier(0);
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			// FIX: Clamp dot product to [-1,1] to prevent acos() domain errors
-			double dot_product = COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B);
-			dot_product = std::max(-1.0, std::min(1.0, dot_product));
-			angle = acos(dot_product);
+			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
-
-		total_potential_inliers += dummy_inlier;
-
-		// TICKET-12 ROW 5 2026-10-13: reverted to upstream uniform gate (was
-		// lineage "ROBUSTNESS FIX" adaptive, 869e696). Same-node A/B
-		// disable-vs-keep (jobs 32856411 vs 32858323, bm065): byte-identical
-		// on all measures (0/8+0/15, best 239.0, SURVIVED 29 identical
-		// values, all 7 outputs md5-identical) -- the adaptive gate is dead
-		// code on the live path (which uses overload 3 below, no gate) and
-		// earns nothing.
 		if (dummy_inlier > MINIMUM_NUMBER / 2)
 		{
 			inlier += dummy_inlier;
-			contributing_segments++;
 		}
-	}
-
-	// Global sanity check: ensure reasonable total correspondence quality
-	if (inlier < MINIMUM_NUMBER) {
-		inlier = 0; // Global rejection if insufficient total correspondences
-	}
-
-	// DEBUG: Log high-inlier connections (>200 inliers) AND moderate ground-truth-range connections (70-80 inliers) for analysis
-	static int debug_high_inlier_count = 0;
-	static int debug_moderate_inlier_count = 0;
-
-	if (inlier > 200 && debug_high_inlier_count < 5) {
-		std::cout << "*** INLIER DEBUG [HIGH] *** " << inlier << " inliers (SUSPICIOUS - possible false positive)" << std::endl;
-		std::cout << "  Total segments: " << total_segments
-		          << ", Contributing: " << contributing_segments
-		          << " (" << (contributing_segments*100/std::max(1,total_segments)) << "%)" << std::endl;
-		std::cout << "  Total potential: " << total_potential_inliers
-		          << ", Accepted: " << inlier
-		          << " (acceptance rate: " << (inlier*100/std::max(1,total_potential_inliers)) << "%)" << std::endl;
-		std::cout << "  Threshold: dist<" << threshold << "mm, angle<" << angle_th << "rad" << std::endl;
-		debug_high_inlier_count++;
-	} else if (inlier >= 70 && inlier <= 80 && debug_moderate_inlier_count < 5) {
-		std::cout << "*** INLIER DEBUG [MODERATE] *** " << inlier << " inliers (ground-truth range)" << std::endl;
-		std::cout << "  Segments: " << total_segments << " total, " << contributing_segments << " contributing"
-		          << ", Potential inliers: " << total_potential_inliers << std::endl;
-		debug_moderate_inlier_count++;
 	}
 }
 
@@ -1110,17 +1038,11 @@ void CountInlier(int& inlier,
 		int s_y = COR[i].index_B - 1;
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			// FIX: Clamp dot product to [-1,1] to prevent acos() domain errors
-			double dot_product = COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B);
-			dot_product = std::max(-1.0, std::min(1.0, dot_product));
-			angle = acos(dot_product);
+			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
-		// TICKET-12 ROW 5 2026-10-13: upstream uniform gate (adaptive removed;
-		// same-node A/B jobs 32856411 vs 32858323, bm065, byte-identical --
-		// see first CountInlier overload for the full cite).
-		if (dummy_inlier > MINIMUM_NUMBER / 2)
+		if (dummy_inlier > MINIMUM_NUMBER / 2) 
 		{
 			shard_inlier[s_x] += dummy_inlier;
 			shard_inlier[s_y] += dummy_inlier;
@@ -1154,29 +1076,9 @@ void CountInlier(int& inlier,
 		int s_y = COR[i].index_B - 1;
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			// FIX: Clamp dot product to [-1,1] to prevent acos() domain errors
-			double dot_product = COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B);
-			dot_product = std::max(-1.0, std::min(1.0, dot_product));
-			angle = acos(dot_product);
+			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
 			angle = min(angle, 3.14159 - angle);
-
-			// POTTERY-AWARE VALIDATION: Replace angle threshold with pottery validation
-			bool valid_connection = false;
-			if (isPotteryValidationEnabled()) {
-				// Use pottery-aware geometric validation instead of rigid angle threshold
-				// Convert s_x, s_y from 0-based to 1-based piece IDs
-				int piece_a_id = s_x + 1;
-				int piece_b_id = s_y + 1;
-				valid_connection = (dist < threshold) &&
-					isPotteryValidConnection(piece_a_id, piece_b_id,
-						COR[i].cor[j].p_A, COR[i].cor[j].n_A,
-						COR[i].cor[j].p_B, COR[i].cor[j].n_B);
-			} else {
-				// Fallback to original angle threshold logic
-				valid_connection = (dist < threshold && angle < angle_th);
-			}
-
-			if (valid_connection) dummy_inlier++;
+			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
 
 		{
@@ -1478,16 +1380,74 @@ void FeatureComp(vector<Geom>& a,
 {
 	vector<double> Q_size;
 	int shard_num = a.size();
-	(void)size; // Ticket 10: mode-1 branch (its only user) removed; kept
-	(void)mode; // for the three callers' sake. All callers pass mode=0.
+	bool is_thickness = false;
 
-	// Ticket 10: mode-1 Q_size branch removed (all three callers pass
-	// mode=0, verified 2026-10-02). Unconditional quantizers below.
-	Q_size.resize(4);
-	Q_size[0] = 0.15;  // D - Restored to ORIGINAL values for Orange connections
-	Q_size[1] = 0.15;  // H - Restored to ORIGINAL values for Orange connections
-	Q_size[2] = 0.15;  // Theta - Restored to ORIGINAL values for Orange connections
-	Q_size[3] = 0.2;   // Curvature - Restored to ORIGINAL values for Orange connections
+	for (int i = 0; i < shard_num; i++) {
+		if (!a[i].is_matching_) continue;
+		if (a[i].edge_line_.feature_[0].cols() > 3) {
+			is_thickness = true;
+			break;
+		}
+	}
+
+	if (mode == 1) {
+		vector<MinMaxValue> mfeatures(3);
+		int num_iter = 3;
+
+		for (int j = 0; j < 3; j++) {
+			MinMaxValue mTemp;
+			for (int i = 0; i < shard_num; i++) {
+				if (!a[i].is_matching_) continue;
+				else {
+					int num_axis = a[i].edge_line_.feature_.size();
+					for (int axis_index = 0; axis_index < num_axis; axis_index++) {
+						mTemp.max_value = max(a[i].edge_line_.feature_[axis_index].row(j).maxCoeff(), mTemp.max_value);
+						mTemp.min_value = min(a[i].edge_line_.feature_[axis_index].row(j).minCoeff(), mTemp.min_value);
+					}
+				}
+			}
+			mfeatures[j] = mTemp;
+		}
+
+		// If there is thickness featuer.
+		// 7 th row of feature_ is thickness
+		if (is_thickness) {
+			num_iter = 4;
+			MinMaxValue mTemp;
+			mTemp.min_value = 9999;
+			for (int i = 0; i < shard_num; i++) {
+				if (!a[i].is_matching_) continue;
+
+				int num_axis = a[i].edge_line_.feature_.size();
+				for (int axis_index = 0; axis_index < num_axis; axis_index++) {
+					mTemp.max_value = max(a[i].edge_line_.feature_[axis_index].row(6).maxCoeff(), mTemp.max_value);
+
+					for (int j = 0; j < a[i].edge_line_.feature_[axis_index].cols(); j++) {
+						if (a[i].edge_line_.feature_[axis_index](6, j) < 0) {
+							continue;
+						}
+						else {
+							mTemp.min_value = min(mTemp.min_value, a[i].edge_line_.feature_[axis_index](6, j));
+						}
+					}
+				}
+			}
+
+			mfeatures.push_back(mTemp);
+		}
+
+		for (int i = 0; i < num_iter; i++) {
+			Q_size.push_back((mfeatures[i].max_value - mfeatures[i].min_value) / size);
+		}
+	}
+
+	else {
+		Q_size.resize(4);
+		Q_size[0] = 0.15;	// D
+		Q_size[1] = 0.15;	// H
+		Q_size[2] = 0.15;	// Theta
+		Q_size[3] = 0.2;
+	}
 
 	// i : standard piece(y axis), j : changing piece(x axis)
 	for (int i = 0; i < shard_num; i++) {
@@ -1555,10 +1515,10 @@ void FeatureCompGraphBuilding(vector<Geom>& a,
 	}
 
 	Q_size.resize(4);
-	Q_size[0] = 0.15;  // D - Restored to ORIGINAL values for Orange connections
-	Q_size[1] = 0.15;  // H - Restored to ORIGINAL values for Orange connections
-	Q_size[2] = 0.15;  // Theta - Restored to ORIGINAL values for Orange connections
-	Q_size[3] = 0.2;   // Curvature - Restored to ORIGINAL values for Orange connections
+	Q_size[0] = 0.15;	// D
+	Q_size[1] = 0.15;	// H
+	Q_size[2] = 0.15;	// Theta
+	Q_size[3] = 0.2;
 
 	// i : standard piece(y axis), j : changing piece(x axis)
 	for (int i = 0; i < shard_num; i++) {
@@ -1633,7 +1593,7 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 		list<LCSIndex>::iterator comp = iter;
 		for (; comp != LCS_out.end(); ) {
 			if (comp != iter) {
-				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.436, 20))) { // TICKET-08 V2a 2026-10-02: grouping back to paper 25deg -- V1 (10deg, job 32090601: fragments, no recovery) reverted, so the ONLY variable vs the 2/8 arm is the new prune below.
+				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
 					if (iter->score_ < comp->score_) {
 						Merge(*iter, *comp);
 						comp = LCS_out.erase(comp);
@@ -1673,7 +1633,6 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 	for (int i = 0; i < num_shard; i++) {
 		L[i] = shard[i].edge_line_;
 	}
-	{ for (int i = 0; i < num_shard; i++) { double cn = 0; for (int k = 0; k < L[i].point_.cols(); k++) cn += L[i].point_.col(k).norm(); cout << "*** PRUNEENTRY *** piece " << i + 1 << " npts=" << L[i].point_.cols() << " meannorm=" << (L[i].point_.cols() ? cn / L[i].point_.cols() : -1) << endl; } }
 
 	while (iter != LCS_out.end()) {
 		lcsout.push_back(*iter);
@@ -1704,37 +1663,20 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		Vector3d t_axis;
 		iter->trans_.Output(R_axis, t_axis);
 		Vector3d axis_move_normal = R_axis * L[index_m].axis_norm_[iter->axis_index_x_];
-		// FIX: Clamp dot product to [-1,1] to prevent acos() domain errors
-		double dot_product = axis_move_normal.dot(L[index_f].axis_norm_[iter->axis_index_y_]);
-		dot_product = std::max(-1.0, std::min(1.0, dot_product));
-		double axis_angle = acos(dot_product);
+		double axis_angle = acos(axis_move_normal.dot(L[index_f].axis_norm_[iter->axis_index_y_]));
 		axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
-		{ double tmn = t_p[index_m].norm(); cout << "*** REGOUT *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ << " t_norm=" << tmn << " axis_angle=" << axis_angle << endl; }
 		EdgeLineMove(L[index_f], R_fix_i_1, t_fix_i_1);
 		EdgeLineMove(L[index_m], R_fix_i_1, t_fix_i_1);
 
 		//#################### Overlapping check ####################//
 		double A_dummy(0), length(0);
-		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, 50.0); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was "ORIGINAL" 120)
-
-		//#################### Update LCS_out information ####################//
+		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, 50.0); // 50
+		//#################### Update LCS_out information ####################// 
 		iter->overlap_ = overlap;
-
-		// Apply hub-guided scoring using proper general detection system
-		double enhanced_score = cycle.score;
-		int piece_x = iter->shard_x_;
-		int piece_y = iter->shard_y_;
-
-		// Store original score - hub guidance will be applied after all pruning phases
 		iter->score_ = cycle.score;
 		iter->inliner_ = cycle.inlier;
 		iter->area_ = A_dummy;
-
-		// DEBUG: Track inlier data preservation
-		cout << "*** PAIRWISE PRUNING DEBUG *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_
-		     << " cycle.inlier=" << cycle.inlier << " -> iter->inliner_=" << iter->inliner_
-		     << " score=" << iter->score_ << endl;
 
 		//#################### Restore breakline data ####################// 
 		Matrix3d R_re;
@@ -1770,12 +1712,7 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		double lowest_score(9999);
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
-			if (iter->axis_angle_ > 0.610) {	// TICKET-12 ROW 1 2026-10-05: restored to upstream 0.610 (35deg) for the A/B (was lineage 1.571/90deg). One variable: this hunk only.
-				// DEBUG: Track blue-red-green rejections
-				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
-					cout << "*** AXIS ANGLE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": axis_angle=" << iter->axis_angle_ << " (>" << 0.610 << ")" << endl;
-				}
+			if (iter->axis_angle_ > 0.436) {	
 				iter = lcs_basket[i].erase(iter);
 			}
 			else 
@@ -1786,27 +1723,12 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		}
 
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
-			if (lowest_score > 1.5) {	// TICKET-12 ROW 2 2026-10-09: ADOPTED upstream 1.5. Same-node A/B vs lineage 4.0 (jobs 32284017 vs 32610367, bm065) byte-identical on all measures incl. final transforms -- the 1.5-4.0 band holds no basket on Pot_A, so the relaxation earns nothing.
-				// DEBUG: Track blue-red-green rejections
-				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
-					cout << "*** SCORE REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": lowest_score=" << lowest_score << " (>" << 1.5 << ")" << endl;
-				}
+			if (lowest_score > 1.5) {
 				iter = lcs_basket[i].erase(iter);
 			}
-			else if (iter->overlap_) {	// Keep strict overlap detection
-				// DEBUG: Track blue-red-green rejections
-				if ((iter->shard_x_ <= 3 && iter->shard_y_ <= 3) && (iter->shard_x_ != iter->shard_y_)) {
-					cout << "*** OVERLAP REJECTION *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ 
-						 << ": overlap=true, area=" << iter->area_ << endl;
-				}
+			else if (iter->overlap_) {	
 				iter = lcs_basket[i].erase(iter);
 			}
-			// TICKET-12 ROW 4 2026-10-10: veto stays DISABLED, WITH numbers (was bare "too aggressive"). Same-node A/B enable-vs-keep (jobs 32613911 vs 32619839, bm065): enabling fires 3x on true-wrong pair 5-6 and LOSES the only correct pair 1-4 (2/8+1/15 -> 0/8+0/15). Removes garbage nowhere, kills truth somewhere -- keep disabled.
-			// else if (CheckOpposingNormals(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], *iter)) {
-			//	cout << "REJECTED: Opposing normals in matched segment between pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
-			//	iter = lcs_basket[i].erase(iter);
-			// }
 			else {
 				LCS_out.push_back(*iter);
 				++iter;
@@ -1891,70 +1813,20 @@ void RegistrationPruning(vector<Geom>& shard,
 		Vector3d t_axis;
 		iter->trans_.Output(R_axis, t_axis);
 		Vector3d axis_move_normal = R_axis * L[index_m].axis_norm_[axis_m];
-		// FIX: Clamp dot product to [-1,1] to prevent acos() domain errors
-		double dot_product = axis_move_normal.dot(L[index_f].axis_norm_[axis_f]);
-		dot_product = std::max(-1.0, std::min(1.0, dot_product));
-		double axis_angle = acos(dot_product);
+		double axis_angle = acos(axis_move_normal.dot(L[index_f].axis_norm_[axis_f]));
 		axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
-		{ double tmn = t_p[index_m].norm(); cout << "*** REGOUT *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ << " t_norm=" << tmn << " axis_angle=" << axis_angle << endl; }
-
-		//#################### Post-Registration Intersection Detection ####################//
-		bool has_intersection = false;
-		Matrix4d transformation_matrix;
-		iter->trans_.Output(transformation_matrix);
-
-		// PERFORMANCE OPTIMIZATION: Cache intersection results to eliminate redundancy
-		static map<pair<int, int>, bool> intersection_cache;
-		static map<pair<int, int>, int> analysis_count;
-
-		pair<int, int> piece_pair = {min(iter->shard_y_, iter->shard_x_), max(iter->shard_y_, iter->shard_x_)};
-		analysis_count[piece_pair]++;
-
-		// Check cache first
-		if (intersection_cache.find(piece_pair) != intersection_cache.end()) {
-			has_intersection = intersection_cache[piece_pair];
-			if (analysis_count[piece_pair] % 100 == 0) {  // Report every 100th redundant call
-				cout << "*** CACHE HIT *** Pieces " << piece_pair.first << "-" << piece_pair.second
-					 << " (analyzed " << analysis_count[piece_pair] << " times, using cached result)" << endl;
-			}
-		} else {
-			// Initialize intersection detector with conservative settings
-			static IntersectionDetector::Config intersection_config;
-			intersection_config.max_volume_overlap_ratio = 0.20;        // Allow 20% volume overlap
-			intersection_config.critical_volume_overlap_ratio = 0.35;   // Reject >35% overlap
-			intersection_config.inside_points_ratio_threshold = 0.15;   // Reject if >15% points inside
-			intersection_config.enable_debug_output = (step_counter <= 2); // Debug for early steps only
-			intersection_config.save_debug_meshes = false;              // No debug files for performance
-
-			static IntersectionDetector detector(intersection_config);
-
-			// Perform comprehensive intersection analysis (ONLY ONCE per piece pair)
-			cout << "*** FIRST-TIME ANALYSIS *** Pieces " << piece_pair.first << "-" << piece_pair.second << endl;
-			auto intersection_result = detector.DetectIntersection(
-				shard[index_f], shard[index_m], transformation_matrix,
-				iter->shard_y_, iter->shard_x_);
-
-			has_intersection = intersection_result.has_intersection;
-
-			// Cache the result for future use
-			intersection_cache[piece_pair] = has_intersection;
-		}
-
-		if (has_intersection) {
-			cout << "*** INTERSECTION DETECTED *** Pieces " << iter->shard_y_ << "-" << iter->shard_x_ << endl;
-		}
 
 		//#################### Overlapping check ####################//
 		double A_dummy(0), length(0);
-		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1],
+		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], 
 			L[iter->shard_x_ - 1],
-			A_dummy,
-			length,
-			50.0); // Ticket 09 SHAPE 2026-10-13: KEPT 50 = paper Table II S (cf. PAPER-CONFIG 2026-10-01 at FM:1739/FM:2048/RS:1869/RS:2028). SHAPE verdict per ticket 10 T5 directing numbers (true 35-297, false [5,6] 40-60 inside, 50 kills true [1-5] @144/155): threshold never stands alone, pair with score/pose sanity.
-
-		//#################### Update LCS_out information ####################//
-		iter->overlap_ = overlap || has_intersection; // Mark as overlap if intersection detected
+			A_dummy, 
+			length, 
+			50.0); // 50
+		
+		//#################### Update LCS_out information ####################// 
+		iter->overlap_ = overlap;
 		iter->area_ = A_dummy;
 
 		//#################### Restore breakline data ####################// 
@@ -1975,12 +1847,11 @@ void RegistrationPruning(vector<Geom>& shard,
 
 	//#################### Remove unsatisfied matching ####################//
 	for (iter = LCS_out.begin(); iter != LCS_out.end(); ) {
-		double axis_angle_max = 0.436; // Juglet ticket 05: env-tunable gate
-		{ static bool gate_once = false; if (!gate_once) { gate_once = true; const char* e = getenv("SFS_AXIS_ANGLE_MAX"); if (e && *e) axis_angle_max = std::stod(e); std::cout << "[GATE] axis_angle_max=" << axis_angle_max << " rad" << std::endl; } }
-		if (iter->axis_angle_ > axis_angle_max) {
-			// Assembly-02: the base-flag escape here was commented out
-			// upstream (s_x_base/s_y_base read, never acted on). Removed
-			// the dead locals with it; the gate erases unconditionally.
+		bool s_x_base = shard[iter->shard_x_ - 1].edge_line_.is_seg_base_;
+		bool s_y_base = shard[iter->shard_y_ - 1].edge_line_.is_seg_base_;
+		
+		if (iter->axis_angle_ > 0.436) {
+			//if (s_x_base || s_y_base) 	// �̰� ���־����� �ʳ�??
 			{
 				iter = LCS_out.erase(iter);
 				continue;
@@ -2025,7 +1896,7 @@ bool MergeOverlapTest(vector<Geom>& shard,
 					shard[j].edge_line_,
 					area,
 					size,
-					50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was 100)
+					100);
 				if (overlap) {
 					result = true;
 					break;
@@ -2058,25 +1929,6 @@ bool isOutside(const LCSIndex& lcs,
 	}
 
 	return is_outside;
-}
-
-// =================================================================
-// POTTERY-AWARE VALIDATION FUNCTIONS (LEGACY ICP INTEGRATION)
-// =================================================================
-
-bool isPotteryValidationEnabled() {
-    const char* env_pottery = getenv("ENABLE_POTTERY_VALIDATION");
-    if (env_pottery && (string(env_pottery) == "1" || string(env_pottery) == "true")) {
-        cout << "*** POTTERY VALIDATION *** ENABLED via environment variable" << endl;
-        return true;
-    }
-    return false;
-}
-
-bool isPotteryValidConnection(int piece_a_id, int piece_b_id,
-                            const Vector3d& point_a, const Vector3d& normal_a,
-                            const Vector3d& point_b, const Vector3d& normal_b) {
-    return SimplePotteryValidator::isPotteryValidContact(piece_a_id, piece_b_id, point_a, normal_a, point_b, normal_b);
 }
 
 

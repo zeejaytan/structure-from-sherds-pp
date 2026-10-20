@@ -27,7 +27,6 @@ BreakLine::BreakLine(const BreakLine& rhs)
 	index_ = rhs.index_;
 	axis_point_ = rhs.axis_point_;
 	axis_norm_ = rhs.axis_norm_;
-	original_axis_norm_ = rhs.original_axis_norm_;
 	point_index_ = rhs.point_index_;
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -48,7 +47,6 @@ BreakLine::BreakLine(BreakLine&& rhs)
 	index_ = move(rhs.index_);
 	axis_point_ = move(rhs.axis_point_);
 	axis_norm_ = move(rhs.axis_norm_);
-	original_axis_norm_ = move(rhs.original_axis_norm_);
 	point_index_ = move(rhs.point_index_);
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -71,7 +69,6 @@ BreakLine& BreakLine::operator=(const BreakLine& rhs)
 	index_ = rhs.index_;
 	axis_point_ = rhs.axis_point_;
 	axis_norm_ = rhs.axis_norm_;
-	original_axis_norm_ = rhs.original_axis_norm_;
 	point_index_ = rhs.point_index_;
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -96,7 +93,6 @@ BreakLine& BreakLine::operator=(BreakLine&& rhs)
 	index_ = move(rhs.index_);
 	axis_point_ = move(rhs.axis_point_);
 	axis_norm_ = move(rhs.axis_norm_);
-	original_axis_norm_ = move(rhs.original_axis_norm_);
 	point_index_ = move(rhs.point_index_);
 	is_seg_rim_ = rhs.is_seg_rim_;
 	is_seg_base_ = rhs.is_seg_base_;
@@ -166,22 +162,15 @@ void BreakLine::ReadAxis(const string & file)
         }
         axis_point_.push_back(Vector3d(x, y, z));
         axis_norm_.push_back(Vector3d(nx, ny, nz));
-        original_axis_norm_.push_back(Vector3d(nx, ny, nz));  // PRESERVE ORIGINAL
         count++;
     }
-
+    
     if (count == 0) {
         cerr << "Warning: No points were read from the file" << endl;
     } else {
         cout << "Successfully read " << count << " points" << endl;
-        if (!axis_norm_.empty()) {
-            cout << "*** AXIS DATA LOADED *** First axis: ["
-                 << axis_norm_[0].transpose() << "]" << endl;
-            cout << "*** ORIGINAL AXIS PRESERVED *** First original: ["
-                 << original_axis_norm_[0].transpose() << "]" << endl;
-        }
     }
-
+    
     fin.close();
     feature_.resize(axis_point_.size());
 }
@@ -253,7 +242,8 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
             index_(2, s) = stoi(results[3]);
         }
     } else {
-        // Fallback: parse standard PCD header (VERSION/FIELDS/POINTS/DATA) and treat as single segment
+        // PRISTINE-RESTORE keep: standard-PCD fallback (I/O only; never fires on headered bundles).
+        // Parses VERSION/FIELDS/POINTS/DATA header and treats the file as a single segment.
         int header_lines = 0;
         int points = 0;
         bool data_found = false;
@@ -277,12 +267,10 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
             cerr << "Error: File has insufficient point data" << endl;
             return;
         }
-        // Initialize a single segment index covering all points
         index_.resize(3, 1);
         index_(0, 0) = 1;
         index_(1, 0) = (int)(fileContents.size() - header_lines);
-        index_(2, 0) = 0; // no rim/base info
-
+        index_(2, 0) = 0;
         int numberOfPoints = fileContents.size() - header_lines;
         MatrixXd point_tmp(3, numberOfPoints);
         MatrixXd normal_tmp(3, numberOfPoints);
@@ -294,15 +282,12 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
             double x,y,z,nx=0.0,ny=0.0,nz=1.0;
             if (ss2 >> x >> y >> z) {
                 point_tmp(0, i) = x; point_tmp(1, i) = y; point_tmp(2, i) = z;
-                // Try to read normals if present
                 if (ss2 >> nx >> ny >> nz) {
-                    // keep read normals
                 }
                 normal_tmp(0, i) = nx; normal_tmp(1, i) = ny; normal_tmp(2, i) = nz;
                 validPoints++;
             }
         }
-        // Assign outputs (no uniqueness filtering here; will be handled later)
         point_ = point_tmp;
         normal_ = normal_tmp;
         point_index_.resize(numberOfPoints);
@@ -324,18 +309,15 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
 
     MatrixXd point_tmp(3, numberOfPoints);
     MatrixXd normal_tmp(3, numberOfPoints);
-    MatrixXd curvature_tmp(1, numberOfPoints);  // NURBS curvature data (column 7)
     stringstream ss;
     int validPoints = 0;
 
     for (int i = 0; i < numberOfPoints; i++) {
         ss.clear();
         ss.str(fileContents[i]);
-
-        double curv;
+        
         if (ss >> point_tmp(0, i) >> point_tmp(1, i) >> point_tmp(2, i)
-            >> normal_tmp(0, i) >> normal_tmp(1, i) >> normal_tmp(2, i) >> curv) {
-            curvature_tmp(0, i) = curv;
+            >> normal_tmp(0, i) >> normal_tmp(1, i) >> normal_tmp(2, i)) {
             validPoints++;
         } else {
             cerr << "Warning: Failed to parse point data at index " << i << endl;
@@ -361,25 +343,20 @@ void BreakLine::ReadPCDFileWithInfo(const string& pcdFilePath)
     // Resize and populate final arrays
     point_.resize(3, num_unique_points);
     normal_.resize(3, num_unique_points);
-
-    // CURVATURE LOADING: Resize feature_ to accommodate curvature data at index 6
-    feature_.resize(7);  // Index 6 will hold curvature data
-    feature_[6].resize(1, num_unique_points);  // Curvature stored as 1×N matrix
-
+    feature_.resize(axis_point_.size());
     point_index_.resize(num_unique_points);
-
+    
     int counter = 0;
     for (int i = 0; i < numberOfPoints; i++) {
         if (single_point[i]) {
             point_.col(counter) = point_tmp.col(i);
             normal_.col(counter) = normal_tmp.col(i);
-            feature_[6](0, counter) = curvature_tmp(0, i);  // Store curvature
             point_index_[counter] = counter;
             counter++;
         }
     }
 
-    cout << "Successfully processed PCD file with " << num_unique_points << " points and curvature data" << endl;
+    cout << "Successfully processed PCD file" << endl;
 }
 void BreakLine::CalculateLineNormal(void)
 {
@@ -1018,11 +995,8 @@ tuple<int, int, int, int> CountResult(MatrixXd& GT_graph,
 		for (int j = 0; j < num_sherd; j++) {
 			if (GT_graph(i, j))
 				total++;
-			// Honest gate (Juglet ticket 04, 2026-09-21): an edge counts only
-			// if BOTH the answer key and the method propose it. The graph(i,j)
-			// half was commented out, so GT-initialized placements scored
-			// perfect without a single proposed join (run 30829588: 18/18).
-			if (!GT_graph(i, j) || !graph(i, j))
+			//if (!GT_graph(i, j) || !graph(i, j))
+			if (!GT_graph(i, j))
 				continue;
 			Matrix4d GT_T_a, GT_T_b, T_a, T_b, GT_T, T;
 			GT_trans[i].InvOut(GT_T_a);

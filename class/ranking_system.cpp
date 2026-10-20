@@ -1,8 +1,4 @@
 #include "ranking_system.h"
-#include "connectivity_optimizer.h"
-#include <cstdlib> // Juglet ticket 05: std::getenv for gate overrides
-#include <cstdio>   // Juglet ticket 06 Test 2: sscanf for oracle pair
-#include <sstream>  // Juglet ticket 06 Test 2: parse oracle matrix
 //############################## class RankingSubgraph ##############################//
 void RankingSubgraph::Copy(RankingSubgraph& input)
 {
@@ -180,13 +176,8 @@ void RankingSubgraph::MakeHierarchyPriorityList(int index,
 	priority.sort(NodeCompare);
 	CombineChunk(priority);
 
-	// TICKET-12 ROW 7 2026-10-14: removed 0.7/0.3 ConnectivityOptimizer combined scorer (upstream has none). Same-node A/B jobs 32904171 (KEEP) vs 32904174 (OFF) on bm065: pairs identical 0/8+0/15 both, best 239.000 vs 260.000 (scores move, joins don't). Row-2 rule -> ADOPT UPSTREAM (delete). Local-only ordering via CalculateMatchingScore + InlierCompare inlier fallthrough (combined_score 0.0 everywhere ties primary).
-	
 	for (auto iter = priority.begin(); iter != priority.end(); ++iter) {
-		// Calculate local matching score (existing functionality)
 		CalculateMatchingScore(*iter, graph[index].sub_graph_);
-		
-
 		graph[index].priority_list_.emplace_back(*iter);
 	}
 
@@ -201,10 +192,7 @@ void RankingSubgraph::MakeHierarchyPriorityList(int index,
 
 		for (auto iter = state_priority.begin(); iter != state_priority.end(); ++iter) {
 			if (iter->i_edge.size() > 0) {
-				// Calculate local matching score (existing functionality)
 				CalculateMatchingScore(*iter, graph[index].sub_graph_);
-				
-
 				graph[index].priority_list_.emplace_back(*iter);
 			}
 		}
@@ -324,7 +312,7 @@ void RankingSubgraph::CombineChunk(list<Chunk>& priority)
 					T_c = Matrix4d::Zero();
 					T_i = Matrix4d::Ones();
 				}
-				if (isSimilarTrans(T_c, T_i, 0.2, 20.0))	// BEAM SEARCH FIX: Tightened from 0.436 to 0.2 to preserve more assembly options
+				if (isSimilarTrans(T_c, T_i, 0.436, 20.0))	// ICCV->Hierarchy 0.436 -> 0.35
 				{
 					for (int i = 0; i < c_iter->i_edge.size(); i++) {
 						//########## If two lcs are not same edges
@@ -1040,8 +1028,6 @@ bool StateManager::BuildState(State& state,
 		if (state.graph_[graph_index].node_[i]) {
 			state.graph_[graph_index].T_[i].InvOut(R_i, t_i);
 			shard_[i].Move(R_i, t_i);
-			{ Matrix4d Tm; state.graph_[graph_index].T_[i].Output(Tm);
-			cout << "*** MERGEPOSE *** piece " << i + 1 << " R=[" << Tm(0,0) << "," << Tm(0,1) << "," << Tm(0,2) << ";" << Tm(1,0) << "," << Tm(1,1) << "," << Tm(1,2) << ";" << Tm(2,0) << "," << Tm(2,1) << "," << Tm(2,2) << "] t=[" << Tm(0,3) << "," << Tm(1,3) << "," << Tm(2,3) << "]" << endl; }
 		}
 	}
 	shard_[state.graph_[graph_index].root_node_ - 1].edge_line_.axis_point_[0] = axis_point_log;
@@ -1060,12 +1046,6 @@ bool StateManager::BuildState(State& state,
 //############################## Other function ##############################//
 bool InlierCompare(const Chunk& A, const Chunk& B)
 {
-	// Primary comparison: combined score (local + global connectivity)
-	if (A.combined_score != B.combined_score) {
-		return A.combined_score > B.combined_score;
-	}
-	
-	// Secondary comparison: original inlier score (for backward compatibility)
 	if (A.inlier == B.inlier) {
 		if (A.node == B.node) {
 			return A.i_edge > B.i_edge;
@@ -1074,6 +1054,7 @@ bool InlierCompare(const Chunk& A, const Chunk& B)
 			return A.node > B.node;
 		}
 	}
+
 	else {
 		return A.inlier > B.inlier;
 	}
@@ -1163,13 +1144,33 @@ void ExclusivelyPickEdge(list<LCSIndex>& lcs_out,
 				iter = lcs_out.erase(iter);
 		}
 	}
-	// Assembly-02: the exclusive_index==2 (base-base) and ==3
-	// (fractured-base) branches were dead -- this function has no callers
-	// repo-wide -- and their flag semantics can never be true on current
-	// files (every writer emits flag 0). Removed; the parse site and the
-	// live FeatureComp skips stay as the machinery a true flag source
-	// would use. NOTE: this function itself remains uncalled; wiring it
-	// with any index is a separate ticket with predicted pair movement.
+	else if (exclusive_index == 2) {
+		for (; iter != lcs_out.end(); ) {
+			int s_x = iter->shard_x_ - 1;
+			int s_y = iter->shard_y_ - 1;
+			if ((shard[s_x].edge_line_.is_seg_base_) && (shard[s_y].edge_line_.is_seg_base_)) {
+				++iter;
+			}
+			else
+				iter = lcs_out.erase(iter);
+		}
+	}
+	else if (exclusive_index == 3) {
+		for (; iter != lcs_out.end(); ) {
+			int s_x = iter->shard_x_ - 1;
+			int s_y = iter->shard_y_ - 1;
+			if ((shard[s_x].edge_line_.is_seg_base_) && (shard[s_y].edge_line_.is_seg_base_)) {
+				if ((!shard[s_x].edge_line_.is_sane_base_) && (!shard[s_y].edge_line_.is_sane_base_)) {
+					++iter;
+				}
+				else {
+					iter = lcs_out.erase(iter);
+				}
+			}
+			else
+				iter = lcs_out.erase(iter);
+		}
+	}
 }
 
 void TransAverage(int current_node,
@@ -1254,7 +1255,6 @@ void TransAverage(const vector<bool>& merge_node,
 	Matrix3d R_ref, R_avg;
 	Vector3d t_ref = { 0, 0, 0 };
 	int e_index = edges[0].trans_.index_ - 1;
-	{ for (size_t te = 0; te < edges.size(); te++) { Matrix4d Tte; edges[te].trans_.Output(Tte); cout << "*** TRANSAVG *** edge " << edges[te].shard_y_ << "-" << edges[te].shard_x_ << " t_norm=" << Vector3d(Tte(0,3),Tte(1,3),Tte(2,3)).norm() << endl; } }
 	if (merge_node[e_index]) {
 		edges[0].trans_.InvOut(T_ref_inv);
 		edges[0].trans_.Output(R_ref, t_ref);
@@ -1403,13 +1403,11 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
-				double pc_dist = 7.0, pc_norm = 1.5; // Juglet ticket 05: env-tunable
-				{ static bool gate_once2 = false; if (!gate_once2) { gate_once2 = true; const char* e = std::getenv("SFS_PC_DIST"); if (e && *e) pc_dist = std::stod(e); const char* e2 = std::getenv("SFS_PC_NORM"); if (e2 && *e2) pc_norm = std::stod(e2); std::cout << "[GATE] pc_dist=" << pc_dist << " pc_norm=" << pc_norm << std::endl; } }
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					graph[merge_index].node_,
 					shard,
-					pc_dist, pc_norm);	//
+					7.0, 1.5);	//
 
 				if (pc_out)
 					lcs_iter++;
@@ -1434,13 +1432,11 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
-				double pc_dist_b = 7.0, pc_norm_b = 1.5; // Juglet ticket 05: env-tunable
-				{ static bool gate_once3 = false; if (!gate_once3) { gate_once3 = true; const char* e = std::getenv("SFS_PC_DIST"); if (e && *e) pc_dist_b = std::stod(e); const char* e2 = std::getenv("SFS_PC_NORM"); if (e2 && *e2) pc_norm_b = std::stod(e2); std::cout << "[GATE] pc_dist=" << pc_dist_b << " pc_norm=" << pc_norm_b << std::endl; } }
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					shard,
 					c_node,
-					pc_dist_b, pc_norm_b, false);
+					7.0, 1.5, false);
 
 				if (pc_out)
 					lcs_iter++;
@@ -1693,55 +1689,6 @@ void PrepareGraphBuildinginMerge(vector<Geom>& shard,
 
 	//########## In this Algorithm, pieces are always axis aligned initial state
 	TransAverage(merge_graph.node_, edges, R_p, t_p);
-	// Ticket 06 Test 2 (oracle init): hand one pair its TRUE relative
-	// placement. SFS_ORACLE_PAIR="a,b" (1-based ids); SFS_ORACLE_M = 12
-	// numbers (row-major R + t) = M_ab := A_a P_a^-1 P_b A_b^-1, the
-	// fresh-state correction placing b relative to a (A = TAXIS axis
-	// alignment, P = GT vessel matrices, both printed/passed offline).
-	// At fire time Tp = W_f M W_m^-1 (M^-1 under role swap) is composed
-	// from the graphs' current T_, so beam order does not matter. Fires
-	// only on single-edge merges directly connecting a,b with the fixed
-	// endpoint outside the moving graph. Everything downstream
-	// (refinement, gates, scorer) runs unmodified FROM truth.
-	if (edges.size() == 1) {
-		const char* opair = std::getenv("SFS_ORACLE_PAIR");
-		const char* om = std::getenv("SFS_ORACLE_M");
-		if (opair && *opair && om && *om) {
-			int oa = 0, ob = 0;
-			if (std::sscanf(opair, "%d,%d", &oa, &ob) == 2 && oa >= 1 && ob >= 1) {
-				int ex = edges[0].shard_x_, ey = edges[0].shard_y_;
-				if ((ex == oa && ey == ob) || (ex == ob && ey == oa)) {
-					int m_id = merge_graph.node_[ex - 1] ? ex : (merge_graph.node_[ey - 1] ? ey : -1);
-					int f_id = (m_id == ex) ? ey : ex;
-					if (m_id > 0 && !merge_graph.node_[f_id - 1]) {
-						double v[12]; int nv = 0;
-						{ std::stringstream ss(om); double d; while (nv < 12 && (ss >> d)) v[nv++] = d; }
-						if (nv == 12) {
-							Matrix4d M = Matrix4d::Identity();
-							for (int r = 0; r < 3; r++) for (int c = 0; c < 3; c++) M(r, c) = v[r * 3 + c];
-							M(0, 3) = v[9]; M(1, 3) = v[10]; M(2, 3) = v[11];
-							if (f_id == ob) M = M.inverse();  // role swap: M_ba = M_ab^-1
-							Matrix4d Wf, Wm;
-							base_graph.T_[f_id - 1].Output(Wf);
-							merge_graph.T_[m_id - 1].Output(Wm);
-							Matrix4d Tp = Wf * M * Wm.inverse();
-							for (int r = 0; r < 3; r++) {
-								for (int c = 0; c < 3; c++) R_p(r, c) = Tp(r, c);
-								t_p[r] = Tp(r, 3);
-							}
-							cout << "*** ORACLE *** pair " << f_id << "-" << m_id
-								<< " fired t=[" << t_p.transpose() << "]"
-								<< " Wf_tnorm=" << Vector3d(Wf(0,3),Wf(1,3),Wf(2,3)).norm()
-								<< " Wm_tnorm=" << Vector3d(Wm(0,3),Wm(1,3),Wm(2,3)).norm() << endl;
-						}
-						else cout << "*** ORACLE *** SKIP: SFS_ORACLE_M parsed " << nv << "/12 numbers" << endl;
-					}
-					else cout << "*** ORACLE *** SKIP: pair proposed but not as fixed-moving cross edge" << endl;
-				}
-			}
-		}
-	}
-	cout << "*** MERGEINIT *** t=[" << t_p.transpose() << "]" << endl;
 
 	//########## Make ICP initial condiiton
 	for (int i = 0; i < merge_graph.node_.size(); i++) {
@@ -1835,7 +1782,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 						shard[j].edge_line_,
 						area,
 						size,
-						50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was REDUCED 10)
+						50);
 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
 					if (overlap) {
 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
@@ -1860,7 +1807,6 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 			vector<Vector3d> rim_data;
 			for (int i = 0; i < num_shard; i++) {
 				if ((toprank_graph.node_[i])) {
-					cout << "*** PROFILE DEBUG *** Adding piece " << i+1 << " to profile analysis" << endl;
 					ToCylindricalInterpolation(shard[i].edge_line_, profile, interpolation);
 					if (shard[i].edge_line_.is_seg_rim_) {
 						is_rim = true;
@@ -1878,64 +1824,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 			}
 			double pc_var_value(0);
 			if (!profile.empty()) {
-				cout << "*** PROFILE DEBUG *** Checking profile with " << profile.size() << " points" << endl;
-				profile_matched = ProfileChecking(profile, 7.0, 7.0);	// PAPER-CONFIG 2026-10-01: paper Table II (7mm bins, 7mm threshold). Fit stays OLS (ticket 06 owns it); rule is stddev since 06 fix 1 (was max-deviation); this arm changes NUMBERS only.
-				cout << "*** PROFILE DEBUG *** Profile validation result: " << (profile_matched ? "PASSED" : "FAILED") << endl;
-				// Ticket 10 T0: profile dump mode. Env-gated (SFS_PROFILE_DUMP
-				// = output dir); when unset, ZERO behavior change -- this block
-				// does not execute. When set, each validation appends one TSV:
-				// verdict + per-piece edge points AS VALIDATED with segment
-				// ids (from index_ ranges), rim flags, and piece Ts. Offline
-				// battery (T1-T4, T6) recomputes everything from these dumps;
-				// the replica must reproduce the recorded verdict first.
-				if (const char* dump_dir = std::getenv("SFS_PROFILE_DUMP")) {
-					static int dump_idx = 0;
-					char dump_path[1024];
-					std::snprintf(dump_path, sizeof(dump_path), "%s/dump_%04d.tsv",
-					              dump_dir, dump_idx++);
-					std::ofstream dump(dump_path, std::ios::out | std::ios::trunc);
-					if (dump.is_open()) {
-						dump << "# verdict=" << (profile_matched ? "PASSED" : "FAILED")
-						     << " bin=7.0 thresh=7.0\n";
-						dump << "# pieces:";
-						for (int i = 0; i < num_shard; i++)
-							if (toprank_graph.node_[i]) dump << " " << (i + 1);
-						dump << "\n";
-						for (int i = 0; i < num_shard; i++) {
-							if (!toprank_graph.node_[i]) continue;
-							const BreakLine& bl = shard[i].edge_line_;
-							const int ncols = (int)bl.point_.cols();
-							Matrix3d Rdump = Matrix3d::Identity();
-							Vector3d tdump(0, 0, 0);
-							if ((int)toprank_graph.T_.size() > i)
-								toprank_graph.T_[i].Output(Rdump, tdump);
-							dump << "# piece " << (i + 1) << " ncols=" << ncols
-							     << " rim=" << (bl.is_seg_rim_ ? 1 : 0);
-							dump << " R=";
-							for (int rr = 0; rr < 3; rr++)
-								for (int cc = 0; cc < 3; cc++)
-									dump << " " << Rdump(rr, cc);
-							dump << " t=" << tdump(0) << " " << tdump(1) << " " << tdump(2);
-							dump << " segs=";
-							for (int j = 0; j < bl.index_.cols(); j++)
-								dump << (int)bl.index_(0, j) << ":" << (int)bl.index_(1, j)
-								     << ":" << (int)bl.index_(2, j) << ",";
-							dump << "\n";
-							for (int c = 0; c < ncols; c++) {
-								int seg = -1;
-								for (int j = 0; j < bl.index_.cols(); j++) {
-									if (c >= (int)bl.index_(0, j) - 1 && c < (int)bl.index_(1, j)) {
-										seg = j;
-										break;
-									}
-								}
-								dump << (i + 1) << " " << seg << " "
-								     << bl.point_(0, c) << " " << bl.point_(1, c) << " "
-								     << bl.point_(2, c) << "\n";
-							}
-						}
-					}
-				}
+				profile_matched = ProfileChecking(profile, 7.0, 7.0);	//
 			}
 			if (profile_matched && is_rim) {
 				int up_count(0), down_count(0);
@@ -1953,14 +1842,11 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 
 
 		if (!profile_matched) {
-			cout << "*** PROFILE DEBUG *** CONFIGURATION REJECTED due to profile curve validation failure" << endl;
 			fail_reason = "PC_";
 			return_value = false;
 		}
 	}
 
-	cout << "*** PLAUSIBILITY *** " << (return_value ? "PASS" : ("FAIL: " + fail_reason))
-		<< " score=" << toprank_graph.graph_score_ << endl;
 	return return_value;
 }
 
@@ -1994,7 +1880,7 @@ bool SingleOverlapTest(const vector<bool>& true_node,
 				shard[c_node].edge_line_,
 				area,
 				size,
-				50); // PAPER-CONFIG 2026-10-01: paper Table II S=50 (was REDUCED 20)
+				100);
 
 			if (overlap)
 				break;

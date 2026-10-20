@@ -26,7 +26,6 @@
 #include "class/feature_matching.h"			
 #include "class/ranking_system.h"
 
-// Original beam search parameters
 #define TOP_k 5
 #define BRANCH_b 3
 
@@ -92,10 +91,9 @@ int main(int argc, char** argv)
 			shard[i].edge_line_.CalculateLineNormal();
 			int breakline_points = shard[i].edge_line_.point_.cols();
 			max_breakline_points = max(max_breakline_points, breakline_points);
-			shard[i].LoadSurface(surface_in[i], surface_out[i]);
+			shard[i].LoadSurface(surface_in[i], surface_out[i], surface_fr[i]);
 			shard[i].is_matching_ = true;
-			if(shard[i].sur_frac_.point_.cols() > 0)
-				shard[i].sur_frac_.CalculateLineNormal();
+			shard[i].sur_frac_.CalculateLineNormal();
 		}
 	}
 
@@ -108,8 +106,6 @@ int main(int argc, char** argv)
 #ifdef NO_BASE_INFO
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		shard[i].edge_line_.is_seg_base_ = false;
-		// Assembly-02 (F2): see main_headless_correct.cpp -- clear both.
-		shard[i].edge_line_.is_sane_base_ = false;
 	}
 #endif
 
@@ -460,3 +456,5 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
+

@@ -200,13 +200,6 @@ void CalculateFeatureAxisless(Geom& shard, int axis_index)
 		Theta_Diff(i) = Theta_Diff(i) * Dist(i);
 	}
 
-	// SFS-SG REMOVED 2026-10-03 (ticket 04: keep-covered-or-remove decided
-	// for remove). The paper-recipe arm (SavitzkyGolayDiff + Gaussian7x2,
-	// SFS_SMOOTHER=sg) served its comparison (ticket 01 A/B: same 9 pairs,
-	// cosmetic for joins) and stood untested since. Default path below is
-	// byte-identical to every run made with the switch unset (i.e., all of
-	// them): Lanczos diffs + one Gaussian(sigma 2, k10) pass. Re-implement
-	// from ticket 01's spec if a tuned-config run ever needs the comparison.
 	filter.Gaussian(2, Dist_Diff, Dist_Diff, 1);
 	filter.Gaussian(2, Height_Diff, Height_Diff, 1);
 	filter.Gaussian(2, Theta_Diff, Theta_Diff, 1);
