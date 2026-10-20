@@ -777,3 +777,15 @@ Weight: one pot, one run per arm — but full-population counts with a
 reproduced 15/15 control, so chance explains nothing. Consequence: every
 Pot_A number measured from the authors' data (15/15 gates, E-6 rows) was
 measuring prepared inputs, never this pipeline's output from scans.
+
+## 2026-10-20 — Pristine-scorer restore proven on the Pot A control (ticket 02)
+
+What this means first: our copy had drifted from the authors' program
+(false upstream comment moved one gate 0.436->0.610; a veto the authors
+never had killed true pairs), which voided a month of control runs. The
+restore (main reset to 11f4827, scoring sources back to upstream 9195c01
+plus only the 3 kept run-glue hunks) was rebuilt clean on Spartan and
+seated the authors' own Pot A fully: **8/8 fragments, 15/15 joins** (job
+33502035), confirmed by eye on the render. The ruler is trusted again:
+controls that fail from here fail on the material or the method, not on
+our copy of the program.
