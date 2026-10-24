@@ -9,7 +9,7 @@ Two questions, deliberately. This is a comparison partner, not a project we are
 developing, and a thin project honestly gets two questions rather than a forced seven.
 
 This folder is **state, not a log**. The research-phase writeups at the repo root
-(`ROOT_CAUSE_DIAGNOSIS.md`, `NURBS_FIX_RESULTS.md`, and the rest) are the log.
+(`docs/notes/ROOT_CAUSE_DIAGNOSIS.md`, `docs/notes/NURBS_FIX_RESULTS.md`, and the rest) are the log.
 
 Prefix **`S`**, permanent. Numbers are never reused. **S3 is next.**
 
@@ -22,11 +22,11 @@ Prefix **`S`**, permanent. Numbers are never reused. **S3 is next.**
 
 | Claim | Weight | Source |
 |---|---|---|
-| The legacy SfS++ system found **zero pairwise connections** between any Tray-000 pieces. | 1 tray | `ASSEMBLY_FAILURE_ROOT_CAUSE.md` |
-| The raw GitHub PCD files are in **micrometres** while the system expects millimetres — a **1,000,000×** coordinate mismatch. | reproduced | `ROOT_CAUSE_DIAGNOSIS.md` (2025-11-04) |
-| A second, independent unit bug: the **boundary-detection radius** was in the wrong unit. | reproduced | `BOUNDARY_RADIUS_FIX.md` (2025-11-05) |
-| Preprocessing succeeded on all 8 pieces once both bugs were fixed. | 8 pieces | `PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05) |
-| The author's own sample dataset assembles at 100%; the "fixed" NURBS dataset gave 0%, with **missing `Surface_F.pcd` files** and surfaces 2–6× sparser. | 2 datasets | `NURBS_FIX_RESULTS.md`, `STEP_BY_STEP_COMPARISON.md` |
+| The legacy SfS++ system found **zero pairwise connections** between any Tray-000 pieces. | 1 tray | `docs/notes/ASSEMBLY_FAILURE_ROOT_CAUSE.md` |
+| The raw GitHub PCD files are in **micrometres** while the system expects millimetres — a **1,000,000×** coordinate mismatch. | reproduced | `docs/notes/ROOT_CAUSE_DIAGNOSIS.md` (2025-11-04) |
+| A second, independent unit bug: the **boundary-detection radius** was in the wrong unit. | reproduced | `docs/notes/BOUNDARY_RADIUS_FIX.md` (2025-11-05) |
+| Preprocessing succeeded on all 8 pieces once both bugs were fixed. | 8 pieces | `docs/notes/PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05) |
+| The author's own sample dataset assembles at 100%; the "fixed" NURBS dataset gave 0%, with **missing `Surface_F.pcd` files** and surfaces 2–6× sparser. | 2 datasets | `docs/notes/NURBS_FIX_RESULTS.md`, `docs/notes/STEP_BY_STEP_COMPARISON.md` |
 
 ## The pattern worth noticing
 

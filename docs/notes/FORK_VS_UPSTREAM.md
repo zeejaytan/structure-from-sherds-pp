@@ -330,7 +330,7 @@ added no new `class/` files. "Built" = listed in `CMakeLists.txt`
 | `main_headless_correct.cpp` | 1295 | YES (the binary) | Production driver; §2 |
 | `tests/test_ggce.{cpp,h}` | 811/366 | yes (`ggce_tests`) | GGCE unit tests, CTest-registered |
 | `test_teaser.cpp` | 110 | yes (`test_teaser`) | TEASER++ smoke test the build references |
-| Root run/build scripts (`run_*.sh`, `run_*.sbatch`, `rerun_juglet.sbatch`, `rebuild_*`, `test_*.sbatch`, `test_ggce.sh`, `harvest_pota_taxis.sh`, `build_*.sh`, `generate_*`, `visualize_*.py`, `analyze_tray000_results.py`, `GGCE_README.md` + root research notes) | — | n/a | Our-era and cluster-era run harness + analysis notes; job scripts, not algorithm |
+| Root run/build scripts (`run_*.sh`, `run_*.sbatch`, `rerun_juglet.sbatch`, `rebuild_*`, `test_*.sbatch`, `test_ggce.sh`, `harvest_pota_taxis.sh`, `build_*.sh`, `generate_*`, `visualize_*.py`, `analyze_tray000_results.py`, `GGCE_README.md` + root research notes; moved 2026-10-24 to `hpc/sbatch/`, `hpc/scripts/`, `hpc/analysis/` and `docs/notes/`, build scripts stay at root) | — | n/a | Our-era and cluster-era run harness + analysis notes; job scripts, not algorithm |
 | `hpc/` (55 docs + 50 sbatch + 37 analysis + 26 scripts + 14 tools + 6 patches + 3 containers + README) | ~197 files | n/a | Cluster-era launch/analysis working area versioned per `hpc/README.md`; `hpc/tools` = preprocessing-side TPS/Surface_F generators (outside assembly scope) |
 | `scripts/remote/` (3 files) | — | n/a | `pull_and_sbatch.sh`, `job_status.sh`, `fetch_artifacts.sh` — Slurm helpers |
 | `intent/`, `.scratch/` | — | n/a | Questions + tickets, not code |

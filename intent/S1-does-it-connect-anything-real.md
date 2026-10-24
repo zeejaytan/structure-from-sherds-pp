@@ -263,9 +263,9 @@ establishing trust in a forty-piece tray.
 
 ## Source
 
-`ASSEMBLY_FAILURE_ROOT_CAUSE.md`, `ROOT_CAUSE_DIAGNOSIS.md` (2025-11-04),
-`BOUNDARY_RADIUS_FIX.md`, `PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05),
-`NURBS_FIX_RESULTS.md`, `STEP_BY_STEP_COMPARISON.md`. Conservator, 2026-09-18: Rabati is
+`docs/notes/ASSEMBLY_FAILURE_ROOT_CAUSE.md`, `docs/notes/ROOT_CAUSE_DIAGNOSIS.md` (2025-11-04),
+`docs/notes/BOUNDARY_RADIUS_FIX.md`, `docs/notes/PREPROCESSING_SUCCESS_SUMMARY.md` (2025-11-05),
+`docs/notes/NURBS_FIX_RESULTS.md`, `docs/notes/STEP_BY_STEP_COMPARISON.md`. Conservator, 2026-09-18: Rabati is
 ~99% axially symmetric; Tray-000 set aside for now.
 
 ## 2026-09-29 — smoother A/B: scores move, joins don't
@@ -312,7 +312,7 @@ nothing, recorded as a downstream finding. Filed as juglet-sfs ticket 09
 
 ## 2026-10-01 — fork audits accepted (both docs land) + 05 corrected
 
-- Both `FORK_VS_UPSTREAM.md` docs reviewed claim-by-claim and committed.
+- Both `docs/notes/FORK_VS_UPSTREAM.md` docs reviewed claim-by-claim and committed.
   Preprocessing doc stands as written (upstream-owned 0.12/4.5/1.5 verified;
   ticket 16 corrected accordingly).
 - Assembly doc: 4 surprises verified, 1 corrected before landing —

@@ -93,3 +93,6 @@ physics_test_output.txt
 # Agent / IDE / graph noise
 .cursor/
 graphify-out/
+
+# macOS folder metadata
+.DS_Store

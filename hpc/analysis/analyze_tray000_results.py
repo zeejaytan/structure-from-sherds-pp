@@ -203,7 +203,7 @@ def analyze_assembly():
     print("=" * 100)
     print()
     print("Next Steps:")
-    print("  1. Visualize results: python visualize_tray000_results.py")
+    print("  1. Visualize results: python hpc/analysis/visualize_tray000_results.py")
     print("  2. Try modified SFS++ system with pottery-aware validation")
     print("  3. Adjust assembly parameters and re-run")
     print()
