@@ -11,9 +11,9 @@ scripts here, in the canonical checkout: `sbatch hpc/sbatch/<job>.sbatch` from
 `sfs_main/sfspreproc-docker/`, or through the workspace's `scripts/new_run.sh`, which
 records the run. Each script `cd`s to `/data/gpfs/projects/punim2657/sfs_main` itself and
 its `#SBATCH --output`/`--error` paths are absolute, so the submit directory does not
-matter. There are no live copies to keep in step any more: the 125 top-level scripts that
-used to sit in `sfs_main/` (119 byte-identical to these, 6 never versioned and now added)
-were archived to `/data/gpfs/projects/punim2657/SfSpp/attic/` and removed. Two copies of
+matter. The live copies at the top of `sfs_main/` are retired: of 125, 119 were byte-identical to
+these and the other 6 have now been added. Ticket 02 (workbench-hygiene) archives them to
+`/data/gpfs/projects/punim2657/SfSpp/attic/` and removes them. Two copies of
 a batch script drift; a run's `submit.sbatch` is the record of what was submitted.
 
 Results, logs, datasets, containers (`.sif`), and build dirs stay unversioned on the
