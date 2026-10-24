@@ -81,8 +81,9 @@ scripts/*
 # Laptop-side rsync landing zone (see scripts/remote/fetch_artifacts.sh)
 artifacts/
 
-# Generated per-branch sources (run_top_k_parallel.sbatch in outer sfs_main/
-# copies main_headless_correct.cpp and appends PARALLEL_BRANCH_ID per array task)
+# Per-branch source copies written by the retired run_top_k_parallel.sbatch
+# (removed 2026-10-24, workbench-hygiene 01). No job writes them now; the
+# pattern stays so any left in an old Spartan tree never gets committed.
 main_headless_correct_branch_*.cpp
 
 # Ad-hoc test outputs

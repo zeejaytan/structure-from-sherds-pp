@@ -1,5 +1,7 @@
 # 🚀 Parallel TOP-K Transformation System Guide
 
+> **Retired 2026-10-24.** `run_top_k_parallel.sbatch` was removed (workbench-hygiene 01): it built from `main_headless_correct.cpp`, which the 2026-10-20 pristine restore deleted, and the `PARALLEL_BRANCH_ID` it appended landed after the last line of code and was never read, so every array task ran with the same settings; any difference between tasks came from unseeded randomness, not from the branch number. Kept as a record of the idea; do not follow it.
+
 ## Overview
 Transform your 12-hour sequential TOP-K beam search into **1-2 hour parallel execution** using SLURM job arrays and multi-node supercomputer acceleration.
 

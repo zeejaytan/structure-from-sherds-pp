@@ -24,7 +24,7 @@ Workbench layout, and the harvest-then-delete procedure that goes with it: `../d
 
 ## Repo conventions / gotchas
 
-- `main_headless_correct_branch_{N}.cpp` are **generated** — `run_top_k_parallel.sbatch` (outer `sfs_main/`) copies `main_headless_correct.cpp` per Slurm array task and appends `PARALLEL_BRANCH_ID`. Gitignored; never commit or edit them — edit `main_headless_correct.cpp`.
+- **No job copies or edits source.** A run varies a parameter through its arguments or environment, never by writing a changed `.cpp`. `run_top_k_parallel.sbatch` (which wrote `main_headless_correct_branch_{N}.cpp` per array task) and `test_original_baseline.sbatch` (which `sed`-edited `class/feature_matching.cpp` in the checkout) were removed on 2026-10-24 (workbench-hygiene 01): both targeted fork files the 2026-10-20 pristine restore deleted, and the branch number the first one appended landed after the last line of code and was never read (checked in `main_headless_correct.cpp` at `b56bc80^`, lines 1268-1294). The current build is the pristine scorer plus the batch shim, `hpc/sbatch/run_pristine_pota.sbatch`.
 - `CMakeLists_enhanced.txt` was an older draft fully merged into the tracked `CMakeLists.txt` (verified zero unique lines); it was deleted during the 2026-07-19 migration.
 - `surface_overlap_detection.{cpp,h}` (repo root) was an early standalone draft, superseded by the tracked `class/surface_overlap_detector.{cpp,h}` which is what the build uses. REMOVED 2026-10-02 (ticket 10, Group A) — nothing included it.
 - GGCE (Global Graph Connectivity Enhancement) is documented in `GGCE_README.md`; its tests live in `tests/` and build as `ggce_tests` via the tracked `CMakeLists.txt`.
