@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=juglet_rerun_%j.out
-#SBATCH --error=juglet_rerun_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/juglet_rerun_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/juglet_rerun_%j.err
 
 # Rerun the identical Juglet assembly binary+inputs (ticket 04: reproducibility).
 # NO rebuild, NO pull (frozen tree): any difference vs 30829588 is runtime

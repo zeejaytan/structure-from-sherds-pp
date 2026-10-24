@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=rimbase_validation_test_%j.out
-#SBATCH --error=rimbase_validation_test_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/rimbase_validation_test_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/rimbase_validation_test_%j.err
 
 echo "=== PRD_RIMBASE.MD PHASE 5: VALIDATION TEST ==="
 echo "Job ID: $SLURM_JOB_ID"

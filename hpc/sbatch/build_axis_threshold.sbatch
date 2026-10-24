@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=build_axis_threshold_%j.out
-#SBATCH --error=build_axis_threshold_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/build_axis_threshold_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/build_axis_threshold_%j.err
 
 echo "=== BUILDING WITH AXIS THRESHOLD 0.5 ==="
 echo "Job ID: $SLURM_JOB_ID"

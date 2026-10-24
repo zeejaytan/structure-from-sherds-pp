@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0:30:00
 #SBATCH --mem=8G
-#SBATCH --output=phase5_pottery_%j.out
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/phase5_pottery_%j.out
 
 # PHASE 5 TEST: Pottery-Aware Validation
 # - Height monotonicity check (rejects connections with excessive height differences)

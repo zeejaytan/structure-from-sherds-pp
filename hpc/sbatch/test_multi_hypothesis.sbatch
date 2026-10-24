@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=test_multi_hypothesis_%j.out
-#SBATCH --error=test_multi_hypothesis_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/test_multi_hypothesis_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/test_multi_hypothesis_%j.err
 
 echo "=== TESTING MULTI-HYPOTHESIS GLOBAL OPTIMIZATION ==="
 echo "Job ID: $SLURM_JOB_ID"

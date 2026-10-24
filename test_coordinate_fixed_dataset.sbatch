@@ -4,8 +4,8 @@
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=test_coord_fixed_%j.out
-#SBATCH --error=test_coord_fixed_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/test_coord_fixed_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/test_coord_fixed_%j.err
 
 echo "========================================================================="
 echo "     SFS Assembly Test - Coordinate-Fixed NURBS Dataset"

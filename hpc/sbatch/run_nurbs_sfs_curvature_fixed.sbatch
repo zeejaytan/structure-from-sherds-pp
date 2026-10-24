@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=results_%Y_%m_%d_%H%M/sfs_nurbs_curvature_fixed_%j.out
-#SBATCH --error=results_%Y_%m_%d_%H%M/sfs_nurbs_curvature_fixed_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/results_%Y_%m_%d_%H%M/sfs_nurbs_curvature_fixed_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/results_%Y_%m_%d_%H%M/sfs_nurbs_curvature_fixed_%j.err
 
 echo "=== NURBS SFS Reconstruction with Fixed Curvature Breaklines ==="
 echo "Job ID: $SLURM_JOB_ID"

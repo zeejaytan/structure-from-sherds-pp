@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=t08_lcs_ab_%j.out
-#SBATCH --error=t08_lcs_ab_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/t08_lcs_ab_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/t08_lcs_ab_%j.err
 
 # =====================================================================
 # Ticket 08 (juglet-sfs): attribute the run-to-run pairing instability.

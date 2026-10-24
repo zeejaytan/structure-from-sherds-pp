@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 #SBATCH --time=0:30:00
-#SBATCH --output=rebuild_legacy_%j.out
-#SBATCH --error=rebuild_legacy_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/rebuild_legacy_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/rebuild_legacy_%j.err
 
 # Rebuild legacy SFS++ with relaxed thresholds and rejection logging
 

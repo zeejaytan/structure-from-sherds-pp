@@ -16,7 +16,7 @@ Follow the workspace root **`../AGENTS.md`** (laptop ↔ GitHub ↔ Spartan) for
 
 ## Surrounding Spartan layout
 
-- `sfs_main/` (parent dir) — the launch/analysis working area. Its scripts, docs, tools, and patches are **versioned in this repo under `hpc/`** (see `hpc/README.md`); the live copies on Spartan stay untracked there and are launched from `sfs_main/` (their paths reference `sfspreproc-docker/` as a subdirectory). Edit in `hpc/`, push, sync the live copy. Results/logs/datasets in `sfs_main/` remain HPC-only.
+- `sfs_main/` (parent dir) — the working area: results, logs, datasets and containers, all HPC-only. Its scripts, docs, tools and patches are **versioned in this repo under `hpc/`** (see `hpc/README.md`). **Jobs are submitted from `hpc/` in the canonical checkout** (`sbatch hpc/sbatch/<job>.sbatch` from `sfspreproc-docker/`, or through `../scripts/new_run.sh`), never from a copy: every script `cd`s to `sfs_main/` itself and writes its Slurm log to an absolute path, so where it is submitted from does not matter. The hand-synced live copies that used to sit at the top of `sfs_main/` were retired on 2026-10-24 (workbench-hygiene 02).
 - `sfs_main/sfs_legacy_temp/` — second clone of this fork used for tray-000 threshold debugging. Leave alone.
 - `sfs_main/sfs_modified_src/` — pristine clone of upstream. Reference only.
 
@@ -34,7 +34,7 @@ Typical loop:
 
 ```bash
 git push origin HEAD
-./scripts/remote/pull_and_sbatch.sh run_legacy_tray000.sbatch
+./scripts/remote/pull_and_sbatch.sh hpc/sbatch/run_pristine_pota.sbatch
 ./scripts/remote/job_status.sh
 ./scripts/remote/fetch_artifacts.sh logs ./artifacts/
 ```

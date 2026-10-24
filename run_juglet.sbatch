@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=juglet_sfs_%j.out
-#SBATCH --error=juglet_sfs_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/juglet_sfs_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/juglet_sfs_%j.err
 
 # =====================================================================
 # SFS++ Juglet assembly: 9 sherds, scan-table poses, millimetres.

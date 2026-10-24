@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0:30:00
 #SBATCH --mem=8G
-#SBATCH --output=phase2_gaps_%j.out
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/phase2_gaps_%j.out
 
 # PHASE 2 TEST: Gap-Targeting Scheduler
 # - Live gap tracking and prioritization

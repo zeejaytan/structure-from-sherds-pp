@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_legacy_tray000_debug_%j.out
-#SBATCH --error=sfs_legacy_tray000_debug_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_tray000_debug_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_tray000_debug_%j.err
 
 echo "========================================================================"
 echo "   SFS++ LEGACY SYSTEM - TRAY-000 DEBUG MODE (40 pieces)              "

@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0:30:00
 #SBATCH --mem=8G
-#SBATCH --output=phase4_topo_%j.out
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/phase4_topo_%j.out
 
 # PHASE 4 TEST: Circular Topology Bonuses
 # - Arc completion tracking (angular coverage monitoring)

@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
 #SBATCH --mem=16G
-#SBATCH --output=sfs_fixed_test_%j.out
-#SBATCH --error=sfs_fixed_test_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_fixed_test_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_fixed_test_%j.err
 
 echo "=== TESTING FIXED SFS ALGORITHM ==="
 echo "Job ID: $SLURM_JOB_ID"

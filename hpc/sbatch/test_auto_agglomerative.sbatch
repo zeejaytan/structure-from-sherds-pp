@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=test_auto_agglomerative_%j.out
-#SBATCH --error=test_auto_agglomerative_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/test_auto_agglomerative_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/test_auto_agglomerative_%j.err
 
 echo "==============================================================================="
 echo "🚀 AUTO-AGGLOMERATIVE ASSEMBLY SYSTEM TEST"

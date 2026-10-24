@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_legacy_%j.out
-#SBATCH --error=sfs_legacy_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_legacy_%j.err
 
 echo "=== SFS++ LEGACY SYSTEM (Original Author's Code) ==="
 echo "Job ID: $SLURM_JOB_ID"

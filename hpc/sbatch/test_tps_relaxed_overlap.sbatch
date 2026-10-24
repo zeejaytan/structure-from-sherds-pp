@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_tps_relaxed_overlap_%j.out
-#SBATCH --error=sfs_tps_relaxed_overlap_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_tps_relaxed_overlap_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_tps_relaxed_overlap_%j.err
 
 echo "=== SFS TPS RELAXED OVERLAP DETECTION TEST ==="
 echo "Job ID: $SLURM_JOB_ID"

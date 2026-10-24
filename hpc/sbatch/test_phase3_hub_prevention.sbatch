@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0:30:00
 #SBATCH --mem=8G
-#SBATCH --output=phase3_hubs_%j.out
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/phase3_hubs_%j.out
 
 # PHASE 3 TEST: Hub Prevention System
 # - Degree tracking for all placed pieces

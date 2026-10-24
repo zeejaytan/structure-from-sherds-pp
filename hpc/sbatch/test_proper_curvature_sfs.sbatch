@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_proper_curvature_%j.out
-#SBATCH --error=sfs_proper_curvature_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_proper_curvature_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_proper_curvature_%j.err
 
 echo "=== SFS RECONSTRUCTION WITH PROPER CURVATURE DATASET ==="
 echo "Job ID: $SLURM_JOB_ID"

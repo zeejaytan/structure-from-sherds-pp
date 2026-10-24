@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=sfs_nurbs_relaxed
-#SBATCH --output=sfs_nurbs_relaxed_%j.out
-#SBATCH --error=sfs_nurbs_relaxed_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_nurbs_relaxed_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_nurbs_relaxed_%j.err
 #SBATCH --time=04:00:00
 #SBATCH --partition=sapphire
 #SBATCH --nodes=1

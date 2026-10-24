@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=hierarchical_fixed_%j.out
-#SBATCH --error=hierarchical_fixed_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/hierarchical_fixed_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/hierarchical_fixed_%j.err
 
 echo "=========================================="
 echo "HIERARCHICAL RIM/BASE ASSEMBLY TEST (Fixed ENV)"

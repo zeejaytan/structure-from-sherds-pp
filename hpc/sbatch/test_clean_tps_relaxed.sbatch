@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_clean_tps_relaxed_%j.out
-#SBATCH --error=sfs_clean_tps_relaxed_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_clean_tps_relaxed_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_clean_tps_relaxed_%j.err
 
 echo "=== SFS CLEAN TPS DATASET WITH RELAXED SETTINGS ==="
 echo "Job ID: $SLURM_JOB_ID"

@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=02:00:00
-#SBATCH --output=physics_minimal_test_%j.out
-#SBATCH --error=physics_minimal_test_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/physics_minimal_test_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/physics_minimal_test_%j.err
 
 echo "=== TESTING PHYSICS-BASED MINIMAL IMPLEMENTATION ==="
 echo "Job ID: $SLURM_JOB_ID"

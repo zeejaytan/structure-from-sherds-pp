@@ -4,8 +4,8 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=pot_a_original_%j.out
-#SBATCH --error=pot_a_original_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/pot_a_original_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/pot_a_original_%j.err
 
 echo "========================================================================="
 echo "      SFS++ LEGACY - POT A (ORIGINAL GITHUB PARAMETERS RESTORED)"

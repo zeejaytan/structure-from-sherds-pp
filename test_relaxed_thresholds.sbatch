@@ -4,8 +4,8 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=sapphire
-#SBATCH --output=sfs_relaxed_test_%j.out
-#SBATCH --error=sfs_relaxed_test_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/sfs_relaxed_test_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/sfs_relaxed_test_%j.err
 
 echo "========================================================================"
 echo "   SFS++ LEGACY - RELAXED THRESHOLDS TEST (Tray-000, 40 pieces)      "

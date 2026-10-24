@@ -4,8 +4,8 @@
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=sapphire
-#SBATCH --output=ggce_test_%j.out
-#SBATCH --error=ggce_test_%j.err
+#SBATCH --output=/data/gpfs/projects/punim2657/sfs_main/ggce_test_%j.out
+#SBATCH --error=/data/gpfs/projects/punim2657/sfs_main/ggce_test_%j.err
 
 echo "=== GGCE SYSTEM TEST ==="
 echo "Job ID: $SLURM_JOB_ID"
