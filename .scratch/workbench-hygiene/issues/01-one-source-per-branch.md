@@ -6,9 +6,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** done
-
-**Working in:** branch `claude/project-thread-3k8xjo`, merged to `main` from C:\PR
+**Status:** resolved
 
 Amendment 4.1. Today the batch script copies the source per array task and appends the branch id (`AGENTS.md`, "Repo conventions"). A generated copy is code varied per run, which a parameter should do. Prove it by building once and running two array tasks: both report their branch id and neither writes a `.cpp`.
 

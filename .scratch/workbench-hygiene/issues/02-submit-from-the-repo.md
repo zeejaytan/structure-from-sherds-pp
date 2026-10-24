@@ -6,10 +6,35 @@
 
 **Blocked by:** 01 (touches the same batch scripts).
 
-**Status:** ready-for-agent
+**Status:** in-progress — repo side done; Spartan archive waits on the conservator's yes
+**Working in:** project thread "SfS++ branches, submit and root tidy" (2026-10-24)
 
 Amendments 4.2 and 2.3. Two copies of a batch script drift, and the run's `submit.sbatch` is already the record of what was submitted. Before removing the live copies: `diff` each against its `hpc/` twin and commit any difference that is real; then archive them under rule 13.
 
-- [ ] Every live copy diffed; real differences committed to `hpc/`
+- [x] Every live copy diffed; real differences committed to `hpc/`
 - [ ] Live copies archived (proved) and removed
-- [ ] No batch script uses a relative `--output`
+- [x] No batch script uses a relative `--output`
+
+## Progress (2026-10-24)
+
+Spartan inventory (read-only, relayed): `sfs_main/` holds 125 top-level `*.sbatch`, `*.sh`
+and `*.py`. Against `hpc/{sbatch,scripts,analysis}` at `origin/main` 40b3529: **119
+byte-identical, 0 differing, 6 with no twin**. The six (`run_pristine_juglet.sbatch`,
+`onset_table.py`, `profile_battery.py`, `which_edge_passed.py`, `which_edge_row1.py`,
+`which_pieces_right.py`) were copied out with `cp -p`, md5-checked against Spartan's sums,
+and committed to `hpc/sbatch/` and `hpc/analysis/`. No running job has its WorkDir under
+`sfs_main/`; newest script mtime 2026-10-15 01:40. Files: `/mnt/project-files/sfs_hygiene_*`.
+
+83 relative `#SBATCH --output`/`--error` lines in 44 scripts now carry
+`/data/gpfs/projects/punim2657/sfs_main/` in front, which is where they landed when
+submitted from there, so submitting from the checkout changes nothing about where logs go.
+`new_run.sh` passes its own `--output` on the command line, which wins over the header.
+
+Found on the way, not this ticket's to fix: the canonical checkout `sfs_main/sfspreproc-docker`
+sits at `11f4827` (an ancestor of main) with two hand edits from 2026-10-16 (P22FIX in
+`class/feature_matching.cpp:1989`, P22FIX2 in `class/ranking_system.cpp:1838`), which the
+2026-10-20 pristine decision superseded. They block `git pull --ff-only`. Put to the
+conservator with the archive step.
+
+Next: harvest the 125 into `/data/gpfs/projects/punim2657/SfSpp/attic/sfs_main-live-scripts-20261024/`
+(tarball, extract, `cmp` every member, `gzip -t`, INDEX, manifest), then remove.
