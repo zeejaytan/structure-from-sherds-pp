@@ -20,7 +20,7 @@ Follow the workspace root **`../AGENTS.md`** (laptop ↔ GitHub ↔ Spartan) for
 - `sfs_main/sfs_legacy_temp/` — second clone of this fork used for tray-000 threshold debugging. Leave alone.
 - `sfs_main/sfs_modified_src/` — pristine clone of upstream. Reference only.
 
-Workbench layout, and the harvest-then-delete procedure that goes with it: `C:\PR\docs\agents\workspace-hygiene.md`. Deletion follows `C:\PR\AGENTS.md` rule 13. Canonical checkout `/data/gpfs/projects/punim2657/sfs_main/sfspreproc-docker`, working area `/data/gpfs/projects/punim2657/sfs_main/`; `runs/` + `attic/` not yet set up.
+Workbench layout, and the harvest-then-delete procedure that goes with it: `../docs/agents/workspace-hygiene.md`. Deletion follows `../AGENTS.md` rule 13. Canonical checkout `/data/gpfs/projects/punim2657/sfs_main/sfspreproc-docker`, working area `/data/gpfs/projects/punim2657/sfs_main/`; `runs/` + `attic/` not yet set up.
 
 ## Repo conventions / gotchas
 
