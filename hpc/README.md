@@ -12,8 +12,8 @@ scripts here, in the canonical checkout: `sbatch hpc/sbatch/<job>.sbatch` from
 records the run. Each script `cd`s to `/data/gpfs/projects/punim2657/sfs_main` itself and
 its `#SBATCH --output`/`--error` paths are absolute, so the submit directory does not
 matter. The live copies at the top of `sfs_main/` are retired: of 125, 119 were byte-identical to
-these and the other 6 have now been added. Ticket 02 (workbench-hygiene) archives them to
-`/data/gpfs/projects/punim2657/SfSpp/attic/` and removes them. Two copies of
+these and the other 6 have now been added. On 2026-10-24 all 125 were archived to
+`/data/gpfs/projects/punim2657/SfSpp/attic/sfs_main-live-scripts-20261024.tar.gz` and removed. Two copies of
 a batch script drift; a run's `submit.sbatch` is the record of what was submitted.
 
 Results, logs, datasets, containers (`.sif`), and build dirs stay unversioned on the

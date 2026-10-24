@@ -6,13 +6,12 @@
 
 **Blocked by:** 01 (touches the same batch scripts).
 
-**Status:** in-progress — repo side done; Spartan archive waits on the conservator's yes
-**Working in:** project thread "SfS++ branches, submit and root tidy" (2026-10-24)
+**Status:** resolved
 
 Amendments 4.2 and 2.3. Two copies of a batch script drift, and the run's `submit.sbatch` is already the record of what was submitted. Before removing the live copies: `diff` each against its `hpc/` twin and commit any difference that is real; then archive them under rule 13.
 
 - [x] Every live copy diffed; real differences committed to `hpc/`
-- [ ] Live copies archived (proved) and removed
+- [x] Live copies archived (proved) and removed
 - [x] No batch script uses a relative `--output`
 
 ## Progress (2026-10-24)
@@ -36,5 +35,13 @@ sits at `11f4827` (an ancestor of main) with two hand edits from 2026-10-16 (P22
 2026-10-20 pristine decision superseded. They block `git pull --ff-only`. Put to the
 conservator with the archive step.
 
-Next: harvest the 125 into `/data/gpfs/projects/punim2657/SfSpp/attic/sfs_main-live-scripts-20261024/`
-(tarball, extract, `cmp` every member, `gzip -t`, INDEX, manifest), then remove.
+Done 2026-10-24 on the conservator's "Clear both" (decision card, 08:50Z), by the Spartan
+workspace thread following `/mnt/project-files/workbench-hygiene/sfs02_spartan_steps.md`;
+log `/mnt/project-files/sfs02_archive_log.txt`. Tarball 125 members, `gzip -t` ok, `cmp`
+ok on all 125; guards clear (no job WorkDir under `sfs_main/`, nothing modified in the last
+hour); 125 removed, 0 left. The two hand edits saved as
+`SfSpp/attic/sfspreproc-docker-P22FIX-handedits-20261024.patch` (26 lines, `apply -R --check`
+ok), reverted, and the checkout pulled `11f4827` → `40b3529`. Attic:
+`/data/gpfs/projects/punim2657/SfSpp/attic/sfs_main-live-scripts-20261024{.tar.gz,-INDEX.txt,-deleted-manifest-20261024.tsv.gz}`;
+row `sfs_main-live-scripts-20261024` in `SfSpp/runs/index.tsv`. Untracked test binaries and
+`build_sif/` in the checkout left as they were.
