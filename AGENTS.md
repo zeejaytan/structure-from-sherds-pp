@@ -14,6 +14,13 @@ Follow the workspace root **`../AGENTS.md`** (laptop ↔ GitHub ↔ Spartan) for
 
 **Naming warning:** despite the folder name, `sfspreproc-docker` is the **assembly** code (SFS++ / `Hierarchy-Clear`), *not* preprocessing. Actual preprocessing lives in the separate `sfs_preprocessing` repo (`zeejaytan/SfSpp_preprocessing`).
 
+## The chain, end to end
+
+Every step from a scanned OBJ to a seated pot — which tool performs it, where its inputs and outputs
+live, and the gate that says the step worked — is written up once in `docs/e2e-obj-to-reassembly.md`.
+It spans both repos (preprocessing builds the inputs this repo assembles). Change that page in the
+same commit that changes a step.
+
 ## Surrounding Spartan layout
 
 - `sfs_main/` (parent dir) — the working area: results, logs, datasets and containers, all HPC-only. Its scripts, docs, tools and patches are **versioned in this repo under `hpc/`** (see `hpc/README.md`). **Jobs are submitted from `hpc/` in the canonical checkout** (`sbatch hpc/sbatch/<job>.sbatch` from `sfspreproc-docker/`, or through `../scripts/new_run.sh`), never from a copy: every script `cd`s to `sfs_main/` itself and writes its Slurm log to an absolute path, so where it is submitted from does not matter. The hand-synced live copies that used to sit at the top of `sfs_main/` were retired on 2026-10-24 (workbench-hygiene 02).
