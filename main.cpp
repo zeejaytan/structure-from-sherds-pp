@@ -222,6 +222,10 @@ int main(int argc, char** argv)
 	//////#################### Incremental graph building ####################//
 	StateManager manager(TOP_k, BRANCH_b, shard, LCS_out, step_size, path + "Result");
 	manager.BuildStep();
+	if (manager.out_state_.empty()) {
+		cout << "SFS-NO-CANDIDATES no assembly state to show; exit 0" << endl;
+		return 0;
+	}
 
 	int num_total = manager.out_state_.size();
 

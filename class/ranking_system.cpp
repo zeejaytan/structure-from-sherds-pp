@@ -724,6 +724,11 @@ void StateManager::Initialize(int N,
 		else
 			break;
 	}
+	if (ext_state_.empty()) {
+		cout << "SFS-NO-CANDIDATES no root graph from " << initial_graph_.size() << " pruned pairs; StateManager has no state" << endl;
+		num_init_prio_ = 0;
+		return;
+	}
 	num_init_prio_ = ext_state_[0].total_priority_.size();
 }
 
