@@ -6,7 +6,7 @@
 **Blocks:** nothing. Ticket 329 does not wait on this: its own rule leaves every pot at s = 1.000 by construction.
 **Working in:** lead-dispatched subagent (2026-11-11)
 **Branch:** `330-potE-gate-flips` (worktree `C:/PR/worktrees/structure-from-sherds-pp/330`)
-**Worker:** unassigned
+**Worker:** b7df1d76-9dac-448b-8623-6efb12f1b659 (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-11 02:26 by the lead)
 **Budget:** small (3 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** stays with the lead's subagent (worker never commits; lead verifies from artefacts and lands)
 
