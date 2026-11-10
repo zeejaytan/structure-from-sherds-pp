@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 328 (cured Juglet trees and final binaries; bar 1 is its ten-pot confirmation), 326 (diag harness and scale-measurement code; branch not merged — run-dir copies cited below)
 **Blocks:** merge of 328 to main (bar 1 is the gate)
-**Worker:** unassigned
+**Worker:** 7e568579-f3c5-4905-a2dd-026f8a64ece3 (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-11 01:57 by the lead, continuing from 14006bb7-f674-4b68-9e85-7e64c0471655 which died on a provider outage at 01:50 with its bar-1 job still running)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** stays with the lead's subagent (worker never commits; lead verifies from artefacts and lands)
 
@@ -210,3 +210,18 @@ bar: the clamp failed in practice — STOP, report.
 - Budget large = 8 failed acceptance runs; waiting costs none; stop on the first bar miss and report.
 - Checkpoint each finished bar into the ticket as a `## Comments (worker, <date>)` append; end every report
   with exactly one `**End state:** ready|waiting: <job ids>|blocked: <reason>|incomplete: <what>`.
+
+## Comments (worker, 2026-11-11) — site audit (pre-patch) and bar-1 launch
+
+**MINIMUM_NUMBER site audit** (grep over pristine tree at 20b52bf, comments evaluated, repo-wide outside .scratch):
+
+- Definition: class/reconstruction.h:24 (#define MINIMUM_NUMBER 6; INLIER_THRESHOLD/ANGLE_THRESHOLD beside it — untouched by this ticket).
+- Ticket list (b) confirmed live: class/feature_matching.cpp:1015, :1045 (dummy_inlier > MINIMUM_NUMBER/2); class/reconstruction.cpp:465, 530, 593, 666 (cor.size() > MINIMUM_NUMBER/2), :727, :763 (inlier < MINIMUM_NUMBER), :1198, :1397, :1589 (cor.size() < MINIMUM_NUMBER); class/ranking_system.cpp:800, :838 (windowsize arg -> FeatureCompGraphBuilding, def feature_matching.cpp:1498; run gate executes at feature_matching.cpp:407 LCSuff(i,j) > windowsize inside LCSGraphBuilding, called at :1543).
+- **Audit adds two live consumers the (b) list did not name**: main.cpp:211 and hpc/tools/main_pristine_batch.cpp:209 — FeatureComp(shard, LCS_out, 25, MINIMUM_NUMBER, 0), the first pipeline stage in both mains; its run gate executes at feature_matching.cpp:294 (LCSuff > windowsize) inside LCS (def :212, called from FeatureComp at :1473). The batch shim main is what the SIF build runs, so this is on the measured path. These sites read M in the patch (same single knob; no shape change).
+- Dead code, not edited: class/feature_matching.cpp:987 is a commented-out line (//if (size > MINIMUM_NUMBER)).
+- The (b) cites fm:1446-1449 / :1518-1521 are the Q_size blocks inside FeatureComp / FeatureCompGraphBuilding — the feature conditions themselves (byte-identical, untouched); the floors enter via the windowsize argument only, as above.
+
+**Bar 1 step 1 launched.** Run dir /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0120_20b52bf_t329-axes, job 34721544 (sapphire, 24 cpu, 40 min). Recipe = t328 job E verbatim (submit328e.sbatch, job 34702695): run_benchmark_172.py --jobs 24 --cap 6 --seeds 10 --step 10, then build_axes323.py <in> profile_rank.json <out> 1.2 3, gate = diff -rq vs runs/20261110-0740_d628fc0_t323-axes/out/axes323 (172 files).
+
+- Code-path note: the canonical checkout /data/gpfs/projects/punim2657/sfs_preprocessing holds an md5-identical run_benchmark_172.py (cd547927e181c6e5ef3103d6413d5489) but its sfs_axes package has drifted post-t322 (7 files differ, profile.py absent; canonical at 4c2aec3, t320-era). The gate therefore runs from the t322 impl tree, the exact environment whose output 328 measured byte-identical — a code-choice artifact cannot be allowed to trip the gate.
+- Final-binaries note: run_benchmark_172.py references no binary (measured in-job: grep -c 'subprocess|Popen|os.system' = 0, recorded in out/benchmark_binary_refs.txt); the trim5 final binaries cannot enter this computation by construction. Their md5s are re-measured and recorded in out/trim5_binaries.md5 so the "re-measured with the final binaries" wording is on the record rather than asserted.
