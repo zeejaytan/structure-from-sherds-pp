@@ -680,6 +680,34 @@ Two statements in the worker's text were wrong and are corrected in place above:
 arm 0/9 against the control's 2/9). Bar 6 is **outstanding** (no render job was run; recorded, not claimed). Bars 2, 3
 and 7 pass.
 
+## Comments (lead, 2026-11-11) — bar 6 closed
+
+Render job **34720856** (sapphire, COMPLETED 0:0, 00:00:14), run
+`20261110-2248_6925cb0_t326-potE/work/submit_render326.sbatch`, same drawing code as ticket 323
+(`render323.py` copied unmodified into the run's `work/`): GT beside the two patched arms.
+
+- Patched arms: `…/20261110-2248_6925cb0_t326-potE/out/renders/potE_326.png` (laptop copy
+  `worktrees/structure-from-sherds-pp/326/artifacts/pota326/renders/potE_326.png`).
+- Baseline for comparison: `…/20261110-0740_d628fc0_t323-potE/out/renders/potE.png` (laptop copy
+  `…/renders/potE_baseline.png`).
+
+Paired measurement a viewpoint cannot distort (`work/piece_err326.py` -> `work/piece_err326.out`,
+per-piece centroid error vs GT in mm, both runs aligned through staged piece 01; clouds subsampled
+::8 exactly as the render):
+
+| arm | median | p90 | max | pieces > 10 mm |
+|---|---|---|---|---|
+| t323 K3R1 (baseline) | 2.5 | 3.5 | 4.7 | 0 |
+| t323 MOR1 (baseline) | 2.5 | 3.6 | 4.5 | 0 |
+| t326 K3R1 | 4.7 | 9.7 | 38.4 | 3 (P03 22.1, P24 17.0, P26 38.4) |
+| t326 MOR1 | 3.8 | 23.5 | 114.7 | 5 (P03 23.5, P24 18.4, P25 85.4, P26 114.7, P31 64.0) |
+
+Eye-check: the patched panels keep the overall vessel shape (no tilt or collapse), with visible
+thinning and gaps along rim and belly against GT, noticeably worse on the MOR arm — matching the
+12-16 lost joins. Individual stray pieces do not separate at this render scale; the table above
+names them (P26 worst at 38-115 mm). Verified: `sacct 34720856` -> COMPLETED 0:0;
+`piece_err326.out` read back from the run dir; both PNGs fetched and opened.
+
 What the two tickets establish, stated precisely, because the direction matters: 325 moved no constant at all and the
 Juglet stayed at 2/9, so the preprocessing axis gates were not the blocker. 326 moved every assembler gate **upwards on
 the pots** (1.01-2.52x) and pot E lost 10-16 joins; on the Juglet the same rule scaled every gate **downwards**
