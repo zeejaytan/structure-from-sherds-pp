@@ -1,8 +1,8 @@
 # Ticket 329 — Scale-aware seed floor: a pair registers on the evidence its pieces can supply
 
-**Status:** ready-for-agent
-**Working in:** (unset)
-**Branch:** (unset — the claim writes it)
+**Status:** in-progress
+**Working in:** lead-dispatched subagent (2026-11-11)
+**Branch:** 329-scale-aware-seed-floor, in C:/PR/worktrees/structure-from-sherds-pp/329
 **Answers:** S1
 **Depends on:** 328 (cured Juglet trees and final binaries; bar 1 is its ten-pot confirmation), 326 (diag harness and scale-measurement code; branch not merged — run-dir copies cited below)
 **Blocks:** merge of 328 to main (bar 1 is the gate)
