@@ -1,0 +1,569 @@
+--- a/class/data_structure.h
++++ b/class/data_structure.h
+@@ -438,4 +438,17 @@
+ 	pair<int, int>& edge_acc,
+ 	double& time);
+ 
+-#endif // !_DATA_STRUCTURE_H_
+\ No newline at end of file
++// Ticket 326. Every length gate on the matching path is a multiple of one scale
++// measured from the object itself: the median breakline bounding-box diagonal
++// of the pieces the assembler loaded, in mm. Gate(legacy) = legacy * scale / 60.
++// The 60 mm reference is the size the literals were written for: pot F's median
++// piece diagonal is 61 mm, the smallest of the ten scored pots, so on every
++// scored pot the gate is at or above the legacy one (1.02x on F to 2.52x on C).
++extern double g_len_scale;
++void MeasureLengthScale(const vector<Geom>& shard);
++inline double Gate(double legacy_mm)
++{
++	return legacy_mm * (g_len_scale > 0 ? g_len_scale / 60.0 : 1.0);
++}
++
++#endif // !_DATA_STRUCTURE_H_
+--- a/class/data_structure.cpp
++++ b/class/data_structure.cpp
+@@ -1,4 +1,5 @@
+ #include "data_structure.h"
++#include <algorithm>
+ 
+ //############################## class BreakLine ##############################//
+ BreakLine::BreakLine() {
+@@ -1007,4 +1008,32 @@
+ 	}
+ 	else
+ 		cout << "SaveAcc : File system error" << endl;
+-}
+\ No newline at end of file
++}
++double g_len_scale = 0;
++
++void MeasureLengthScale(const vector<Geom>& shard)
++{
++	if (g_len_scale > 0)
++		return;
++	vector<double> diag;
++	for (int i = 0; i < (int)shard.size(); i++) {
++		if (!shard[i].is_matching_)
++			continue;
++		const MatrixXd& p = shard[i].edge_line_.point_;
++		if (p.cols() < 2)
++			continue;
++		Vector3d mn = p.rowwise().minCoeff();
++		Vector3d mx = p.rowwise().maxCoeff();
++		diag.push_back((mx - mn).norm());
++	}
++	if (diag.empty()) {
++		g_len_scale = 60.0;
++		cout << "SCALE326 v1 len_scale_mm=60 n=0 ref_mm=60 FALLBACK" << endl;
++		return;
++	}
++	sort(diag.begin(), diag.end());
++	g_len_scale = diag[diag.size() / 2];
++	cout << "SCALE326 v1 len_scale_mm=" << g_len_scale
++		<< " n=" << diag.size() << " ref_mm=60" << endl;
++}
++
+--- a/class/feature_matching.cpp
++++ b/class/feature_matching.cpp
+@@ -525,10 +525,10 @@
+ 		double dir = abs(p_ab.dot(L1.normal_.col(i)));
+ 		dir = dir / (p_ab.norm() * L1.normal_.col(i).norm());
+ 		double norm_dir = L1.normal_.col(i).dot(L0.normal_.col(p_index));
+-		if (len < 5) {
++		if (len < Gate(5)) {
+ 			region.push_back(i);
+ 		}
+-		else if ((norm_dir > 0) && (len < 20)) {
++		else if ((norm_dir > 0) && (len < Gate(20))) {
+ 			if (dir >= 0.86) {				// cos30 = 0.86
+ 				region.push_back(i);
+ 			}
+@@ -576,16 +576,16 @@
+ 	intru_b = hp_b.dot(c_ba);
+ 
+ 	if (hp_a.dot(hp_b) > 0) {
+-		if (cor.len > 4)
++		if (cor.len > Gate(4))
+ 			return false;
+-		cor.len = 4;
++		cor.len = Gate(4);
+ 		pc.push_back(p_a_1);
+ 		pc.push_back(p_b_1);
+ 		return true;
+ 	}
+ 
+ 	else if ((intru_a < 0) && (intru_b > 0)) {
+-		if (cor.len > 2)
++		if (cor.len > Gate(2))
+ 		{
+ 			pc.push_back(p_a_1);
+ 			pc.push_back(p_b_1);
+@@ -620,9 +620,9 @@
+ 
+ 	double angle = center_L0.dot(center_L1) / (center_L0.norm() * center_L1.norm());
+ 
+-	if ((center_L0 - center_L1).norm() < 5) {
++	if ((center_L0 - center_L1).norm() < Gate(5)) {
+ 		cout << "Overlap : Each center is too close" << endl;
+-		area = 1000;
++		area = Gate(1000);
+ 		size = 1;
+ 		return true;
+ 	}
+@@ -696,8 +696,8 @@
+ 
+ 	double angle = center_L0.dot(center_L1) / (center_L0.norm() * center_L1.norm());
+ 
+-	if ((center_L0 - center_L1).norm() < 5) {
+-		area = 1000;
++	if ((center_L0 - center_L1).norm() < Gate(5)) {
++		area = Gate(1000);
+ 		size = 1;
+ 		return true;
+ 	}
+@@ -774,9 +774,9 @@
+ 
+ 	double angle = center_L0.dot(center_L1) / (center_L0.norm() * center_L1.norm());
+ 
+-	if ((center_L0 - center_L1).norm() < 5) {
++	if ((center_L0 - center_L1).norm() < Gate(5)) {
+ 		cout << "Overlap : Each center is too close" << endl;
+-		area = 1000;
++		area = Gate(1000);
+ 		size = 1;
+ 		return true;
+ 	}
+@@ -1179,7 +1179,7 @@
+ 		if (total_count) {
+ 			double den = sqrt(coeff_list[i](0) * coeff_list[i](0) + 1);
+ 			for (int j = start; j < end; j++) {
+-				double dist(100);
++				double dist(0);
+ 				if (abs(coeff_list[i](0)) > 1) {
+ 					dist = abs(coeff_list[i](0) * pc[j](2) - pc[j](0) + coeff_list[i](1)) / den;
+ 				}
+@@ -1198,7 +1198,7 @@
+ 			for (int j = 0; j < Q_size; j++) {
+ 				if ((pc_current[i](2) > bin_list[j].min_value) && (pc_current[i](2) < bin_list[j].max_value)) {
+ 					double den = sqrt(coeff_list[j](0) * coeff_list[j](0) + 1);
+-					double dist(100);
++					double dist(0);
+ 					if (abs(coeff_list[j](0)) > 1) {
+ 						dist = abs(coeff_list[j](0) * pc_current[i](2) - pc_current[i](0) + coeff_list[j](1)) / den;
+ 					}
+@@ -1208,7 +1208,7 @@
+ 					if (dist < threshold) {
+ 						pc_inlier++;
+ 					}
+-					else if (dist > 10) {
++					else if (dist > Gate(10)) {
+ 						result = false;
+ 					}
+ 					num_points++;
+@@ -1232,8 +1232,8 @@
+ 		MinMaxValue z_total;
+ 		z_total.max_value = pc_current.back()(2);
+ 		z_total.min_value = pc_current.front()(2);
+-		double top_gap = z_total.max_value - H_rim - 10;
+-		double bottom_gap = H_rim - z_total.min_value - 10;
++		double top_gap = z_total.max_value - H_rim - Gate(10);
++		double bottom_gap = H_rim - z_total.min_value - Gate(10);
+ 		if ((top_gap > 0) && (bottom_gap > 0)) {
+ 			result = false;
+ 		}
+@@ -1331,7 +1331,7 @@
+ 		for (int j = 0; j < Q_size; j++) {
+ 			if ((pc_merge[i](2) > bin_list[j].min_value) && (pc_merge[i](2) < bin_list[j].max_value)) {
+ 				double den = sqrt(coeff_list[j](0) * coeff_list[j](0) + 1);
+-				double dist(100);
++				double dist(0);
+ 				if (abs(coeff_list[j](0)) > 1) {
+ 					dist = abs(coeff_list[j](0) * pc_merge[i](2) - pc_merge[i](0) + coeff_list[j](1)) / den;
+ 				}
+@@ -1341,7 +1341,7 @@
+ 				if (dist < threshold) {
+ 					pc_inlier++;
+ 				}
+-				else if (dist > 10) {
++				else if (dist > Gate(10)) {
+ 					result = false;
+ 				}
+ 				num_points++;
+@@ -1362,8 +1362,8 @@
+ 		MinMaxValue z_total;
+ 		z_total.max_value = pc_merge.back()(2);
+ 		z_total.min_value = pc_merge.front()(2);
+-		double top_gap = z_total.max_value - H_rim - 10;
+-		double bottom_gap = H_rim - z_total.min_value - 10;
++		double top_gap = z_total.max_value - H_rim - Gate(10);
++		double bottom_gap = H_rim - z_total.min_value - Gate(10);
+ 		if ((top_gap > 0) && (bottom_gap > 0)) {
+ 			result = false;
+ 		}
+@@ -1378,6 +1378,7 @@
+ 	int windowsize,
+ 	int mode)
+ {
++	MeasureLengthScale(a);
+ 	vector<double> Q_size;
+ 	int shard_num = a.size();
+ 	bool is_thickness = false;
+@@ -1501,6 +1502,7 @@
+ 	int windowsize,
+ 	vector<vector<bool>>& matched_index)
+ {
++	MeasureLengthScale(a);
+ 	vector<double> Q_size;
+ 	int shard_num = a.size();
+ 	bool is_thickness = false;
+@@ -1593,7 +1595,7 @@
+ 		list<LCSIndex>::iterator comp = iter;
+ 		for (; comp != LCS_out.end(); ) {
+ 			if (comp != iter) {
+-				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
++				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, Gate(20)))) {
+ 					if (iter->score_ < comp->score_) {
+ 						Merge(*iter, *comp);
+ 						comp = LCS_out.erase(comp);
+@@ -1671,7 +1673,7 @@
+ 
+ 		//#################### Overlapping check ####################//
+ 		double A_dummy(0), length(0);
+-		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, 50.0); // 50
++		bool overlap = OverlapCheck_3d(L[iter->shard_y_ - 1], L[iter->shard_x_ - 1], A_dummy, length, Gate(50.0)); // 50
+ 		//#################### Update LCS_out information ####################// 
+ 		iter->overlap_ = overlap;
+ 		iter->score_ = cycle.score;
+@@ -1823,7 +1825,7 @@
+ 			L[iter->shard_x_ - 1],
+ 			A_dummy, 
+ 			length, 
+-			50.0); // 50
++			Gate(50.0)); // 50
+ 		
+ 		//#################### Update LCS_out information ####################// 
+ 		iter->overlap_ = overlap;
+@@ -1896,7 +1898,7 @@
+ 					shard[j].edge_line_,
+ 					area,
+ 					size,
+-					100);
++					Gate(100));
+ 				if (overlap) {
+ 					result = true;
+ 					break;
+--- a/class/ranking_system.cpp
++++ b/class/ranking_system.cpp
+@@ -17,7 +17,7 @@
+ 
+ bool RankingSubgraph::isSimilarGraph(RankingSubgraph& G_i)
+ {
+-	double rad_threshold = 0.262, t_threshold = 20.0;
++	double rad_threshold = 0.262, t_threshold = Gate(20.0);
+ 
+ 	// First, check true node 
+ 	int base_node(-1);
+@@ -253,7 +253,7 @@
+ 				T_c = Matrix4d::Zero();
+ 				T_i = Matrix4d::Ones();
+ 			}
+-			if (isSimilarTrans(T_c, T_i, 0.436, 20.0)) {	// ICCV->Hierarchy 0.436->0.35
++			if (isSimilarTrans(T_c, T_i, 0.436, Gate(20.0))) {	// ICCV->Hierarchy 0.436->0.35
+ 				for (int i = 0; i < c_iter->i_edge.size(); i++) {
+ 					if (!(sub_graph_[i_index].SamePart(sub_graph_[c_iter->i_edge[i]])))
+ 					{
+@@ -312,7 +312,7 @@
+ 					T_c = Matrix4d::Zero();
+ 					T_i = Matrix4d::Ones();
+ 				}
+-				if (isSimilarTrans(T_c, T_i, 0.436, 20.0))	// ICCV->Hierarchy 0.436 -> 0.35
++				if (isSimilarTrans(T_c, T_i, 0.436, Gate(20.0)))	// ICCV->Hierarchy 0.436 -> 0.35
+ 				{
+ 					for (int i = 0; i < c_iter->i_edge.size(); i++) {
+ 						//########## If two lcs are not same edges
+@@ -619,7 +619,7 @@
+ 
+ 			R = r_R * c_R;
+ 			t = r_R * c_t + r_t;
+-			if (!isConverge(R, t, 0.1, 10)) {
++			if (!isConverge(R, t, 0.1, Gate(10))) {
+ 				continue;
+ 			}
+ 
+@@ -1407,7 +1407,7 @@
+ 					graph[g_index].node_,
+ 					graph[merge_index].node_,
+ 					shard,
+-					7.0, 1.5);	//
++					Gate(7.0), Gate(1.5));	//
+ 
+ 				if (pc_out)
+ 					lcs_iter++;
+@@ -1436,7 +1436,7 @@
+ 					graph[g_index].node_,
+ 					shard,
+ 					c_node,
+-					7.0, 1.5, false);
++					Gate(7.0), Gate(1.5), false);
+ 
+ 				if (pc_out)
+ 					lcs_iter++;
+@@ -1782,7 +1782,7 @@
+ 						shard[j].edge_line_,
+ 						area,
+ 						size,
+-						50);
++						Gate(50));
+ 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
+ 					if (overlap) {
+ 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
+@@ -1824,7 +1824,7 @@
+ 			}
+ 			double pc_var_value(0);
+ 			if (!profile.empty()) {
+-				profile_matched = ProfileChecking(profile, 7.0, 7.0);	//
++				profile_matched = ProfileChecking(profile, Gate(7.0), Gate(7.0));	//
+ 			}
+ 			if (profile_matched && is_rim) {
+ 				int up_count(0), down_count(0);
+@@ -1832,8 +1832,8 @@
+ 				MinMaxValue z_total;
+ 				z_total.max_value = profile.back()(2);
+ 				z_total.min_value = profile.front()(2);
+-				double top_gap = z_total.max_value - H_rim - 10;
+-				double bottom_gap = H_rim - z_total.min_value - 10;
++				double top_gap = z_total.max_value - H_rim - Gate(10);
++				double bottom_gap = H_rim - z_total.min_value - Gate(10);
+ 				if ((top_gap > 0) && (bottom_gap > 0)) {
+ 					profile_matched = false;
+ 				}
+@@ -1880,7 +1880,7 @@
+ 				shard[c_node].edge_line_,
+ 				area,
+ 				size,
+-				100);
++				Gate(100));
+ 
+ 			if (overlap)
+ 				break;
+@@ -1924,4 +1924,4 @@
+ 	}
+ 
+ 	history.push_back(input_history);
+-}
+\ No newline at end of file
++}
+--- a/class/reconstruction.cpp
++++ b/class/reconstruction.cpp
+@@ -457,7 +457,7 @@
+ 		int i_B = cor_making_index[i];
+ 		Corres cor_line;
+ 		MakeCorWOBuildTree(cor_line, L[c_node - 1], L[i_B], onetoone);
+-		RejectOutlier(cor_line, 20, 0.7);
++		RejectOutlier(cor_line, Gate(20), 0.7);
+ 
+ 		cor_line.index_A = c_node;
+ 		cor_line.index_B = i_B + 1;
+@@ -521,7 +521,7 @@
+ 		int i_mov = pair_index[i].first, i_fix = pair_index[i].second;
+ 		Corres cor_line;
+ 		MakeCorWOBuildTree(cor_line, L[i_mov], L[i_fix], onetoone);
+-		RejectOutlier(cor_line, 20, 0.7);
++		RejectOutlier(cor_line, Gate(20), 0.7);
+ 
+ 		cor_line.index_A = i_mov + 1;
+ 		cor_line.index_B = i_fix + 1;
+@@ -584,7 +584,7 @@
+ 		int i_A = pair_index[i].first, i_B = pair_index[i].second;
+ 		Corres cor_line;
+ 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
+-		RejectOutlier(cor_line, 20, 0.7);
++		RejectOutlier(cor_line, Gate(20), 0.7);
+ 
+ 		cor_line.index_A = i_A + 1;
+ 		cor_line.index_B = i_B + 1;
+@@ -657,7 +657,7 @@
+ 		int i_A = pair_index[i].first, i_B = pair_index[i].second;
+ 		Corres cor_line;
+ 		MakeCorWOBuildTree(cor_line, shard[i_A].edge_line_, shard[i_B].edge_line_, onetoone);
+-		RejectOutlier(cor_line, 10, 0.8);
++		RejectOutlier(cor_line, Gate(10), 0.8);
+ 
+ 		cor_line.index_A = i_A + 1;
+ 		cor_line.index_B = i_B + 1;
+@@ -682,7 +682,7 @@
+ 			for (int c = 0; c < tmp_frac.cor.size(); c++) {
+ 				tmp_frac.cor[c].n_B = -1 * tmp_frac.cor[c].n_B;
+ 			}
+-			RejectOutlier(tmp_frac, 10, 0.7);
++			RejectOutlier(tmp_frac, Gate(10), 0.7);
+ 
+ 			// Make inner surface correspondence
+ 			MakeCor(tmp_sur, cor_line, shard[i_A].sur_out_, shard[i_B].sur_out_, 4);
+@@ -721,7 +721,7 @@
+ 	CountInlier(inlier,
+ 		cor,
+ 		num_points,
+-		INLIER_THRESHOLD,
++		Gate(INLIER_THRESHOLD),
+ 		ANGLE_THRESHOLD);	
+ 
+ 	if (inlier < MINIMUM_NUMBER) {
+@@ -757,7 +757,7 @@
+ 	CountInlier(inlier,
+ 		cor,
+ 		num_points,
+-		INLIER_THRESHOLD,
++		Gate(INLIER_THRESHOLD),
+ 		ANGLE_THRESHOLD);	
+ 
+ 	if (inlier < MINIMUM_NUMBER) {
+@@ -1102,7 +1102,7 @@
+ 		for (int j = 0; j < COR[i].cor.size(); j++) {
+ 			double dist(0);
+ 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
+-			if (dist < 3.0) {
++			if (dist < Gate(3.0)) {
+ 				table[s_A][COR[i].cor[j].index_A] = true;
+ 				table[s_B][COR[i].cor[j].index_B] = true;
+ 			}
+@@ -1184,7 +1184,7 @@
+ 		else {
+ 			//if not then just use whole breakline data to make correspondence.
+ 			MakeCor(cor_in, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
+-			RejectOutlier(cor_in, 20, 0.7);
++			RejectOutlier(cor_in, Gate(20), 0.7);
+ 		}
+ 
+ 		COR.push_back(cor_in);
+@@ -1212,10 +1212,10 @@
+ 
+ 		//############### Set nonlinear equation ###############// 
+ 		ceres::Problem problem;
+-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
++		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(Gate(5.0));
+ 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
++		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(Gate(2.0));
++		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(Gate(2.0));
+ 
+ 		if (point_to_line) {
+ 			P2LConstraint(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
+@@ -1276,7 +1276,7 @@
+ 
+ 		bool isfinish = false;
+ 		// If all transformation matries are not chaged then stop the iteration
+-		if (isConverge(T, 0.1, 2.0)) {
++		if (isConverge(T, 0.1, Gate(2.0))) {
+ 			isfinish = true;
+ 		}
+ 		else {
+@@ -1295,7 +1295,7 @@
+ 			BreakLine p_A = L[shard_A - 1], p_B = L[shard_B - 1];
+ 			vector<Corres> cor_conv;
+ 			MakeCor(cor_pair, p_A, p_B, onetoone);	// If you make one to one correspondecne then set onetoone as true
+-			RejectOutlier(cor_pair, 20, 0.7);
++			RejectOutlier(cor_pair, Gate(20), 0.7);
+ 			cor_conv.push_back(cor_pair);
+ 			
+ 			MatchingScore(cycle.score, cor_conv);
+@@ -1414,10 +1414,10 @@
+ 
+ 		//############### Set nonlinear equation ###############// 
+ 		ceres::Problem problem;
+-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
++		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(Gate(5.0));
+ 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
++		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(Gate(2.0));
++		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(Gate(2.0));
+ 
+ 		if (point_to_line) {
+ 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
+@@ -1472,7 +1472,7 @@
+ 		}
+ 
+ 		bool isfinish = false;
+-		if (isConverge(T, 0.1, 2.0)) {
++		if (isConverge(T, 0.1, Gate(2.0))) {
+ 			isfinish = true;
+ 		}
+ 		else {
+@@ -1607,10 +1607,10 @@
+ 
+ 		//############### Set nonlinear equation ###############// 
+ 		ceres::Problem problem;
+-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
++		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(Gate(5.0));
+ 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);
+-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);
++		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(Gate(2.0));
++		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(Gate(2.0));
+ 
+ 		if (point_to_line) {
+ 			P2LConstraintFixed(COR, problem, loss_dist, loss_norm, s, trans, w_line, w_n);
+@@ -1681,7 +1681,7 @@
+ 		}
+ 
+ 		bool isfinish = false;
+-		if (isConverge(T, 0.1, 2.0)) {
++		if (isConverge(T, 0.1, Gate(2.0))) {
+ 			isfinish = true;
+ 		}
+ 		else {
+@@ -1780,10 +1780,10 @@
+ 
+ 		//############### Set nonlinear equation ###############// 
+ 		ceres::Problem problem;
+-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);	// 5
++		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(Gate(5.0));	// 5
+ 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);	// 2
+-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);	// 1.5
+-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);		// 5
++		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(Gate(2.0));	// 1.5
++		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(Gate(2.0));		// 5
+ 
+ 		int num_cor_points(0);
+ 		//######################### correspondence distance ###########################// 
+@@ -1858,7 +1858,7 @@
+ 				T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
+ 			}
+ 			Matrix4d T = T1.inverse() * T2;
+-			if (isConverge(T, 0.05, 1.0))
++			if (isConverge(T, 0.05, Gate(1.0)))
+ 				count++;
+ 		}
+ 
+@@ -1967,10 +1967,10 @@
+ 
+ 		//############### Set nonlinear equation ###############// 
+ 		ceres::Problem problem;
+-		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);	
++		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(Gate(5.0));	
+ 		ceres::LossFunction* loss_norm = new ceres::CauchyLoss(2.0);	
+-		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(2.0);	
+-		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(2.0);		
++		ceres::LossFunction* loss_axis = new ceres::CauchyLoss(Gate(2.0));	
++		ceres::LossFunction* loss_rim = new ceres::CauchyLoss(Gate(2.0));		
+ 
+ 		//######################### correspondence distance ###########################// 
+ 		P2PConstraint(COR_frac, problem, loss_dist, loss_norm, s, trans, w_d, w_n);
+@@ -2039,7 +2039,7 @@
+ 				T2.row(j) << R_i[shard_B].row(j), t_i[shard_B][j];
+ 			}
+ 			Matrix4d T = T1.inverse() * T2;
+-			if (isConverge(T, 0.02, 0.5))
++			if (isConverge(T, 0.02, Gate(0.5)))
+ 				count++;
+ 		}
+ 		if (count == num_of_corres) {
+@@ -2065,4 +2065,4 @@
+ 	}
+ 	delete[] trans;
+ 	delete[] s;
+-}
+\ No newline at end of file
++}
