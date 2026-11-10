@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+D="C:/PR/worktrees/structure-from-sherds-pp/330/.scratch/pota-repro/t330"
+ssh spartan "mkdir -p /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/logs /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/out /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/bin && cp -a /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-c/tools /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/tools && cp -a /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-c/inc_E /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/inc_E && cp -a /data/gpfs/projects/punim2657/SfSpp/runs/20261110-2248_6925cb0_t326-potE/work/build /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/build && du -sh /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/build"
+B=$(base64 -w0 "$D/submit330d.sbatch")
+ssh spartan "echo $B | base64 -d > /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d/tools/submit330d.sbatch && cd /data/gpfs/projects/punim2657/SfSpp/runs/20261111-0248_be65afc_t330-potE-flips-d && sbatch --parsable tools/submit330d.sbatch"
+ssh spartan 'squeue -u zhuojiat -o "%.9i %.6C %.8m %.9T" | grep -E "JOBID|t330"; date'
