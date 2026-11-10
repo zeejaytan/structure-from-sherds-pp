@@ -651,9 +651,9 @@ would close it if the lead wants it after the bar-4 failure has been read.
 - Ticket 326 moved **every length gate** by 0.535x-2.518x; the Juglet went to **0/9, 0/18** in all six lanes
   (including the answer-key arm), and the ten-pot suite lost pot E (62 -> 46-52 of 62 joins).
 
-Both directions falsify the hypothesis that the pot-sized absolute gates are what keep the 33 mm vessel from
-assembling: not moving them changes nothing, and moving them as far as the measurement allows changes nothing for
-the better while costing a full-size pot. "Scale-free thresholds" is therefore not a fix to ship; the patch stays an
+Read the direction before drawing the conclusion (lead correction, see the verdict below): on the Juglet this rule
+*tightens* every gate, so the arm measures a stricter configuration, not a looser one. The falsification it supports is
+narrower — not moving the gates changes nothing, and scaling them **up** costs a full-size pot. "Scale-free thresholds" is therefore not a fix to ship; the patch stays an
 experiment artifact, `sfs_pristine_assembly_326.sif` is not proposed as a replacement for
 `sfs_pristine_assembly.sif`, and the open lead is bar 1's failure-path analysis (where the joins are actually lost
 on the small object), not another threshold rewrite.
@@ -680,10 +680,14 @@ Two statements in the worker's text were wrong and are corrected in place above:
 arm 0/9 against the control's 2/9). Bar 6 is **outstanding** (no render job was run; recorded, not claimed). Bars 2, 3
 and 7 pass.
 
-The hypothesis is now falsified from both directions: 325 moved no constant and the Juglet stayed at 2/9; 326 moved every
-length gate by 0.535-2.518x and the Juglet went to 0/9 while pot E lost 10-16 joins. "Scale-free thresholds" is not the
-fix and **`sfs_pristine_assembly_326.sif` is not proposed as a replacement** for `sfs_pristine_assembly.sif`; the patch
-stays an experiment artefact on this branch.
+What the two tickets establish, stated precisely, because the direction matters: 325 moved no constant at all and the
+Juglet stayed at 2/9, so the preprocessing axis gates were not the blocker. 326 moved every assembler gate **upwards on
+the pots** (1.01-2.52x) and pot E lost 10-16 joins; on the Juglet the same rule scaled every gate **downwards**
+(0.535x) — a *tightened* configuration, which cannot help a pair that already fails to reach the inlier floor. So this
+ticket does **not** test loosening the evidence floor on the small object; nothing here has. What it does establish is
+that the pot-calibrated values scaled down are not the answer, and that scaling them up costs a full-size pot.
+"Scale-free thresholds" as written is not a fix and **`sfs_pristine_assembly_326.sif` is not proposed as a replacement**
+for `sfs_pristine_assembly.sif`; the patch stays an experiment artefact on this branch.
 
 What is left is not a threshold: the assembler will not register a pair without more than three inliers inside 1.5 mm and
 15 deg (`MINIMUM_NUMBER` 6, `CountInlier`), and ticket 328 measured that six of the nine touching Juglet pairs cannot
