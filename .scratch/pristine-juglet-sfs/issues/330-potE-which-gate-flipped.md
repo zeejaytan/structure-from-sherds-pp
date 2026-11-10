@@ -1,9 +1,11 @@
 # 330 — Pot E: which of the scaled gates admits the wrong joins
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Answers:** S1
 **Depends on:** 326 (the patch and the diagnostic harness were built on branch `326-scale-free-assembly`; the harness source is on disk in the lead's 326 worktree)
 **Blocks:** nothing. Ticket 329 does not wait on this: its own rule leaves every pot at s = 1.000 by construction.
+**Working in:** lead-dispatched subagent (2026-11-11)
+**Branch:** `330-potE-gate-flips` (worktree `C:/PR/worktrees/structure-from-sherds-pp/330`)
 **Worker:** unassigned
 **Budget:** small (3 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** stays with the lead's subagent (worker never commits; lead verifies from artefacts and lands)
