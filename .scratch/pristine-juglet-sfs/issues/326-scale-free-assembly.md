@@ -1,6 +1,8 @@
 # Ticket 326 — Scale-free assembly: stop judging a 33 mm vessel with pot-sized millimetres
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-10)
+**Branch:** 326-scale-free-assembly, in /c/PR/worktrees/structure-from-sherds-pp/326
 **Answers:** S1
 **Depends on:** 325 (an admissible axis at this scale; without it the axes arm cannot be read)
 **Blocks:** none
