@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 328 (merged to preprocessing main 2026-11-12, `3ec34bd`) — the wall side is cured, so a density result is no longer confounded by half the joins being filed on the wrong face
 **Blocks:** none
-**Worker:** unassigned
+**Worker:** e4e2b266-3eb7-4c07-bab3-907a6a5ab1cc (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-12 02:20 by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Ticket 69 landed the doubled edgeline density as env switches, default off, because it
