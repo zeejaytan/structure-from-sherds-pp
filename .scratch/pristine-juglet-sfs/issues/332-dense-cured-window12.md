@@ -1,8 +1,8 @@
 # Ticket 332 — Density on the cured tree, with the matching window doubled: the control 69 left open
 
-**Status:** ready-for-agent
-**Working in:** unassigned
-**Branch:** none yet
+**Status:** in-progress
+**Working in:** C:/PR/worktrees/structure-from-sherds-pp/332
+**Branch:** 332-dense-cured-window12
 **Answers:** S1
 **Depends on:** 328 (merged to preprocessing main 2026-11-12, `3ec34bd`) — the wall side is cured, so a density result is no longer confounded by half the joins being filed on the wrong face
 **Blocks:** none
