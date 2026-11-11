@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <cstdlib>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <boost/thread/thread.hpp>
@@ -53,6 +54,30 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 }
 
 
+// TICKET 332: the LCS window is a switch, not a constant.
+// The join test (class/feature_matching.cpp:294) accepts a pair only when the LCS run along the
+// two edge lines is LONGER than the window, so the window is a physical length expressed in
+// dots: 6 dots at the shipped 1.9 mm sampling is ~12.6 mm, and 12 dots at the doubled 0.95 mm
+// sampling keeps the same physical window (~12.4 mm) while the sampling doubles.
+// SFS_LCS_WINDOW unset or unparseable -> MINIMUM_NUMBER, i.e. today's behaviour, byte for byte.
+// MINIMUM_NUMBER itself is deliberately NOT changed: it also gates registration at
+// class/feature_matching.cpp:1015 and :1045 (dummy_inlier > MINIMUM_NUMBER / 2).
+static int ReadLcsWindowFromEnv()
+{
+	int window = MINIMUM_NUMBER;
+	const char* raw = std::getenv("SFS_LCS_WINDOW");
+	if (raw == NULL || *raw == '\0')
+		return window;
+	char* end = NULL;
+	const long parsed = std::strtol(raw, &end, 10);
+	if (end == raw || (end != NULL && *end != '\0') || parsed < 1 || parsed > 1000) {
+		cout << "[LCS-332] SFS_LCS_WINDOW='" << raw << "' is not a positive integer <= 1000; "
+		     << "using MINIMUM_NUMBER=" << MINIMUM_NUMBER << endl;
+		return window;
+	}
+	return static_cast<int>(parsed);
+}
+
 int main(int argc, char** argv)
 {
 	//#################### PCL viewer setting ####################//
@@ -63,6 +88,10 @@ int main(int argc, char** argv)
 	if (argv[1] != NULL) {
 		step_size = std::atoi(argv[1]);
 	}
+
+	// TICKET 332: the effective LCS window, printed once so every log states its own regime.
+	const int lcs_window = ReadLcsWindowFromEnv();
+	cout << "LCS window: " << lcs_window << endl;
 	//#################### PCL viewer setting ####################//
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addCoordinateSystem(1.0);
@@ -208,7 +237,7 @@ int main(int argc, char** argv)
 	cout << "#################### Feature matching ####################" << endl;
 	////#################### Feature matching ####################//
 	list<LCSIndex> LCS_out;
-	FeatureComp(shard, LCS_out, 25, MINIMUM_NUMBER, 0);
+	FeatureComp(shard, LCS_out, 25, lcs_window, 0);
 	cout << "Total number : " << LCS_out.size() << endl;
 
 	cout << "#################### Pairwise pruning ####################" << endl;
