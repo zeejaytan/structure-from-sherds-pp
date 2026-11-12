@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 334 (the nine-seam diagnosis), 333 (the 3x assembly run), 332 (the 1x control), 328 (wall side), 331 (3x input)
 **Blocks:** nothing yet
-**Worker:** unassigned
+**Worker:** 29ecce19-6640-406d-8276-8a600584a35a (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-12 by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Ticket 334 showed that for three of the nine true Juglet seams the correct pose *is* offered,
