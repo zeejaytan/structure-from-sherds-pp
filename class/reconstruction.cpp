@@ -1,5 +1,43 @@
 #include "reconstruction.h"
 #include "../class/ranking_system.h"
+#include <cstdlib>
+#include <iostream>
+
+//############################## Agreement gate (ticket 333) ##############################//
+// One read at start-up. Anything that is not a plain number inside
+// [SFS_INLIER_MM_MIN, SFS_INLIER_MM_MAX] falls back to the shipped INLIER_THRESHOLD, so the
+// default path is byte-for-byte the behaviour this repo has always had. The value is used by
+// both inlierCalculate overloads below (the CountInlier agreement gate) and nowhere else.
+static double ReadInlierMmFromEnv()
+{
+	const char* raw = getenv("SFS_INLIER_MM");
+	if (raw == NULL || raw[0] == '\0') {
+		return INLIER_THRESHOLD;
+	}
+	char* end = NULL;
+	double value = strtod(raw, &end);
+	if (end != NULL) {
+		while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') {
+			end++;
+		}
+	}
+	bool consumed = (end != NULL) && (end != raw) && (*end == '\0');
+	bool finite = (value == value) && (value - value == 0.0);
+	if (!consumed || !finite || value < SFS_INLIER_MM_MIN || value > SFS_INLIER_MM_MAX) {
+		cout << "[INLIER-333] SFS_INLIER_MM='" << raw << "' not used (need a number in ["
+			<< SFS_INLIER_MM_MIN << ", " << SFS_INLIER_MM_MAX << "] mm); using INLIER_THRESHOLD="
+			<< INLIER_THRESHOLD << endl;
+		return INLIER_THRESHOLD;
+	}
+	return value;
+}
+
+double SFS_INLIER_MM = ReadInlierMmFromEnv();
+
+// Printed once, from static initialisation, so it is the first line of every run.
+static const struct InlierMmBanner {
+	InlierMmBanner() { cout << "inlier gate: " << SFS_INLIER_MM << " mm" << endl; }
+} g_inlier_mm_banner;
 
 //############################## other function ##############################//
 bool isConverge(const Matrix4d& T,
@@ -721,7 +759,7 @@ bool inlierCalculate(int& inlier,
 	CountInlier(inlier,
 		cor,
 		num_points,
-		INLIER_THRESHOLD,
+		SFS_INLIER_MM,
 		ANGLE_THRESHOLD);	
 
 	if (inlier < MINIMUM_NUMBER) {
@@ -757,7 +795,7 @@ bool inlierCalculate(int& inlier,
 	CountInlier(inlier,
 		cor,
 		num_points,
-		INLIER_THRESHOLD,
+		SFS_INLIER_MM,
 		ANGLE_THRESHOLD);	
 
 	if (inlier < MINIMUM_NUMBER) {

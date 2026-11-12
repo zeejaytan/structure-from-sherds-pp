@@ -25,6 +25,17 @@ class RankingSubgraph;
 #define INLIER_THRESHOLD		1.5
 #define ANGLE_THRESHOLD			0.262
 
+// Ticket 333: the agreement gate is an ABSOLUTE distance in millimetres, so it does not
+// follow the object's scale -- at 3x the same 1.5 mm is a third of the physical tolerance.
+// SFS_INLIER_MM lets one run override the gate without editing the shipped default: unset,
+// empty, unparseable or out-of-range values all keep INLIER_THRESHOLD, so a run without the
+// variable behaves exactly like the shipped binary. It is read once at start-up in
+// reconstruction.cpp and printed once as "inlier gate: <x> mm"; both consumers of
+// INLIER_THRESHOLD below use SFS_INLIER_MM instead of the literal.
+#define SFS_INLIER_MM_MIN	0.05
+#define SFS_INLIER_MM_MAX	100.0
+extern double SFS_INLIER_MM;
+
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;
 
