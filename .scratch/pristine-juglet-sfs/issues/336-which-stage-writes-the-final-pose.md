@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 335, 334, 333, 331, 328
 **Blocks:** the next fix (the ranking ticket is spent; the fix depends on where the pose is decided)
-**Worker:** unassigned
+**Worker:** dcaadeca-2166-49f0-be57-e3736feca7cf (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-13 by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Ticket 335 raised the pair stage's correct-winner rate from 1 of 9 to 4 of 9 and the
