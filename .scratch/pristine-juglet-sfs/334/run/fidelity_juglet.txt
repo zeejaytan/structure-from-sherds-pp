@@ -1,0 +1,7 @@
+reference /data/gpfs/projects/punim2657/SfSpp/runs/20261112-1735_8560cae_t334-upsidedown/work/ref333_arm1.txt : 79 admitted lines
+diag      /data/gpfs/projects/punim2657/SfSpp/runs/20261112-1735_8560cae_t334-upsidedown/logs/diag_juglet.log : 79 SURVIVOR lines
+unique pairs: reference 30, diag 30
+ordered (y,x) pairs only in reference: []
+ordered (y,x) pairs only in diag     : []
+score multiset: identical (68 distinct scores)
+FIDELITY: EXACT

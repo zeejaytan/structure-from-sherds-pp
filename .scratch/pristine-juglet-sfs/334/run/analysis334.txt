@@ -1,0 +1,172 @@
+== 1. fidelity ==
+reference lines 79 (unique pairs 30) ; diag SURVIVOR lines 79 (unique pairs 30)
+pair multiset identical: True ; missing [] ; extra []
+candidates 180 ; score self-check mismatches 48
+
+== 2. wall convention (Surface_0) vs ticket 328 ==
+piece  r(Surface_0)  r(Surface_1)  instrument  ticket328
+    1         5.084        43.748       inner      inner  agree
+    2         5.798        44.815       inner      outer  DISAGREE
+    3         5.650        46.618       inner      inner  agree
+    4         6.746        43.231       inner      inner  agree
+    5         6.591        45.683       inner      inner  agree
+    6         5.260        45.285       inner      outer  DISAGREE
+    7         6.380        42.440       inner      inner  agree
+    8         5.398        44.961       inner      inner  agree
+    9         5.952        44.412       inner      outer  DISAGREE
+
+== 2b. answer-key gap per graph edge (GTPAIR), to confirm which nine touch ==
+  3-5 gap_min=0.325 mm  TOUCHING
+  6-7 gap_min=0.347 mm  TOUCHING
+  1-8 gap_min=0.355 mm  TOUCHING
+  7-9 gap_min=0.427 mm  TOUCHING
+  1-4 gap_min=0.601 mm  TOUCHING
+  2-9 gap_min=1.036 mm  TOUCHING
+  1-2 gap_min=1.040 mm  TOUCHING
+  2-5 gap_min=1.520 mm  TOUCHING
+  1-9 gap_min=1.979 mm  TOUCHING
+  6-8 gap_min=5.597 mm  
+  1-5 gap_min=13.128 mm  
+  1-6 gap_min=13.405 mm  
+  4-5 gap_min=17.833 mm  
+  4-6 gap_min=25.448 mm  
+  3-7 gap_min=41.972 mm  
+  7-8 gap_min=45.163 mm  
+  5-9 gap_min=54.772 mm  
+  8-9 gap_min=57.365 mm  
+  nine from ticket 329: [(1, 2), (1, 4), (1, 8), (1, 9), (2, 5), (2, 9), (3, 5), (6, 7), (7, 9)] ; under 2 mm: [(1, 2), (1, 4), (1, 8), (1, 9), (2, 5), (2, 9), (3, 5), (6, 7), (7, 9)]
+
+== 3. the nine true seams ==
+seam n_cand | closest: idx rot t rms ncor score axis erase | winner: idx rot t score axis erase | rw(<=15,<=10) rw_surv
+1-2     13 | 3 1.92953 1.4118 1.90816 36 0.539088 1.82509 | 5 173.157 45.8147 0.435568 21.4651 survived | 2 1
+1-4      9 | 37 15.7749 9.52422 10.2474 29 0.503948 13.2728 | 38 18.5706 11.5682 0.374301 15.084 survived | 0 0
+1-8     12 | 67 0.485738 1.24966 1.28024 54 0.463663 0.197359 | 69 171.3 22.2326 0.358065 19.8146 survived | 3 1
+1-9      7 | 77 8.81954 4.43032 3.47744 21 0.623368 8.61556 | 81 167.787 61.6118 0.478527 12.5396 survived | 1 1
+2-5      3 | 94 45.9079 3.74657 32.5771 17 0.487246 14.9176 | 94 45.9079 3.74657 0.487246 14.9176 survived | 0 0
+2-9      3 | 108 15.1243 5.35586 8.15358 15 0.333649 14.0094 | 108 15.1243 5.35586 0.333649 14.0094 survived | 0 0
+3-5      4 | 118 48.3102 16.8403 43.9982 16 0.576892 12.9963 | 118 48.3102 16.8403 0.576892 12.9963 survived | 0 0
+6-7      1 | 166 165.692 7.41768 80.4467 14 0.548109 8.53216 | none | 0 0
+7-9      2 | 174 5.38588 4.57392 4.24091 12 0.339969 4.08413 | 174 5.38588 4.57392 0.339969 4.08413 survived | 1 1
+
+== 4. classification per seam (pre-registered readings) ==
+-- seam 1-2: 13 candidates, 2 right-way-up, 1 right-way-up surviving
+     rw idx=1 rot=2.14 t=2.88 rms=2.20 ncor=40 score=0.447224 (dist 34.589 norm 2.822) axis=0.03 erase=survived also=
+     rw idx=3 rot=1.93 t=1.41 rms=1.91 ncor=36 score=0.539088 (dist 37.119 norm 2.620) axis=0.03 erase=mergesimpair also=
+     winner idx=5 rot=173.16 t=45.81 ncor=9 score=0.435568 (dist 6.025 norm 0.059) axis=0.37 overlap=0
+     READING 1: proposed and surviving but outscored. best rw score 0.447224 vs winner 0.435568 (delta -0.011656); ncor 40 vs 9, dist 34.589 vs 6.025, norm 2.822 vs 0.059
+-- seam 1-4: 9 candidates, 0 right-way-up, 0 right-way-up surviving
+     winner idx=38 rot=18.57 t=11.57 ncor=29 score=0.374301 (dist 19.765 norm 1.521) axis=0.26 overlap=0
+     READING 3: never proposed (no candidate within 15 deg / 10 mm), closest rot 15.8 deg
+        closest idx=37 seed sx..ex=31-44 sy..ey=155-168 size=14 lcs_truefrac=0.929 ncor=29 gap=0.921
+        closest walls OO=0,OI=0,IO=0,II=29
+        closest wall seq -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+-- seam 1-8: 12 candidates, 3 right-way-up, 1 right-way-up surviving
+     rw idx=67 rot=0.49 t=1.25 rms=1.28 ncor=54 score=0.463663 (dist 54.209 norm 1.391) axis=0.00 erase=mergesimpair also=
+     rw idx=70 rot=0.70 t=0.99 rms=1.21 ncor=55 score=0.404823 (dist 48.228 norm 1.397) axis=0.01 erase=survived also=
+     rw idx=71 rot=1.58 t=1.40 rms=1.62 ncor=59 score=0.434202 (dist 56.343 norm 1.562) axis=0.02 erase=mergesimpair also=
+     winner idx=69 rot=171.30 t=22.23 ncor=18 score=0.358065 (dist 10.702 norm 0.787) axis=0.35 overlap=0
+     READING 1: proposed and surviving but outscored. best rw score 0.404823 vs winner 0.358065 (delta -0.046758); ncor 55 vs 18, dist 48.228 vs 10.702, norm 1.397 vs 0.787
+-- seam 1-9: 7 candidates, 1 right-way-up, 1 right-way-up surviving
+     rw idx=77 rot=8.82 t=4.43 rms=3.48 ncor=21 score=0.623368 (dist 22.261 norm 1.805) axis=0.15 erase=survived also=
+     winner idx=81 rot=167.79 t=61.61 ncor=12 score=0.478527 (dist 8.906 norm 0.533) axis=0.22 overlap=0
+     READING 1: proposed and surviving but outscored. best rw score 0.623368 vs winner 0.478527 (delta -0.144841); ncor 21 vs 12, dist 22.261 vs 8.906, norm 1.805 vs 0.533
+-- seam 2-5: 3 candidates, 0 right-way-up, 0 right-way-up surviving
+     winner idx=94 rot=45.91 t=3.75 ncor=17 score=0.487246 (dist 13.226 norm 1.372) axis=0.26 overlap=0
+     READING 3: never proposed (no candidate within 15 deg / 10 mm), closest rot 45.9 deg
+        closest idx=94 seed sx..ex=118-126 sy..ey=28-36 size=9 lcs_truefrac=0.000 ncor=17 gap=0.778
+        closest walls OO=0,OI=0,IO=0,II=17
+        closest wall seq -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+-- seam 2-9: 3 candidates, 0 right-way-up, 0 right-way-up surviving
+     winner idx=108 rot=15.12 t=5.36 ncor=15 score=0.333649 (dist 8.388 norm 0.214) axis=0.24 overlap=0
+     READING 3: never proposed (no candidate within 15 deg / 10 mm), closest rot 15.1 deg
+        closest idx=108 seed sx..ex=44-51 sy..ey=2-9 size=8 lcs_truefrac=0.500 ncor=15 gap=0.559
+        closest walls OO=0,OI=0,IO=0,II=15
+        closest wall seq -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+-- seam 3-5: 4 candidates, 0 right-way-up, 0 right-way-up surviving
+     winner idx=118 rot=48.31 t=16.84 ncor=16 score=0.576892 (dist 15.771 norm 0.300) axis=0.23 overlap=0
+     READING 3: never proposed (no candidate within 15 deg / 10 mm), closest rot 48.3 deg
+        closest idx=118 seed sx..ex=120-126 sy..ey=17-23 size=7 lcs_truefrac=0.000 ncor=16 gap=0.986
+        closest walls OO=0,OI=0,IO=0,II=16
+        closest wall seq -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+-- seam 6-7: 1 candidates, 0 right-way-up, 0 right-way-up surviving
+     READING 3: never proposed (no candidate within 15 deg / 10 mm), closest rot 165.7 deg
+        closest idx=166 seed sx..ex=19-28 sy..ey=75-84 size=10 lcs_truefrac=0.000 ncor=14 gap=0.899
+        closest walls OO=0,OI=0,IO=0,II=14
+        closest wall seq -II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+-- seam 7-9: 2 candidates, 1 right-way-up, 1 right-way-up surviving
+     rw idx=174 rot=5.39 t=4.57 rms=4.24 ncor=12 score=0.339969 (dist 6.252 norm 0.454) axis=0.07 erase=survived also=
+     winner idx=174 rot=5.39 t=4.57 ncor=12 score=0.339969 (dist 6.252 norm 0.454) axis=0.07 overlap=0
+     proposed and surviving; no flipped winner on this seam
+
+== 5. axis sign-blindness ==
+admitted (surviving) candidates that are upside down vs GT: 51
+  idx=93 y-x=2-5 rot=91.79 axis_raw=22.0 deg axis_folded=0.38 rad (21.95 deg) ncor=28 score=0.659183
+  idx=60 y-x=1-7 rot=91.97 axis_raw=11.6 deg axis_folded=0.20 rad (11.63 deg) ncor=0 score=11.000000
+  idx=82 y-x=1-9 rot=95.38 axis_raw=20.2 deg axis_folded=0.35 rad (20.20 deg) ncor=9 score=11.000000
+  idx=137 y-x=3-9 rot=96.01 axis_raw=7.8 deg axis_folded=0.14 rad (7.83 deg) ncor=13 score=0.490450
+  idx=85 y-x=2-3 rot=102.34 axis_raw=8.0 deg axis_folded=0.14 rad (8.01 deg) ncor=19 score=0.445376
+  idx=179 y-x=8-9 rot=103.46 axis_raw=2.9 deg axis_folded=0.05 rad (2.87 deg) ncor=12 score=0.426166
+  idx=111 y-x=3-4 rot=105.12 axis_raw=16.7 deg axis_folded=0.29 rad (16.70 deg) ncor=4 score=11.000000
+  idx=45 y-x=1-5 rot=105.98 axis_raw=18.7 deg axis_folded=0.33 rad (18.73 deg) ncor=29 score=0.698889
+  idx=121 y-x=3-6 rot=111.35 axis_raw=6.4 deg axis_folded=0.11 rad (6.36 deg) ncor=20 score=0.373010
+  idx=88 y-x=2-3 rot=112.61 axis_raw=13.7 deg axis_folded=0.24 rad (13.74 deg) ncor=18 score=0.600193
+  idx=90 y-x=2-4 rot=112.94 axis_raw=14.1 deg axis_folded=0.25 rad (14.13 deg) ncor=18 score=0.547429
+  idx=7 y-x=1-2 rot=117.85 axis_raw=15.6 deg axis_folded=0.27 rad (15.57 deg) ncor=31 score=0.660016
+  idx=106 y-x=2-8 rot=122.59 axis_raw=18.6 deg axis_folded=0.32 rad (18.57 deg) ncor=24 score=0.525523
+  idx=13 y-x=1-3 rot=136.98 axis_raw=10.6 deg axis_folded=0.18 rad (10.60 deg) ncor=15 score=0.557487
+  idx=14 y-x=1-3 rot=140.95 axis_raw=10.7 deg axis_folded=0.19 rad (10.69 deg) ncor=19 score=0.532927
+  idx=167 y-x=6-8 rot=143.64 axis_raw=11.4 deg axis_folded=0.20 rad (11.39 deg) ncor=25 score=0.832136
+  idx=8 y-x=1-2 rot=146.38 axis_raw=8.4 deg axis_folded=0.15 rad (8.45 deg) ncor=16 score=0.626969
+  idx=152 y-x=4-8 rot=154.62 axis_raw=14.1 deg axis_folded=0.25 rad (14.10 deg) ncor=16 score=0.398279
+  idx=143 y-x=4-6 rot=155.16 axis_raw=11.0 deg axis_folded=0.19 rad (10.99 deg) ncor=12 score=0.776583
+  idx=177 y-x=8-9 rot=155.94 axis_raw=155.2 deg axis_folded=0.43 rad (24.79 deg) ncor=17 score=0.388344
+  idx=78 y-x=1-9 rot=158.33 axis_raw=15.4 deg axis_folded=0.27 rad (15.41 deg) ncor=18 score=1.270860
+  idx=116 y-x=3-4 rot=161.17 axis_raw=157.6 deg axis_folded=0.39 rad (22.39 deg) ncor=23 score=0.649672
+  idx=117 y-x=3-5 rot=162.60 axis_raw=158.2 deg axis_folded=0.38 rad (21.84 deg) ncor=5 score=0.684277
+  idx=89 y-x=2-3 rot=162.60 axis_raw=157.0 deg axis_folded=0.40 rad (23.05 deg) ncor=6 score=11.000000
+  idx=107 y-x=2-8 rot=163.32 axis_raw=163.3 deg axis_folded=0.29 rad (16.73 deg) ncor=14 score=0.507431
+  idx=87 y-x=2-3 rot=164.49 axis_raw=156.2 deg axis_folded=0.42 rad (23.82 deg) ncor=19 score=0.594215
+  idx=102 y-x=2-8 rot=164.69 axis_raw=162.6 deg axis_folded=0.30 rad (17.45 deg) ncor=10 score=11.000000
+  idx=58 y-x=1-7 rot=165.30 axis_raw=7.1 deg axis_folded=0.12 rad (7.09 deg) ncor=28 score=11.000000
+  idx=30 y-x=1-4 rot=165.62 axis_raw=164.4 deg axis_folded=0.27 rad (15.55 deg) ncor=26 score=0.574474
+  idx=104 y-x=2-8 rot=165.86 axis_raw=165.8 deg axis_folded=0.25 rad (14.15 deg) ncor=16 score=11.000000
+  idx=157 y-x=5-6 rot=166.67 axis_raw=158.2 deg axis_folded=0.38 rad (21.84 deg) ncor=18 score=0.767858
+  idx=146 y-x=4-7 rot=166.75 axis_raw=163.0 deg axis_folded=0.30 rad (17.03 deg) ncor=14 score=0.419787
+  idx=79 y-x=1-9 rot=167.49 axis_raw=167.5 deg axis_folded=0.22 rad (12.55 deg) ncor=18 score=0.679359
+  idx=135 y-x=3-8 rot=167.76 axis_raw=159.0 deg axis_folded=0.37 rad (21.03 deg) ncor=20 score=0.666340
+  idx=81 y-x=1-9 rot=167.79 axis_raw=167.5 deg axis_folded=0.22 rad (12.54 deg) ncor=12 score=0.478527
+  idx=175 y-x=7-9 rot=169.44 axis_raw=168.7 deg axis_folded=0.20 rad (11.29 deg) ncor=14 score=0.439539
+  idx=15 y-x=1-3 rot=170.48 axis_raw=12.8 deg axis_folded=0.22 rad (12.78 deg) ncor=37 score=0.596710
+  idx=69 y-x=1-8 rot=171.30 axis_raw=160.2 deg axis_folded=0.35 rad (19.81 deg) ncor=18 score=0.358065
+  idx=141 y-x=4-5 rot=171.46 axis_raw=168.8 deg axis_folded=0.20 rad (11.23 deg) ncor=14 score=0.575863
+  idx=80 y-x=1-9 rot=171.63 axis_raw=171.4 deg axis_folded=0.15 rad (8.65 deg) ncor=11 score=1.645730
+  idx=103 y-x=2-8 rot=171.66 axis_raw=164.3 deg axis_folded=0.27 rad (15.66 deg) ncor=9 score=11.000000
+  idx=5 y-x=1-2 rot=173.16 axis_raw=158.5 deg axis_folded=0.37 rad (21.47 deg) ncor=9 score=0.435568
+  idx=31 y-x=1-4 rot=173.25 axis_raw=173.1 deg axis_folded=0.12 rad (6.85 deg) ncor=24 score=0.750299
+  idx=112 y-x=3-4 rot=174.20 axis_raw=171.0 deg axis_folded=0.16 rad (9.01 deg) ncor=13 score=0.623758
+  idx=35 y-x=1-4 rot=175.35 axis_raw=172.7 deg axis_folded=0.13 rad (7.27 deg) ncor=29 score=0.576216
+  idx=92 y-x=2-4 rot=175.49 axis_raw=175.4 deg axis_folded=0.08 rad (4.63 deg) ncor=21 score=0.470207
+  idx=169 y-x=6-9 rot=175.54 axis_raw=174.8 deg axis_folded=0.09 rad (5.17 deg) ncor=16 score=0.503589
+  idx=139 y-x=3-9 rot=177.10 axis_raw=174.7 deg axis_folded=0.09 rad (5.29 deg) ncor=16 score=0.558760
+  idx=176 y-x=8-9 rot=178.34 axis_raw=20.6 deg axis_folded=0.36 rad (20.57 deg) ncor=21 score=0.513919
+  idx=159 y-x=5-7 rot=178.60 axis_raw=173.6 deg axis_folded=0.11 rad (6.40 deg) ncor=7 score=0.740483
+  idx=95 y-x=2-5 rot=179.62 axis_raw=160.4 deg axis_folded=0.34 rad (19.58 deg) ncor=20 score=11.000000
+candidates erased by the 0.436 rad axis gate: 77 ; their axis_raw range (25.7532, 155.007)
+
+== 6. angle families of the closest candidate per touching seam ==
+  1-2 closest rot 1.93 deg
+  1-4 closest rot 15.77 deg
+  1-8 closest rot 0.49 deg
+  1-9 closest rot 8.82 deg
+  2-5 closest rot 45.91 deg
+  2-9 closest rot 15.12 deg
+  3-5 closest rot 48.31 deg
+  6-7 closest rot 165.69 deg
+  7-9 closest rot 5.39 deg
+  family counts: {'<15': 4, '15-45': 2, '45-90': 2, '135-180': 1}
+
+== 7. 333's arm-1 clusters ==
+  [T333-CLUSTERS] graphs 3
+  [T333-CLUSTER] 0 : 6 9
+  [T333-CLUSTER] 1 : 2 4 5 7
+  [T333-CLUSTER] 2 : 1 3 8

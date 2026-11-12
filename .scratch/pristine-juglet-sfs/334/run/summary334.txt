@@ -1,0 +1,163 @@
+candidates: 180 ; on a true seam: 86
+dispositions: {'axis_gate': 77, 'survived': 79, 'mergesimpair': 5, 'overlap': 18, 'basket_score': 1}
+score self-check (score2 recomputed vs Icp's score_): 48 of 180 differ
+   differs: idx=4 y-x=1-2 score_=11.000000 score2=0.880105
+   differs: idx=6 y-x=1-2 score_=11.000000 score2=0.768791
+   differs: idx=18 y-x=1-3 score_=11.000000 score2=0.681426
+   differs: idx=21 y-x=1-3 score_=11.000000 score2=0.655287
+   differs: idx=26 y-x=1-3 score_=11.000000 score2=0.764148
+   differs: idx=28 y-x=1-3 score_=11.000000 score2=0.706748
+   differs: idx=40 y-x=1-5 score_=11.000000 score2=1.110000
+   differs: idx=43 y-x=1-5 score_=11.000000 score2=1.064710
+   differs: idx=44 y-x=1-5 score_=11.000000 score2=0.827061
+   differs: idx=46 y-x=1-5 score_=11.000000 score2=1.374640
+   differs: idx=47 y-x=1-6 score_=11.000000 score2=1.485380
+   differs: idx=49 y-x=1-6 score_=11.000000 score2=2.489010
+   differs: idx=52 y-x=1-6 score_=11.000000 score2=0.884340
+   differs: idx=53 y-x=1-6 score_=11.000000 score2=0.537221
+   differs: idx=58 y-x=1-7 score_=11.000000 score2=0.996879
+   differs: idx=60 y-x=1-7 score_=11.000000 score2=-1.000000
+   differs: idx=61 y-x=1-7 score_=11.000000 score2=0.782149
+   differs: idx=63 y-x=1-7 score_=11.000000 score2=0.586251
+   differs: idx=64 y-x=1-8 score_=11.000000 score2=0.779606
+   differs: idx=66 y-x=1-8 score_=11.000000 score2=0.683169
+
+== nine true seams (T334PAIR) ==
+u-v	n_cand	closest_idx	closest_rot	closest_t_mm	closest_rms	closest_ncor	closest_score	closest_axis	closest_erase	winner_idx	winner_rot	winner_t_mm	winner_score	winner_axis	winner_erase	n_surv	rightway_cands
+1-2	13	3	1.92953	1.4118	1.90816	36	0.539088	1.82509	mergesimpair	5	173.157	45.8147	0.435568	21.4651	survived	4	2
+    rotation histogram: <15=2, 45-90=2, 90-135=3, 135-180=6
+    near: idx=3 y-x=1-2 rot=1.93 t=1.41 rms=1.91 ncor=36 score=0.539088 score2=0.539088 axis=0.03 erase=mergesimpair also=
+    near: idx=1 y-x=1-2 rot=2.14 t=2.88 rms=2.20 ncor=40 score=0.447224 score2=0.447224 axis=0.03 erase=survived also=
+    near: idx=4 y-x=1-2 rot=71.27 t=14.71 rms=42.76 ncor=10 score=11.000000 score2=0.880105 axis=0.89 erase=axis_gate also=
+    RIGHT-WAY-UP: idx=1 y-x=1-2 rot=2.14 t=2.88 rms=2.20 ncor=40 score=0.447224 axis=0.03 erase=survived also=
+    RIGHT-WAY-UP: idx=3 y-x=1-2 rot=1.93 t=1.41 rms=1.91 ncor=36 score=0.539088 axis=0.03 erase=mergesimpair also=
+    closest walls: ncor=36 gap=1.031 OO=0,OI=0,IO=0,II=36
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+1-4	9	37	15.7749	9.52422	10.2474	29	0.503948	13.2728	mergesimpair	38	18.5706	11.5682	0.374301	15.084	survived	4	0
+    rotation histogram: 15-45=2, 45-90=1, 90-135=1, 135-180=5
+    near: idx=37 y-x=1-4 rot=15.77 t=9.52 rms=10.25 ncor=29 score=0.503948 score2=0.503948 axis=0.23 erase=mergesimpair also=
+    near: idx=38 y-x=1-4 rot=18.57 t=11.57 rms=11.79 ncor=29 score=0.374301 score2=0.374301 axis=0.26 erase=survived also=
+    near: idx=32 y-x=1-4 rot=70.48 t=15.18 rms=61.25 ncor=20 score=0.521208 score2=0.521208 axis=0.52 erase=axis_gate also=
+    closest walls: ncor=29 gap=0.921 OO=0,OI=0,IO=0,II=29
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+1-5	8	42	59.2606	18.2643	48.8398	28	0.606334	11.4254	survived	42	59.2606	18.2643	0.606334	11.4254	survived	2	0
+    rotation histogram: 45-90=1, 90-135=4, 135-180=3
+    near: idx=42 y-x=1-5 rot=59.26 t=18.26 rms=48.84 ncor=28 score=0.606334 score2=0.606334 axis=0.20 erase=survived also=
+    near: idx=45 y-x=1-5 rot=105.98 t=19.72 rms=67.47 ncor=29 score=0.698889 score2=0.698889 axis=0.33 erase=survived also=
+    near: idx=44 y-x=1-5 rot=108.03 t=43.67 rms=73.76 ncor=16 score=11.000000 score2=0.827061 axis=1.30 erase=axis_gate also=overlap;
+    closest walls: ncor=28 gap=1.156 OO=0,OI=0,IO=0,II=28
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+1-6	7	47	15.4755	23.2313	28.3134	25	11	14.5616	overlap	-	-	-	-	-	-	0	0
+    rotation histogram: 15-45=1, 45-90=2, 90-135=2, 135-180=2
+    near: idx=47 y-x=1-6 rot=15.48 t=23.23 rms=28.31 ncor=25 score=11.000000 score2=1.485380 axis=0.25 erase=overlap also=
+    near: idx=48 y-x=1-6 rot=80.42 t=50.21 rms=47.72 ncor=17 score=0.892694 score2=0.892694 axis=1.32 erase=axis_gate also=
+    near: idx=51 y-x=1-6 rot=88.59 t=19.64 rms=83.66 ncor=23 score=0.694244 score2=0.694244 axis=0.77 erase=axis_gate also=
+    closest walls: ncor=25 gap=2.750 OO=0,OI=0,IO=0,II=25
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+1-8	12	67	0.485738	1.24966	1.28024	54	0.463663	0.197359	mergesimpair	69	171.3	22.2326	0.358065	19.8146	survived	2	3
+    rotation histogram: <15=3, 90-135=1, 135-180=8
+    near: idx=67 y-x=1-8 rot=0.49 t=1.25 rms=1.28 ncor=54 score=0.463663 score2=0.463663 axis=0.00 erase=mergesimpair also=
+    near: idx=70 y-x=1-8 rot=0.70 t=0.99 rms=1.21 ncor=55 score=0.404823 score2=0.404823 axis=0.01 erase=survived also=
+    near: idx=71 y-x=1-8 rot=1.58 t=1.40 rms=1.62 ncor=59 score=0.434202 score2=0.434202 axis=0.02 erase=mergesimpair also=
+    RIGHT-WAY-UP: idx=67 y-x=1-8 rot=0.49 t=1.25 rms=1.28 ncor=54 score=0.463663 axis=0.00 erase=mergesimpair also=
+    RIGHT-WAY-UP: idx=70 y-x=1-8 rot=0.70 t=0.99 rms=1.21 ncor=55 score=0.404823 axis=0.01 erase=survived also=
+    RIGHT-WAY-UP: idx=71 y-x=1-8 rot=1.58 t=1.40 rms=1.62 ncor=59 score=0.434202 axis=0.02 erase=mergesimpair also=
+    closest walls: ncor=54 gap=1.004 OO=0,OI=0,IO=0,II=54
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+1-9	7	77	8.81954	4.43032	3.47744	21	0.623368	8.61556	survived	81	167.787	61.6118	0.478527	12.5396	survived	6	1
+    rotation histogram: <15=1, 90-135=2, 135-180=4
+    near: idx=77 y-x=1-9 rot=8.82 t=4.43 rms=3.48 ncor=21 score=0.623368 score2=0.623368 axis=0.15 erase=survived also=
+    near: idx=76 y-x=1-9 rot=92.17 t=30.27 rms=27.30 ncor=13 score=0.496618 score2=0.496618 axis=1.51 erase=axis_gate also=
+    near: idx=82 y-x=1-9 rot=95.38 t=16.12 rms=70.17 ncor=9 score=11.000000 score2=0.500298 axis=0.35 erase=survived also=
+    RIGHT-WAY-UP: idx=77 y-x=1-9 rot=8.82 t=4.43 rms=3.48 ncor=21 score=0.623368 axis=0.15 erase=survived also=
+    closest walls: ncor=21 gap=1.060 OO=0,OI=0,IO=0,II=21
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+2-5	3	94	45.9079	3.74657	32.5771	17	0.487246	14.9176	survived	94	45.9079	3.74657	0.487246	14.9176	survived	3	0
+    rotation histogram: 45-90=1, 90-135=1, 135-180=1
+    near: idx=94 y-x=2-5 rot=45.91 t=3.75 rms=32.58 ncor=17 score=0.487246 score2=0.487246 axis=0.26 erase=survived also=
+    near: idx=93 y-x=2-5 rot=91.79 t=5.19 rms=60.87 ncor=28 score=0.659183 score2=0.659183 axis=0.38 erase=survived also=
+    near: idx=95 y-x=2-5 rot=179.62 t=9.80 rms=109.52 ncor=20 score=11.000000 score2=0.669590 axis=0.34 erase=survived also=
+    closest walls: ncor=17 gap=0.778 OO=0,OI=0,IO=0,II=17
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+2-9	3	108	15.1243	5.35586	8.15358	15	0.333649	14.0094	survived	108	15.1243	5.35586	0.333649	14.0094	survived	1	0
+    rotation histogram: 15-45=1, 135-180=2
+    near: idx=108 y-x=2-9 rot=15.12 t=5.36 rms=8.15 ncor=15 score=0.333649 score2=0.333649 axis=0.24 erase=survived also=
+    near: idx=110 y-x=2-9 rot=163.66 t=32.39 rms=56.66 ncor=12 score=0.615665 score2=0.615665 axis=0.59 erase=axis_gate also=
+    near: idx=109 y-x=2-9 rot=170.73 t=20.64 rms=76.66 ncor=4 score=11.000000 score2=1.752560 axis=1.11 erase=axis_gate also=
+    closest walls: ncor=15 gap=0.559 OO=0,OI=0,IO=0,II=15
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+3-5	4	118	48.3102	16.8403	43.9982	16	0.576892	12.9963	survived	118	48.3102	16.8403	0.576892	12.9963	survived	2	0
+    rotation histogram: 45-90=1, 90-135=1, 135-180=2
+    near: idx=118 y-x=3-5 rot=48.31 t=16.84 rms=44.00 ncor=16 score=0.576892 score2=0.576892 axis=0.23 erase=survived also=
+    near: idx=119 y-x=3-5 rot=127.62 t=17.65 rms=88.96 ncor=29 score=11.000000 score2=1.642340 axis=0.92 erase=axis_gate also=
+    near: idx=120 y-x=3-5 rot=140.26 t=15.64 rms=90.41 ncor=16 score=0.537117 score2=0.537117 axis=0.69 erase=axis_gate also=
+    closest walls: ncor=16 gap=0.986 OO=0,OI=0,IO=0,II=16
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+3-7	4	124	118.293	23.7458	69.3506	27	0.554996	36.6666	axis_gate	-	-	-	-	-	-	0	0
+    rotation histogram: 90-135=1, 135-180=3
+    near: idx=124 y-x=3-7 rot=118.29 t=23.75 rms=69.35 ncor=27 score=0.554996 score2=0.554996 axis=0.64 erase=axis_gate also=
+    near: idx=125 y-x=3-7 rot=135.01 t=26.27 rms=114.23 ncor=15 score=0.739005 score2=0.739005 axis=1.38 erase=axis_gate also=
+    near: idx=126 y-x=3-7 rot=165.68 t=27.61 rms=97.80 ncor=15 score=11.000000 score2=0.596243 axis=0.33 erase=basket_score also=
+    closest walls: ncor=27 gap=1.022 OO=0,OI=0,IO=0,II=27
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+4-5	2	140	169.474	8.45448	91.553	17	0.525084	70.6258	axis_gate	141	171.455	16.616	0.575863	11.2326	survived	1	0
+    rotation histogram: 135-180=2
+    near: idx=140 y-x=4-5 rot=169.47 t=8.45 rms=91.55 ncor=17 score=0.525084 score2=0.525084 axis=1.23 erase=axis_gate also=
+    near: idx=141 y-x=4-5 rot=171.46 t=16.62 rms=90.45 ncor=14 score=0.575863 score2=0.575863 axis=0.20 erase=survived also=
+    closest walls: ncor=17 gap=0.874 OO=0,OI=0,IO=0,II=17
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+4-6	2	142	153.455	19.0218	69.279	13	0.44686	26.5565	axis_gate	143	155.165	1.21571	0.776583	10.9925	survived	1	0
+    rotation histogram: 135-180=2
+    near: idx=142 y-x=4-6 rot=153.46 t=19.02 rms=69.28 ncor=13 score=0.446860 score2=0.446860 axis=0.46 erase=axis_gate also=
+    near: idx=143 y-x=4-6 rot=155.16 t=1.22 rms=88.64 ncor=12 score=0.776583 score2=0.776583 axis=0.19 erase=survived also=
+    closest walls: ncor=13 gap=0.731 OO=0,OI=0,IO=0,II=13
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,
+5-9	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	0
+    rotation histogram: 
+6-7	1	166	165.692	7.41768	80.4467	14	0.548109	8.53216	overlap	-	-	-	-	-	-	0	0
+    rotation histogram: 135-180=1
+    near: idx=166 y-x=6-7 rot=165.69 t=7.42 rms=80.45 ncor=14 score=0.548109 score2=0.548109 axis=0.15 erase=overlap also=
+    closest walls: ncor=14 gap=0.899 OO=0,OI=0,IO=0,II=14
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+6-8	2	168	64.8731	7.25838	46.3417	20	0.348149	12.268	survived	168	64.8731	7.25838	0.348149	12.268	survived	2	0
+    rotation histogram: 45-90=1, 135-180=1
+    near: idx=168 y-x=6-8 rot=64.87 t=7.26 rms=46.34 ncor=20 score=0.348149 score2=0.348149 axis=0.21 erase=survived also=
+    near: idx=167 y-x=6-8 rot=143.64 t=18.37 rms=86.89 ncor=25 score=0.832136 score2=0.832136 axis=0.20 erase=survived also=
+    closest walls: ncor=20 gap=0.536 OO=0,OI=0,IO=0,II=20
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,II,
+7-8	3	173	162.825	61.0781	73.4621	0	11	63.2352	axis_gate	-	-	-	-	-	-	0	0
+    rotation histogram: 135-180=3
+    near: idx=173 y-x=7-8 rot=162.82 t=61.08 rms=73.46 ncor=0 score=11.000000 score2=-1.000000 axis=1.10 erase=axis_gate also=
+    near: idx=172 y-x=7-8 rot=167.92 t=39.54 rms=104.71 ncor=14 score=11.000000 score2=0.760583 axis=1.30 erase=axis_gate also=
+    near: idx=171 y-x=7-8 rot=179.09 t=94.14 rms=85.89 ncor=11 score=0.613430 score2=0.613430 axis=1.55 erase=axis_gate also=
+    closest walls: ncor=0 gap=0.000 -
+    closest wall seq: -
+7-9	2	174	5.38588	4.57392	4.24091	12	0.339969	4.08413	survived	174	5.38588	4.57392	0.339969	4.08413	survived	2	1
+    rotation histogram: <15=1, 135-180=1
+    near: idx=174 y-x=7-9 rot=5.39 t=4.57 rms=4.24 ncor=12 score=0.339969 score2=0.339969 axis=0.07 erase=survived also=
+    near: idx=175 y-x=7-9 rot=169.44 t=68.48 rms=55.80 ncor=14 score=0.439539 score2=0.439539 axis=0.20 erase=survived also=
+    RIGHT-WAY-UP: idx=174 y-x=7-9 rot=5.39 t=4.57 rms=4.24 ncor=12 score=0.339969 axis=0.07 erase=survived also=
+    closest walls: ncor=12 gap=0.521 OO=0,OI=0,IO=0,II=12
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,
+8-9	4	179	103.462	31.8104	75.2246	12	0.426166	2.87099	survived	177	155.94	10.7875	0.388344	24.7931	survived	3	0
+    rotation histogram: 90-135=1, 135-180=3
+    near: idx=179 y-x=8-9 rot=103.46 t=31.81 rms=75.22 ncor=12 score=0.426166 score2=0.426166 axis=0.05 erase=survived also=
+    near: idx=177 y-x=8-9 rot=155.94 t=10.79 rms=103.39 ncor=17 score=0.388344 score2=0.388344 axis=0.43 erase=survived also=
+    near: idx=178 y-x=8-9 rot=157.08 t=42.59 rms=82.31 ncor=15 score=0.458704 score2=0.458704 axis=1.48 erase=axis_gate also=
+    closest walls: ncor=12 gap=0.670 OO=0,OI=0,IO=0,II=12
+    closest wall seq: -II,II,II,II,II,II,II,II,II,II,II,II,
+
+== axis test on the admitted winner of every true seam ==
+  1-2 winner idx=5 rot=173.16 t=45.81 score=0.435568 axis_folded=1229.9 deg axis_raw=158.5 deg -> UPSIDE DOWN (rot>90)
+  1-4 winner idx=38 rot=18.57 t=11.57 score=0.374301 axis_folded=864.2 deg axis_raw=15.1 deg -> right way up
+  1-5 winner idx=42 rot=59.26 t=18.26 score=0.606334 axis_folded=654.6 deg axis_raw=11.4 deg -> right way up
+  1-8 winner idx=69 rot=171.30 t=22.23 score=0.358065 axis_folded=1135.3 deg axis_raw=160.2 deg -> UPSIDE DOWN (rot>90)
+  1-9 winner idx=81 rot=167.79 t=61.61 score=0.478527 axis_folded=718.5 deg axis_raw=167.5 deg -> UPSIDE DOWN (rot>90)
+  2-5 winner idx=94 rot=45.91 t=3.75 score=0.487246 axis_folded=854.7 deg axis_raw=14.9 deg -> right way up
+  2-9 winner idx=108 rot=15.12 t=5.36 score=0.333649 axis_folded=802.7 deg axis_raw=14.0 deg -> right way up
+  3-5 winner idx=118 rot=48.31 t=16.84 score=0.576892 axis_folded=744.6 deg axis_raw=13.0 deg -> right way up
+  4-5 winner idx=141 rot=171.46 t=16.62 score=0.575863 axis_folded=643.6 deg axis_raw=168.8 deg -> UPSIDE DOWN (rot>90)
+  4-6 winner idx=143 rot=155.16 t=1.22 score=0.776583 axis_folded=629.8 deg axis_raw=11.0 deg -> UPSIDE DOWN (rot>90)
+  6-8 winner idx=168 rot=64.87 t=7.26 score=0.348149 axis_folded=702.9 deg axis_raw=12.3 deg -> right way up
+  7-9 winner idx=174 rot=5.39 t=4.57 score=0.339969 axis_folded=234.0 deg axis_raw=4.1 deg -> right way up
+  8-9 winner idx=177 rot=155.94 t=10.79 score=0.388344 axis_folded=1420.5 deg axis_raw=155.2 deg -> UPSIDE DOWN (rot>90)

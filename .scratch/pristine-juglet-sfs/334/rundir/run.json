@@ -1,0 +1,20 @@
+{
+  "run": "20261112-1735_8560cae_t334-upsidedown",
+  "ticket": "334-upside-down-proposed-or-outscored",
+  "branch": "334-upside-down-proposed-or-outscored",
+  "git7": "8560cae",
+  "question": "S1",
+  "tree": "3x juglet 20261112-1238_55473e9_t333-juglet-large/work/trees/px3/juglet (read-only bind); Pot A control tree copied from .../px3/pota",
+  "binary": "container /opt/sfs-pristine + work/gate333.patch (same source as ticket 333, SFS_INLIER_MM unset = shipped gate); shim = 333's asm/hpc/tools/main_pristine_batch.cpp (already carries [T333-PAIR] logging)",
+  "instrument": "hpc/tools/diag334_pairs.cpp (ticket 326 harness + T334 logging), linked against build/CMakeFiles/Hierarchy-Clear.dir, LCS window MINIMUM_NUMBER=6",
+  "stages": [
+    "reference: 333's [T333-PAIR] lists copied out of its logs",
+    "build pristine+gate333 (shipped path, no gate or constant changed)",
+    "CONTROL: shipped binary on a writable Pot A copy (8/8 sherds, 15/15 edges required)",
+    "diag on the 3x juglet tree (read-only): CAND/WALL/DROP/MERGE/SURVIVOR/DISP/T334PAIR",
+    "diag on Pot A (read-only): pair-stage fidelity on the working control",
+    "fidelity: diag SURVIVOR list vs 333 arm-1 [T333-PAIR] list"
+  ],
+  "floor": 20,
+  "started": "2026-11-12T17:35+11:00"
+}

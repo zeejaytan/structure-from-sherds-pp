@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""stage67_inputs.py - ticket 67: assembler input trees from the t66 arm-U lanes (the merged recipe).
+
+t58's stage_inputs.py (run 20261101-1913_d8f716f_t58-floor-density-panel/instruments/) with the
+60-dot interpolation tree removed; everything else is the recipe that worked in t58.
+
+Trees written under <out>/:
+  juglet/  Breaklines = t66 arm-U Bl0 verbatim; Surfaces = t66 S0/S1 converted from ASCII PLY to bare
+           6-number .xyz (ReadXYZ at class/data_structure.cpp:781-843 cannot parse a PLY header);
+           Mesh, Axes, 'Ground Truth' copied from Dataset/.
+  pota/    hardlinks of exactly the files the POT_A block names, so an arm run never writes
+           Result/ into the shared bundle.
+"""
+import argparse, hashlib, os, shutil
+
+
+def md5(p):
+    h = hashlib.md5()
+    with open(p, 'rb') as fh:
+        for b in iter(lambda: fh.read(1 << 20), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
+def read_bl0(path):
+    lines = open(path, 'r', errors='ignore').read().splitlines()
+    nseg = int(lines[1].split()[1])
+    dots = []
+    started = False
+    for ln in lines:
+        if not started:
+            if ln.startswith('DATA'):
+                started = True
+            continue
+        p = ln.split()
+        if len(p) >= 7:
+            dots.append(p[:7])
+    return nseg, dots
+
+
+def ply_to_xyz(src, dst, want=6):
+    n = None
+    hdr_end = None
+    with open(src, 'r', errors='ignore') as fh:
+        lines = fh.read().splitlines()
+    for i, ln in enumerate(lines):
+        s = ln.split()
+        if len(s) >= 3 and s[0] == 'element' and s[1] == 'vertex':
+            n = int(s[2])
+        if ln.strip() == 'end_header':
+            hdr_end = i
+            break
+    if n is None or hdr_end is None:
+        raise SystemExit('not an ascii PLY: ' + src)
+    body = lines[hdr_end + 1: hdr_end + 1 + n]
+    with open(dst, 'w') as fh:
+        for ln in body:
+            p = ln.split()
+            fh.write(' '.join(p[:want]) + '\n')
+    return n
+
+
+def link(s, t):
+    if not os.path.exists(s):
+        raise SystemExit('missing input: ' + s)
+    if os.path.exists(t):
+        os.remove(t)
+    try:
+        os.link(s, t)
+    except OSError:
+        shutil.copyfile(s, t)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--lanes', required=True)
+    ap.add_argument('--dataset', required=True)
+    ap.add_argument('--pota', required=True)
+    ap.add_argument('--out', required=True)
+    a = ap.parse_args()
+
+    subdirs = ('Breaklines', 'Surfaces', 'Mesh', 'Axes', 'Ground Truth')
+    J = os.path.join(a.out, 'juglet')
+    P = os.path.join(a.out, 'pota')
+    for T in (J, P):
+        for d in subdirs:
+            os.makedirs(os.path.join(T, d), exist_ok=True)
+
+    man = []
+    for i in range(1, 10):
+        stem = 'Juglet_Piece_%d' % i
+        src_bl0 = os.path.join(a.lanes, stem + '.Bl0')
+        nseg, dots = read_bl0(src_bl0)
+        shutil.copyfile(src_bl0, os.path.join(J, 'Breaklines', stem + '_Breakline_0.pcd'))
+        for k in ('0', '1'):
+            src = os.path.join(a.lanes, '%s.S%s' % (stem, k))
+            nv = ply_to_xyz(src, os.path.join(J, 'Surfaces', stem + '_Surface_%s.xyz' % k))
+            man.append('SURF %s S%s verts=%d md5=%s' % (stem, k, nv, md5(src)))
+        shutil.copyfile(os.path.join(a.dataset, 'Mesh', 'Juglet', stem + '_Mesh.obj'),
+                        os.path.join(J, 'Mesh', stem + '_Mesh.obj'))
+        shutil.copyfile(os.path.join(a.dataset, 'Axes', 'Juglet', stem + '_Axis.xyz'),
+                        os.path.join(J, 'Axes', stem + '_Axis.xyz'))
+        shutil.copyfile(os.path.join(a.dataset, 'Juglet_GT', stem + '_T.txt'),
+                        os.path.join(J, 'Ground Truth', stem + '_T.txt'))
+        man.append('LANE %s nseg=%d bl0_dots=%d md5=%s' % (stem, nseg, len(dots), md5(src_bl0)))
+    g = os.path.join(a.dataset, 'Juglet_GT', 'Juglet_simple_graph.txt')
+    shutil.copyfile(g, os.path.join(J, 'Ground Truth', 'Juglet_simple_graph.txt'))
+    man.append('GTGRAPH md5=%s' % md5(g))
+
+    for i in range(1, 9):
+        d2 = '%02d' % i
+        for rel, name in (
+            ('Breaklines', 'Pot_A_Piece_%s_Breakline_0.pcd' % d2),
+            ('Mesh', 'Pot_A_Piece_%s_Mesh.obj' % d2),
+            ('Axes', 'Pot_A_Piece_%s_Axis.xyz' % d2),
+            ('Surfaces', 'Pot_A_Piece_%s_Surface_0.xyz' % d2),
+            ('Surfaces', 'Pot_A_Piece_%s_Surface_1.xyz' % d2),
+        ):
+            link(os.path.join(a.pota, rel, name), os.path.join(P, rel, name))
+        link(os.path.join(a.pota, 'Ground Truth', 'Pot_A_Piece_%d_T.txt' % i),
+             os.path.join(P, 'Ground Truth', 'Pot_A_Piece_%d_T.txt' % i))
+    link(os.path.join(a.pota, 'Ground Truth', 'Pot_A_simple_graph.txt'),
+         os.path.join(P, 'Ground Truth', 'Pot_A_simple_graph.txt'))
+
+    with open(os.path.join(a.out, 'stage_manifest.txt'), 'w') as fh:
+        fh.write('\n'.join(man) + '\n')
+    print('\n'.join(man))
+    print('STAGE OK', a.out)
+
+
+if __name__ == '__main__':
+    main()

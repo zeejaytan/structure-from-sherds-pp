@@ -1,0 +1,9 @@
+reference /data/gpfs/projects/punim2657/SfSpp/runs/20261112-1735_8560cae_t334-upsidedown/work/ref333_pota.txt : 70 admitted lines
+diag      /data/gpfs/projects/punim2657/SfSpp/runs/20261112-1735_8560cae_t334-upsidedown/logs/diag_pota.log : 70 SURVIVOR lines
+unique pairs: reference 26, diag 26
+ordered (y,x) pairs only in reference: []
+ordered (y,x) pairs only in diag     : []
+score multiset differs:
+  score 0.754789 : reference 0, diag 1
+  score 0.754790 : reference 1, diag 0
+FIDELITY: MISMATCH

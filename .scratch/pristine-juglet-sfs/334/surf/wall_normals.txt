@@ -1,0 +1,10 @@
+piece  S0 frac normals->axis   S1 frac->axis   r(S1)-r(S0) mm   S0 wall (3x)   328
+    1   1.000                    0.014          +6.20       inner          inner AGREE
+    2   1.000                    0.000          +6.81       inner          outer DISAGREE
+    3   0.987                    0.000          +6.22       inner          inner AGREE
+    4   1.000                    0.000          +6.84       inner          inner AGREE
+    5   0.974                    0.001          +6.80       inner          inner AGREE
+    6   0.992                    0.000          +7.25       inner          outer DISAGREE
+    7   0.914                    0.026          +5.28       inner          inner AGREE
+    8   0.984                    0.000          +5.79       inner          inner AGREE
+    9   1.000                    0.000          +6.54       inner          outer DISAGREE
