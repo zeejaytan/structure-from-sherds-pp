@@ -139,7 +139,8 @@ the rotation and translation error of the final pose, and the margin to the near
 - 3x tree: `/data/gpfs/projects/punim2657/SfSpp/stage335` (private copy of ticket 333's `work/trees/px3/juglet`),
   Pot A lane in the same directory.
 - GT: `/data/gpfs/projects/punim2657/Dataset/Juglet_large/` (`Juglet_Piece_N_T.txt`, `_Axis.xyz`, graph).
-- 334's instrument: `C:/PR/worktrees/structure-from-sherds-pp/335/work/diag335_pairs.cpp` is gone with the
-  worktree; use the copy in the ticket-334 commit (`git show df4b3d5 --stat` names it) or rebuild from the
-  harness described in ticket 334.
+- **The pair harness that survives is `hpc/tools/diag334_pairs.cpp` on `main`** (467 lines, committed in
+  df4b3d5): it links the pristine class objects, replays `PairwisePruning` / `MergeSimPair` and prints the
+  candidate and survivor tables. Ticket 335's five-cell harness (`work/diag335_pairs.cpp`) was **not committed**
+  and died with its worktree — do not go looking for it. Extend the 334 one; do not write a third from scratch.
 - Previous runs: 34934714 (334), 34943439 (335 pairs), the four 335 assembly jobs 34943640-34943643.
