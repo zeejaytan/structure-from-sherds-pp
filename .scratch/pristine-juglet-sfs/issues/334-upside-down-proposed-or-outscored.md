@@ -1,6 +1,6 @@
 # Ticket 334 — is the right-way-up fit ever proposed, and if proposed, what outranks it?
 
-**Status:** results-in
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-12)
 **Branch:** 334-upside-down-proposed-or-outscored, in /c/PR/worktrees/structure-from-sherds-pp/334
 **Answers:** S1
@@ -288,3 +288,58 @@ already correct at the pair stage.
 - 6-7 produced one candidate for the whole run, so its "never proposed" is a statement about a single trial, not a
   distribution — 333's per-pair dump agrees (6-7 is the one true seam never admitted).
 - Nothing was committed, pushed, or staged; the shipped tree and the corpus are untouched.
+---
+
+## Lead verification and ruling (2026-11-12, lead session)
+
+Read back from the run directory, not from the report.
+
+- **sacct:** 34934714 COMPLETED 0:0, 00:02:37, sapphire. Pot A control 8/8 sherds, 15/15 edges; the
+  0.754789 vs 0.754790 line is print rounding, not a mismatch.
+- **Fidelity:** 30 unique pairs and the 68-value score multiset are identical to ticket 333's arm-1 admitted
+  list; 79 SURVIVOR lines match. The harness measured the shipped code, so the table can be read as a
+  statement about the assembler and not about a proxy.
+- **The margins, recomputed on the surviving poses.** `MergeSimPair` replaces a correct candidate with a
+  near-twin of *lower* score, so the pre-merge score is not the one that competes:
+  1-2 idx 1 0.447224 vs idx 5 0.435568 = **2.6 %**;
+  1-8 idx 70 0.404823 (70 inliers, 0.70 deg, 1.21 mm) vs idx 69 0.358065 (12 inliers) = **11.6 %**;
+  1-9 idx 77 0.623368 vs idx 81 0.478527 = **23.2 %**.
+  The worker's 11.6 % is right; my first arithmetic used the pre-merge 0.4637 and gave 22.8 %, which is the
+  wrong comparison. Worth naming: the strongest correct pose in the run (70 inliers at 0.70 deg / 1.21 mm)
+  still loses to a 12-inlier 171 deg flip.
+- **Axis gate, measured from the drop log:** 96 drops (77 `axis_angle>0.436`, 18 overlap, 1 basket). The 77
+  erased candidates have raw axis 25.75-155.01 deg; since the test is `min(a, 180-a)`, the gate can only fire
+  in that band, so a 180 deg flip (folded ~0) can never be erased by it. 131 of 180 candidates are more than
+  90 deg from GT and 68 of those survive with the folded axis under the cut.
+- **The count in the worker's message is wrong, the ticket's is right.** The message says a right-way-up
+  candidate exists for "6 of the 9 seams"; the table and my read give **4** (1-2, 1-8, 1-9, 7-9). 1-4 and 2-9
+  miss by 0.8 and 0.1 deg. The classification in section 6 (3 outscored, 5 never proposed, 7-9 a fourth case)
+  is the account to keep.
+- **Wall labels: the worker's doubt is correct and 328's record does not reproduce.** My own check
+  (`C:/PR/artifacts/t334_wall_check.py`: mean perpendicular radius about each piece's own GT axis, plus the
+  outward-normal fraction) on both trees: `Surface_0` normals point toward the axis on 91-100 % of points and
+  `Surface_1` away, with r(Surface_1) - r(Surface_0) = +1.41 to +2.36 mm at 1x and +4.27 to +7.08 mm at 3x.
+  `Surface_0` is the **inner** wall on all nine pieces at both scales, no flips. 328 measured the radius about
+  the *vessel* axis after applying gtT, which is a different quantity from the per-piece own-axis radius.
+  328's code cure (wall side by curvature at the seam) does not depend on the label and stands; its diagnostic
+  paragraph does depend on it and is corrected in that ticket.
+
+### Ruling
+
+The pre-registered readings, applied literally: **reading 1 (proposed, surviving, outscored) holds for three
+seams — 1-2, 1-8, 1-9. Reading 2 is empty: no correct pose was erased by a gate. Reading 3 (never proposed)
+holds for five — 1-4, 2-5, 2-9, 3-5, 6-7, of which two miss the bar by under a degree. 7-9 fits none of them:
+its correct pose is the seam's own lowest score and is lost downstream, in the clustering.**
+
+The mechanism behind reading 1 is in the score, not the gates: `MatchingScore` is a mean over matched dots, so
+a flip that matches 9-18 dots at 0.2-0.8 mm beats a correct pose that matches 40-70 dots at 1.2-6x that mean.
+The `count^1.2` divisor pushes the right way (without it 1-2's flip would win by 28 %) but does not close a
+2.6 % gap. The axis test is sign-blind by construction, so it cannot act as the second line of defence.
+
+Claim type: **method failed** (ranking term + a sign-blind axis test), not a broken measurement and not a wrong
+reference. Weight: nine seams, one run, but the run reproduces 333's admitted set exactly, so the table is the
+same data 333 scored, read one level deeper.
+
+What this does *not* say: that fixing the score would reassemble the Juglet. 7-9 is a measured counterexample to
+"the best pair wins the assembly", so any cure has to be tested at assembly level on the pot control as well as
+per pair.
