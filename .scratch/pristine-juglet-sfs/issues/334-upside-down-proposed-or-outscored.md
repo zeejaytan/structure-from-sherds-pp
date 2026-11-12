@@ -1,8 +1,8 @@
 # Ticket 334 — is the right-way-up fit ever proposed, and if proposed, what outranks it?
 
-**Status:** ready-for-agent
-**Working in:** (claimed by the worker)
-**Branch:** (set by `ticket_start.sh`)
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-12)
+**Branch:** 334-upside-down-proposed-or-outscored, in /c/PR/worktrees/structure-from-sherds-pp/334
 **Answers:** S1
 **Depends on:** 331 (3x input), 332 (dense 1x control), 333 (the 3x assembly run and its per-pair dump)
 **Blocks:** nothing
