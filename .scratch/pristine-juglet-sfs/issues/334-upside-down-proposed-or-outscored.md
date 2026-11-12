@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 331 (3x input), 332 (dense 1x control), 333 (the 3x assembly run and its per-pair dump)
 **Blocks:** nothing
-**Worker:** unassigned
+**Worker:** 981cd347-fb64-4d96-b779-39a3a303d1f1 (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-12 by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Scale and dot density are ruled out as the blocker (331, 332, 333 agree): the hopeless step
