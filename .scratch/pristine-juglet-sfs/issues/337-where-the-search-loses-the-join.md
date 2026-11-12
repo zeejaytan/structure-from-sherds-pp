@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 336 (the trace instrument and the corrected class table), 335 (pair-level winners), 334 (nine-seam pair diagnosis), 333 (3x assembly)
 **Blocks:** the next fix, which cannot be chosen until we know whether the merge is never offered, never explored, or thrown away
-**Worker:** unassigned
+**Worker:** c42e9a8e-054d-4b32-9db7-f75b53d4881e (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-13 by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Ticket 336 showed that in 22 of 32 seam-arm cells the two sherds are never in one graph at
