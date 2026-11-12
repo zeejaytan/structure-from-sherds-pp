@@ -1,0 +1,3 @@
+# 330 data manifest - what t330/data held before it was removed from the laptop (2026-11-12)
+# columns: md5  bytes  path
+bb1d08c732449137659bc7143b22111e  2877  data/gt_mor1.tgz
