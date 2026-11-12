@@ -1,0 +1,241 @@
+diff --git a/class/data_structure.h b/class/data_structure.h
+--- a/class/data_structure.h
++++ b/class/data_structure.h
+@@ -438,4 +438,15 @@ void SaveAcc(const string& path,
+ 	pair<int, int>& edge_acc,
+ 	double& time);
+ 
++// Ticket 329: scale-aware seed floor. MINIMUM_NUMBER (6) was written for pots whose
++// median piece breakline bounding-box diagonal is about 60 mm. One scale is measured
++// from the object itself (median breakline bounding-box diagonal of the loaded
++// matching pieces, in mm -- measurement reused verbatim from ticket 326), then
++// s_raw = len_scale_mm/60, s = min(1, s_raw), M = max(3, (int)ceil(6.0*s)).
++// Every former MINIMUM_NUMBER consumer reads M (M/2 at the half floors).
++// The macro stays as the written-for-60mm constant; nothing else changes.
++extern double g_len_scale;
++void MeasureLengthScale(const vector<Geom>& shard);
++int MinNumFloor();
++
+ #endif // !_DATA_STRUCTURE_H_
+\ No newline at end of file
+diff --git a/class/data_structure.cpp b/class/data_structure.cpp
+--- a/class/data_structure.cpp
++++ b/class/data_structure.cpp
+@@ -1,4 +1,7 @@
+ #include "data_structure.h"
++#include <algorithm>
++#include <cmath>
++#include <iomanip>
+ 
+ //############################## class BreakLine ##############################//
+ BreakLine::BreakLine() {
+@@ -1007,4 +1010,52 @@ void SaveAcc(const string& path,
+ 	}
+ 	else
+ 		cout << "SaveAcc : File system error" << endl;
+-}
+\ No newline at end of file
++}
++double g_len_scale = 0;
++
++// Ticket 326 measurement, reused verbatim: the median breakline bounding-box
++// diagonal of the matching pieces, in mm. The 60 mm reference is the size the
++// literals were written for (pot F, the smallest scored pot, is 61 mm).
++void MeasureLengthScale(const vector<Geom>& shard)
++{
++	if (g_len_scale > 0)
++		return;
++	vector<double> diag;
++	for (int i = 0; i < (int)shard.size(); i++) {
++		if (!shard[i].is_matching_)
++			continue;
++		const MatrixXd& p = shard[i].edge_line_.point_;
++		if (p.cols() < 2)
++			continue;
++		Vector3d mn = p.rowwise().minCoeff();
++		Vector3d mx = p.rowwise().maxCoeff();
++		diag.push_back((mx - mn).norm());
++	}
++	if (diag.empty()) {
++		g_len_scale = 60.0;
++		cout << "SCALE329 v1 len_scale_mm=60 n=0 s_raw=1.000 s=1.000 M=6 ref_mm=60 FALLBACK" << endl;
++		return;
++	}
++	sort(diag.begin(), diag.end());
++	g_len_scale = diag[diag.size() / 2];
++	{
++		double s_raw = g_len_scale / 60.0;
++		double s = min(1.0, s_raw);
++		int M = max(3, (int)ceil(6.0 * s));
++		cout << "SCALE329 v1 len_scale_mm=" << g_len_scale
++			<< " n=" << diag.size()
++			<< " s_raw=" << fixed << setprecision(3) << s_raw
++			<< " s=" << s
++			<< " M=" << M
++			<< " ref_mm=60" << endl;
++	}
++}
++
++// Ticket 329 pre-registered formula (fixed shape, single knob): the seed floor.
++// Unmeasured (g_len_scale == 0) behaves as 60 mm, i.e. M = 6 = pristine.
++int MinNumFloor()
++{
++	double s_raw = (g_len_scale > 0 ? g_len_scale / 60.0 : 1.0);
++	double s = min(1.0, s_raw);
++	return max(3, (int)ceil(6.0 * s));
++}
+diff --git a/class/feature_matching.cpp b/class/feature_matching.cpp
+--- a/class/feature_matching.cpp
++++ b/class/feature_matching.cpp
+@@ -1012,7 +1012,7 @@ void CountInlier(int& inlier, const vector<Corres>& COR, double threshold, doubl
+ 			angle = min(angle, 3.14159 - angle);
+ 			if (dist < threshold && angle < angle_th) dummy_inlier++;
+ 		}
+-		if (dummy_inlier > MINIMUM_NUMBER / 2)
++		if (dummy_inlier > MinNumFloor() / 2)
+ 		{
+ 			inlier += dummy_inlier;
+ 		}
+@@ -1042,7 +1042,7 @@ void CountInlier(int& inlier,
+ 			angle = min(angle, 3.14159 - angle);
+ 			if (dist < threshold && angle < angle_th) dummy_inlier++;
+ 		}
+-		if (dummy_inlier > MINIMUM_NUMBER / 2) 
++		if (dummy_inlier > MinNumFloor() / 2) 
+ 		{
+ 			shard_inlier[s_x] += dummy_inlier;
+ 			shard_inlier[s_y] += dummy_inlier;
+@@ -1378,6 +1378,7 @@ void FeatureComp(vector<Geom>& a,
+ 	int windowsize,
+ 	int mode)
+ {
++	MeasureLengthScale(a);
+ 	vector<double> Q_size;
+ 	int shard_num = a.size();
+ 	bool is_thickness = false;
+@@ -1501,6 +1502,7 @@ void FeatureCompGraphBuilding(vector<Geom>& a,
+ 	int windowsize,
+ 	vector<vector<bool>>& matched_index)
+ {
++	MeasureLengthScale(a);
+ 	vector<double> Q_size;
+ 	int shard_num = a.size();
+ 	bool is_thickness = false;
+diff --git a/class/reconstruction.cpp b/class/reconstruction.cpp
+--- a/class/reconstruction.cpp
++++ b/class/reconstruction.cpp
+@@ -462,7 +462,7 @@ void MakeSingleCorres(vector<Corres>& COR,
+ 		cor_line.index_A = c_node;
+ 		cor_line.index_B = i_B + 1;
+ 		COR_dummy[i] = cor_line;
+-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
++		if (cor_line.cor.size() > MinNumFloor() / 2) {	// ICCV->Hierarchy
+ 			cor_counter++;
+ 			cor_index[i] = true;
+ 		}
+@@ -527,7 +527,7 @@ void MakeMergeCorres(vector<Corres>& COR,
+ 		cor_line.index_B = i_fix + 1;
+ 		COR_dummy[i] = cor_line;
+ 		// If the number of breakline correspondence is over 6, fill out the table
+-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {
++		if (cor_line.cor.size() > MinNumFloor() / 2) {
+ 			cor_index[i] = true;
+ 		}
+ 	}
+@@ -590,7 +590,7 @@ void MakeMultiCorres(vector<Corres>& COR,
+ 		cor_line.index_B = i_B + 1;
+ 		COR_dummy[i] = cor_line;
+ 		// If the number of breakline correspondence is over 6, fill out the table
+-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
++		if (cor_line.cor.size() > MinNumFloor() / 2) {	// ICCV->Hierarchy
+ 			cor_counter++;
+ 			cor_index[i] = true;
+ 
+@@ -663,7 +663,7 @@ void MakeCorWithSur(vector<Corres>& COR_line,
+ 		cor_line.index_B = i_B + 1;
+ 		COR_line_dummy[i] = cor_line;
+ 		// If the number of breakline correspondence is over 6, fill out the table
+-		if (cor_line.cor.size() > MINIMUM_NUMBER / 2) {	// ICCV->Hierarchy
++		if (cor_line.cor.size() > MinNumFloor() / 2) {	// ICCV->Hierarchy
+ 			cor_counter++;
+ 			cor_index[i] = true;
+ 
+@@ -724,7 +724,7 @@ bool inlierCalculate(int& inlier,
+ 		INLIER_THRESHOLD,
+ 		ANGLE_THRESHOLD);	
+ 
+-	if (inlier < MINIMUM_NUMBER) {
++	if (inlier < MinNumFloor()) {
+ 		return false;
+ 	}
+ 
+@@ -760,7 +760,7 @@ bool inlierCalculate(int& inlier,
+ 		INLIER_THRESHOLD,
+ 		ANGLE_THRESHOLD);	
+ 
+-	if (inlier < MINIMUM_NUMBER) {
++	if (inlier < MinNumFloor()) {
+ 		return false;
+ 	}
+ 
+@@ -1195,7 +1195,7 @@ void Icp(vector<BreakLine>& L,
+ 		bool miss_cor = false;
+ 		//#pragma omp parallel for
+ 		for (int i = 0; i < COR.size(); i++) {
+-			if (COR[i].cor.size() < MINIMUM_NUMBER) {
++			if (COR[i].cor.size() < MinNumFloor()) {
+ 				miss_cor = true;
+ 				cycle.score = 11.0;
+ 				break;
+@@ -1394,7 +1394,7 @@ void Registration(vector<BreakLine>& L,
+ 
+ 		//############### Check correspondence number ###############// 
+ 		for (int i = 0; i < COR.size(); ) {
+-			if (COR[i].cor.size() < MINIMUM_NUMBER) {
++			if (COR[i].cor.size() < MinNumFloor()) {
+ 				COR.erase(COR.begin() + i);
+ 			}
+ 			else {
+@@ -1586,7 +1586,7 @@ void Registration(vector<BreakLine>& L,
+ 
+ 		//############### Check correspondence number ###############// 
+ 		for (int i = 0; i < COR.size(); ) {
+-			if (COR[i].cor.size() < MINIMUM_NUMBER) {
++			if (COR[i].cor.size() < MinNumFloor()) {
+ 				COR.erase(COR.begin() + i);
+ 			}
+ 			else {
+diff --git a/class/ranking_system.cpp b/class/ranking_system.cpp
+--- a/class/ranking_system.cpp
++++ b/class/ranking_system.cpp
+@@ -792,7 +792,7 @@ void StateManager::PrepareNextStep(State& state)
+ 	FeatureCompGraphBuilding(shard_,
+ 		lcs_out,
+ 		25,
+-		MINIMUM_NUMBER,
++		MinNumFloor(),
+ 		state.total_matched_index_);
+ 
+ 	for (int i = 0; i < state.graph_.size(); i++) {
+@@ -830,7 +830,7 @@ void StateManager::PrepareNextStep(State& state)
+ 		FeatureCompGraphBuilding(shard_,
+ 			lcs_new,
+ 			25,
+-			MINIMUM_NUMBER,
++			MinNumFloor(),
+ 			state.total_matched_index_);
+ 
+ 		PickEdges(lcs_new, state.graph_.back().node_);
+diff --git a/main.cpp b/main.cpp
+--- a/main.cpp
++++ b/main.cpp
+@@ -208,7 +208,8 @@ int main(int argc, char** argv)
+ 	cout << "#################### Feature matching ####################" << endl;
+ 	////#################### Feature matching ####################//
+ 	list<LCSIndex> LCS_out;
+-	FeatureComp(shard, LCS_out, 25, MINIMUM_NUMBER, 0);
++	MeasureLengthScale(shard);
++	FeatureComp(shard, LCS_out, 25, MinNumFloor(), 0);
+ 	cout << "Total number : " << LCS_out.size() << endl;
+ 
+ 	cout << "#################### Pairwise pruning ####################" << endl;

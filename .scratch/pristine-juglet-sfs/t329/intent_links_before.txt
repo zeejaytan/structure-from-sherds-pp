@@ -1,0 +1,24 @@
+ERROR   intent\README.md:45 dangling link -> ../../intent/
+ERROR   intent\S1-does-it-connect-anything-real.md:259 dangling link -> ../../intent/U13-which-sherds-are-one-vessel.md
+WARN    .scratch\cauchy-scales\issues\01-log-residual-norms.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\02-graduated-schedule.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\03-distance-sweep.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\04-normal-sweep.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\05-axis-rim-sweeps.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\06-loss-shape-diagnostic.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+WARN    .scratch\cauchy-scales\issues\07-huber-revert.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\juglet-sfs\spec.md has no 'Answers:' line - every ticket names the question it settles, or says 'none'. See docs/agents/issue-tracker.md
+WARN    .scratch\juglet-sfs\issues\12-assembly-nondeterminism.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\01-descriptor-smoothing.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\02-base-flags-dead-or-alive.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\03-axis-and-rim-precedence.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\05-matching-methodology-audit.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\08-normal-gate-grouping-angle.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\09-overlap-thresholds.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\10-dead-code-removal.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\11-fork-vs-upstream-assembly.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\paper-compliance\issues\12-lineage-relaxations.md is resolved with 'Needs-eye:' but shows no witnessed look (no eye/witness/reply in the body) - such a ticket cannot close on numbers alone
+WARN    .scratch\pristine-juglet-sfs\issues\03-score-witness-verdict.md 'Needs-eye: `visual-qa/preview/manifest-juglet-pristine.json` (stage the pair with the visual-qa-helper; mesh/point-cloud pair, never a bare picture)' names visual-qa/preview/manifest-juglet-pristine.json, which is not on disk - rename out of the viewer's registry or stage it first
+WARN    .scratch\pristine-pot-a-control\issues\02-restore-pristine-scorer.md has 'Status: done' - write 'resolved'. The fixed words are in docs/agents/triage-labels.md
+
+3 questions, 50 ticket files, 3 questions with work behind them - 2 errors, 20 warnings.

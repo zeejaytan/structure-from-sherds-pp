@@ -1,0 +1,10 @@
+{
+  "runid": "20261111-0120_20b52bf_t329-axes",
+  "ticket": "structure-from-sherds-pp .scratch/pristine-juglet-sfs/issues/329-scale-aware-seed-floor.md",
+  "commit": "20b52bf",
+  "tag": "t329-axes",
+  "purpose": "Ticket 329 bar 1 step 1: regenerate 172 axes with t328 job-E's exact recipe (t322 impl tree, --cap 6 --seeds 10 --step 10, then build_axes323.py 1.2 3) and cmp against t323-axes/out/axes323; any differing file stops the ticket.",
+  "recipe_source": "runs/20261110-2252_123f2ca_t328-planenorm/submit328e.sbatch (job 34702695)",
+  "binaries_note": "run_benchmark_172.py references no binary (measured, out/benchmark_binary_refs.txt); trim5 final binaries md5 recorded in out/trim5_binaries.md5",
+  "gate": "diff -rq runs/20261110-0740_d628fc0_t323-axes/out/axes323 out/axes329f == empty"
+}

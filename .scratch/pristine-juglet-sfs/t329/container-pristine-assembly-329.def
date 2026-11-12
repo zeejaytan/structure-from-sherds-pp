@@ -1,0 +1,118 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%help
+  Ticket 329: scale-aware seed-floor image.
+  = the pristine SfS++ assembly container (upstream SeongJong-Yoo/structure-from-sherds-pp
+  @ 9195c01, clean tree, same apt set, same cmake/make) + hpc/patches/329-scale-aware-seed-floor.patch
+  applied to class/ and main.cpp before the build. Nothing else differs from
+  container-pristine-assembly.def, and sfs_pristine_assembly.sif is left byte-identical so every
+  earlier result stays reproducible.
+
+  The patch changes exactly one behaviour: the integer seed floors MINIMUM_NUMBER (6) become
+  M = max(3, (int)ceil(6.0*min(1, len_scale_mm/60))) where len_scale_mm is the median breakline
+  bounding-box diagonal of the object (ticket 326's measurement, reused verbatim). No geometric
+  gate changes. Pots measure ~60 mm or more, so they keep M = 6; the Juglet measures 32.1-32.4 mm,
+  so it gets M = 4.
+
+  Build it with hpc/sbatch/build_pristine_assembly_329.sbatch, which stages THIS def and the
+  patch into one run directory. The %files source is a bare filename on purpose: Apptainer
+  resolves %files relative to the definition file's directory, and the sbatch builds with that
+  directory as its working directory, so both readings of the convention point at the same file.
+
+  Provenance: /opt/sfs-pristine/PATCH329-BUILD.txt is written at build time with the patch md5
+  and the md5 of every patched file; every assembler run prints
+  "SCALE329 v1 len_scale_mm=... s_raw=... s=... M=... ref_mm=60" from MeasureLengthScale()
+  before its first matching decision, so a run log shows which binary ran and what M it used.
+
+%labels
+  Author    zeejaytan
+  Version   1.0.0
+  Stage     pristine-assembly-ticket329-scale-aware-seed-floor
+  Upstream  9195c0167e2077a564bd7c91156063252feeb506
+  Patch     329-scale-aware-seed-floor.patch
+
+%files
+    329-scale-aware-seed-floor.patch /opt/329-scale-aware-seed-floor.patch
+
+%environment
+  export DEBIAN_FRONTEND=noninteractive
+  export PATH="/opt/sfs-pristine/build:${PATH}"
+
+%post
+  export DEBIAN_FRONTEND=noninteractive
+  export TZ=UTC
+  export NPROC=$(nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 4)
+
+  # Fail in seconds, not after the apt install, if the patch did not travel with the def.
+  test -s /opt/329-scale-aware-seed-floor.patch || { echo "[FATAL] patch not staged by %files"; exit 1; }
+  echo "[PATCH] md5: $(md5sum /opt/329-scale-aware-seed-floor.patch | cut -d' ' -f1)"
+
+  echo "[INSTALL] apt dependencies (proven set from container.def + X11/Xvfb)"
+  apt-get update -qq && apt-get install -y --no-install-recommends \
+        build-essential cmake git \
+        libeigen3-dev libboost-all-dev libflann-dev libqhull-dev \
+        libopenblas-dev liblapack-dev gfortran \
+        libgoogle-glog-dev libgflags-dev libsuitesparse-dev \
+        libvtk9-dev libvtk9-qt-dev libglew-dev freeglut3-dev \
+        libpcl-dev libusb-1.0-0-dev libceres-dev libcgal-dev \
+        xvfb xdotool x11-utils \
+        libgl1 libglu1-mesa libgl1-mesa-dri && \
+      rm -rf /var/lib/apt/lists/*
+
+  echo "[CLONE] upstream pristine @ 9195c01"
+  cd /opt
+  git clone https://github.com/SeongJong-Yoo/structure-from-sherds-pp.git sfs-pristine
+  cd /opt/sfs-pristine
+  git checkout 9195c0167e2077a564bd7c91156063252feeb506
+  echo "[VERIFY] checked-out SHA:"
+  git rev-parse HEAD
+  test "$(git rev-parse HEAD)" = "9195c0167e2077a564bd7c91156063252feeb506"
+  test -z "$(git status --porcelain)"
+
+  echo "[APPLY] 329-scale-aware-seed-floor.patch"
+  git apply --verbose /opt/329-scale-aware-seed-floor.patch
+  test "$(git status --porcelain | wc -l)" = "6" || { echo "[FATAL] patch did not touch exactly 6 files"; git status --porcelain; exit 1; }
+  # Every former MINIMUM_NUMBER consumer must now read MinNumFloor(); the macro must survive.
+  test "$(grep -c 'int MinNumFloor();' class/data_structure.h)" = "1"
+  test "$(grep -c 'void MeasureLengthScale(const vector<Geom>& shard);' class/data_structure.h)" = "1"
+  test "$(grep -c 'SCALE329' class/data_structure.cpp)" = "2"
+  test "$(grep -c 'MinNumFloor() / 2' class/feature_matching.cpp)" = "2"
+  test "$(grep -c 'MinNumFloor()' class/reconstruction.cpp)" = "9"
+  test "$(grep -c 'MinNumFloor()' class/ranking_system.cpp)" = "2"
+  test "$(grep -c 'MeasureLengthScale(a);' class/feature_matching.cpp)" = "2"
+  test "$(grep -c 'MeasureLengthScale(shard);' main.cpp)" = "1"
+  test "$(grep -c 'MINIMUM_NUMBER' class/reconstruction.cpp)" = "0"
+  test "$(grep -c 'MINIMUM_NUMBER' class/ranking_system.cpp)" = "0"
+  {
+    echo "ticket 329 image build"
+    echo "upstream_sha $(git rev-parse HEAD)"
+    echo "patch_sha256 $(sha256sum /opt/329-scale-aware-seed-floor.patch | cut -d' ' -f1)"
+    echo "patched_files:"
+    git status --porcelain
+    echo "md5 main.cpp                      $(md5sum main.cpp | cut -d' ' -f1)"
+    echo "md5 class/data_structure.h        $(md5sum class/data_structure.h | cut -d' ' -f1)"
+    echo "md5 class/data_structure.cpp      $(md5sum class/data_structure.cpp | cut -d' ' -f1)"
+    echo "md5 class/feature_matching.cpp    $(md5sum class/feature_matching.cpp | cut -d' ' -f1)"
+    echo "md5 class/ranking_system.cpp      $(md5sum class/ranking_system.cpp | cut -d' ' -f1)"
+    echo "md5 class/reconstruction.cpp      $(md5sum class/reconstruction.cpp | cut -d' ' -f1)"
+  } > /opt/sfs-pristine/PATCH329-BUILD.txt
+  cat /opt/sfs-pristine/PATCH329-BUILD.txt
+
+  echo "[CMAKE] configure"
+  mkdir -p build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  echo "[MAKE] compile"
+  make -j${NPROC}
+  ls -lh Hierarchy-Clear
+
+%runscript
+  exec "$@"
+
+%test
+  test -x /opt/sfs-pristine/build/Hierarchy-Clear && \
+    echo "329 Hierarchy-Clear binary present"
+  test "$(grep -ac SCALE329 /opt/sfs-pristine/build/Hierarchy-Clear)" -ge 1 && \
+    echo "329 marker string SCALE329 is compiled into the binary"
+  cat /opt/sfs-pristine/PATCH329-BUILD.txt
+  which Xvfb xdotool
