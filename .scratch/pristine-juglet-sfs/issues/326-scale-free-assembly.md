@@ -1,7 +1,6 @@
 # Ticket 326 — Scale-free assembly: stop judging a 33 mm vessel with pot-sized millimetres
 
-**Status:** results-in
-**Working in:** chat on Thinkbook16 (2026-11-10)
+**Status:** wontfix - rule withdrawn as mis-tuned in direction (pot E 62 -> 46-53); evidence kept, branch not merged, corrected clamp recorded in the lead ruling below
 **Branch:** 326-scale-free-assembly, in /c/PR/worktrees/structure-from-sherds-pp/326
 **Answers:** S1
 **Depends on:** 325 (an admissible axis at this scale; without it the axes arm cannot be read)
@@ -721,3 +720,50 @@ What is left is not a threshold: the assembler will not register a pair without 
 15 deg (`MINIMUM_NUMBER` 6, `CountInlier`), and ticket 328 measured that six of the nine touching Juglet pairs cannot
 supply them at 33 mm. That is the next ticket's subject.
 
+## Lead ruling (2026-11-11): the rule is mis-tuned in direction; the branch is not merged
+
+**Decision.** Pot E assembled 62/62 joins at the shipped constants (ticket 330, job 34749879). That is
+the reference a pot must not fall below. This ticket's rule, as built, loosens every pot, so it cannot be
+right about pots; it is withdrawn from merge candidacy. What it measured still stands.
+
+**Why this is a tuning error, not a refutation.** The patch fixed its own reference size at 60 mm and said
+why: "pot F's median piece diagonal is 61 mm, the smallest of the ten scored pots, so on every scored pot
+the gate is at or above the legacy one (1.02x on F to 2.52x on C)"
+(`hpc/patches/326-scale-free-matching.patch:6-11`). That choice makes the pot side of the rule a one-way
+loosening. Pots were already at or near their ceiling, so loosening had nothing to win: seven of ten
+unchanged, D and H a few joins down, E from 62 to 46-53. A rule written for a 33 mm vessel should not move
+a pot at all.
+
+**The control that names the reference.** Ticket 330 ran one binary with the multiplier as its only
+argument: `s=60` (the rule neutral, job **34749879**, COMPLETED 0:0) -> 31/31 pieces and 62/62 joins, and
+62/62 again on the second repeat; `s=92.77` (Pot E's own measured size, job **34749880**, COMPLETED 0:0)
+-> 29/31 pieces and 53/62 joins. Pot E is not a hard pot the rule rescued; it is a pot the rule broke.
+
+**What this ticket establishes, restated without the withdrawn sentence.**
+
+- the pot-calibrated millimetres scaled **down** (Juglet, 0.535x) do not fix the Juglet - but that is a
+  tighter configuration, so it cannot test "loosen the evidence floor", and nothing in 325/326 held that
+  floor down;
+- the same rule scaled **up** on pots costs joins (E 62 -> 46-53; D and H minor losses) and gains none
+  (seven pots unchanged, no pot improved);
+- the loss is **not wrong pairs admitted**: 330 found no ground-truth pair whose verdict flipped in either
+  direction and no non-ground-truth pair newly admitted. The widening also moved the score every placement
+  competes on (the inlier distance is itself scored against), so the search committed to a different
+  sequence, and on a thirty-one-sherd pot the first wrong merge cannot be undone.
+
+**Corrected rule, recorded for whoever builds it.** One-sided clamp:
+`s = min(1.0, len_scale / 60.0)`, so an object at or above the reference keeps the shipped constants
+exactly and only smaller objects tighten. Ticket 329's join-count floor already has this form
+(`class/data_structure.cpp:1056-1061` in its patched copy), and 329's bar 6 asserts `SCALE329 ... s=1.000
+M=6` on every pot lane - that run is the untouched-pot check for the corrected rule.
+
+**Merge status.** Not merged to main. `sfs_pristine_assembly_326.sif` is not a replacement for
+`sfs_pristine_assembly.sif`. The patch, container definition and diagnostics stay on branch
+`326-scale-free-assembly` as experiment artefacts (kept, not deleted); this ticket is landed on main as
+the record.
+
+**Verified by the lead.** `hpc/patches/326-scale-free-matching.patch:6-11` read on the branch;
+`sacct 34749879` -> COMPLETED 0:0 and `sacct 34749880` -> COMPLETED 0:0; both control logs read at
+`binary_S60.log` / `binary_S9277.log`; the per-pot table re-read from the run dirs of
+`20261110-2248_6925cb0_t326-pot<X>`; 329's clamp read at `class/data_structure.cpp:1056-1061` in that
+ticket's patched copy.
