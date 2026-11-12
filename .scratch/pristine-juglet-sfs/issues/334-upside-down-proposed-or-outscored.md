@@ -343,3 +343,10 @@ same data 333 scored, read one level deeper.
 What this does *not* say: that fixing the score would reassemble the Juglet. 7-9 is a measured counterexample to
 "the best pair wins the assembly", so any cure has to be tested at assembly level on the pot control as well as
 per pair.
+
+### Worktree cleanup (2026-11-12)
+
+The ignored files left in the worktree before it was removed were moved, not deleted: `run/diag_juglet.log`,
+`run/diag_pota.log` (local copies of the run's logs) and `surf/` (40 files, 37 MB — the nine pieces'
+`Surface_0`/`Surface_1`/`Breakline_0`/`Axis` copied out for the wall check) now sit in
+`C:/PR/artifacts/t334-worktree/`. The originals remain in the Spartan run directory.
