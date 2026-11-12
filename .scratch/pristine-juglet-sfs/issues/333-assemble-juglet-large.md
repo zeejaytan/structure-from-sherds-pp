@@ -6,7 +6,7 @@
 **Answers:** S1
 **Depends on:** 331 (the 3x input is built and measured), 332 (the dense 1x control on the cured tree)
 **Blocks:** none
-**Worker:** unassigned
+**Worker:** 7bf2cc0a-6107-49f9-82c8-a015e65ee402 (dsh one-shot subagent, dsh-opencode-go/deepseek-v4.1-flash; dispatched 2026-11-12 01:10Z by the lead)
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 
 > **In one line.** Ticket 331 enlarged the Juglet 3x: every piece now carries 77-185 dots and 7 of 9 seams
