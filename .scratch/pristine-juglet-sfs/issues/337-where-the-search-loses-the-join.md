@@ -1,6 +1,6 @@
 # Ticket 337 — where the search loses the join: offered, explored, or pruned?
 
-**Status:** results-in
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-13)
 **Branch:** 337-where-the-search-loses-the-join, in /c/PR/worktrees/structure-from-sherds-pp/337
 **Answers:** S1
