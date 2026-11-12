@@ -1,8 +1,8 @@
 # Ticket 335 — two ranking levers, measured separately: a coverage-aware score and a sign-aware axis test
 
-**Status:** ready-for-agent
-**Working in:** unclaimed
-**Branch:** —
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-12)
+**Branch:** 335-coverage-score-and-sign-aware-axis, in /c/PR/worktrees/structure-from-sherds-pp/335
 **Answers:** S1
 **Depends on:** 334 (the nine-seam diagnosis), 333 (the 3x assembly run), 332 (the 1x control), 328 (wall side), 331 (3x input)
 **Blocks:** nothing yet
