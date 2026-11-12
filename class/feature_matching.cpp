@@ -1,5 +1,66 @@
 #include "feature_matching.h"
 #include "../class/ranking_system.h"
+#include <cstdlib>
+#include <string>
+
+//############################## TICKET 335 switches ##############################//
+// Two ranking levers, one switch each, default OFF. Read ONCE at start-up by
+// InitSfsSwitches(); unset, empty or unparseable -> legacy. Neither switch moves a
+// shipped constant: 0.436, 1.5, 10, 0.175/20, MINIMUM_NUMBER, INLIER_THRESHOLD and
+// ANGLE_THRESHOLD are untouched.
+//   SFS_SCORE_COVERAGE=1 : RANKING ONLY. rank_score = score_legacy / max(c, 0.05),
+//                          c = matched dots / min(n_dots_i, n_dots_j), is used where two
+//                          survivors compete for one slot (MergeSimPair's twin choice).
+//                          The basket (1.5) and registration (10) gates keep comparing
+//                          score_legacy, so every erasure verdict is identical to legacy.
+//   SFS_AXIS_SIGN=1      : the axis gate uses the RAW angle (no min(a, pi - a)) at the same
+//                          0.436 cut, but only if the load-time sign guard accepts the piece
+//                          set (SignAxisGuard in reconstruction.cpp).
+bool g_sfs_coverage = false;               // SFS_SCORE_COVERAGE=1
+bool g_sfs_axis_sign_requested = false;    // SFS_AXIS_SIGN=1, before the guard
+bool g_sfs_axis_sign = false;              // SFS_AXIS_SIGN=1 AND the guard accepted the set
+// TICKET 335: measurement only -- how often the UNCHANGED cuts fire under each switch.
+// Printed once at the end of the run by the batch shim, only when a switch is on.
+long g_sfs_basket_erased_15 = 0;   // baskets erased whole by the 1.5 cut
+long g_sfs_cand_erased_15 = 0;     // candidates erased by the 1.5 cut
+long g_sfs_cand_erased_10 = 0;     // candidates erased by the registration 10 cut
+static bool g_sfs_switches_read = false;
+
+static bool ReadSfsSwitch(const char* name, bool& bad)
+{
+	const char* raw = std::getenv(name);
+	bad = false;
+	if (raw == NULL || *raw == '\0') return false;
+	if (std::string(raw) == "1") return true;
+	bad = true;
+	return false;
+}
+
+void InitSfsSwitches()
+{
+	if (g_sfs_switches_read) return;
+	g_sfs_switches_read = true;
+	bool bad_cov = false, bad_sign = false;
+	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
+	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
+	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
+	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
+	g_sfs_axis_sign = false;   // only SignAxisGuard() may switch this on
+	g_sfs_basket_erased_15 = 0; g_sfs_cand_erased_15 = 0; g_sfs_cand_erased_10 = 0;
+	cout << "coverage score: " << (g_sfs_coverage ? "coverage" : "legacy") << endl;
+	cout << "axis sign: " << (g_sfs_axis_sign_requested ? "signed (pending sign guard)" : "legacy") << endl;
+}
+
+// TICKET 335 (amended): the ONLY consumer of the coverage term. It ranks two survivors that
+// compete for the same slot; it never reaches a gate. With the switch off it returns score_
+// unchanged, so the unset path is arithmetically identical to the shipped code.
+static double RankScore(const LCSIndex& c)
+{
+	if (!g_sfs_coverage) return c.score_;
+	double cov = c.coverage_;
+	if (!(cov > 0.0)) cov = 0.0;
+	return c.score_ / max(cov, 0.05);
+}
 
 //############################## Other function ##############################//
 void NoOverrange(vector<Geom>& shard, LCSIndex& reout)
@@ -1594,7 +1655,7 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 		for (; comp != LCS_out.end(); ) {
 			if (comp != iter) {
 				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
-					if (iter->score_ < comp->score_) {
+					if (RankScore(*iter) < RankScore(*comp)) {
 						Merge(*iter, *comp);
 						comp = LCS_out.erase(comp);
 					}
@@ -1664,7 +1725,8 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		iter->trans_.Output(R_axis, t_axis);
 		Vector3d axis_move_normal = R_axis * L[index_m].axis_norm_[iter->axis_index_x_];
 		double axis_angle = acos(axis_move_normal.dot(L[index_f].axis_norm_[iter->axis_index_y_]));
-		axis_angle = min(axis_angle, 3.14159 - axis_angle);
+		iter->axis_raw_ = axis_angle;
+		if (!g_sfs_axis_sign) axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
 		EdgeLineMove(L[index_f], R_fix_i_1, t_fix_i_1);
 		EdgeLineMove(L[index_m], R_fix_i_1, t_fix_i_1);
@@ -1677,6 +1739,14 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		iter->score_ = cycle.score;
 		iter->inliner_ = cycle.inlier;
 		iter->area_ = A_dummy;
+		// TICKET 335: coverage, recorded for every candidate (cheap, and it enters
+		// nothing unless SFS_SCORE_COVERAGE=1, where RankScore() divides by it).
+		{
+			const int n_f = (int)L[index_f].point_.cols();
+			const int n_m = (int)L[index_m].point_.cols();
+			const int n_min = min(n_f, n_m);
+			iter->coverage_ = (n_min > 0) ? ((double)cycle.inlier / (double)n_min) : 1.0;
+		}
 
 		//#################### Restore breakline data ####################// 
 		Matrix3d R_re;
@@ -1717,13 +1787,15 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 			}
 			else 
 			{
-				lowest_score = min(lowest_score, iter->score_);
+				lowest_score = min(lowest_score, iter->score_);   // TICKET 335: gates keep the legacy score
 				++iter;
 			}
 		}
 
+		if (lowest_score > 1.5 && !lcs_basket[i].empty()) g_sfs_basket_erased_15++;
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
 			if (lowest_score > 1.5) {
+				g_sfs_cand_erased_15++;
 				iter = lcs_basket[i].erase(iter);
 			}
 			else if (iter->overlap_) {	
@@ -1737,6 +1809,18 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 	}
 
 	MergeSimPair(LCS_out);
+
+	// TICKET 335: the survivor line, so the audit can recompute the ranking from the log.
+	// Printed only when a switch is on: with both unset this block does not execute.
+	if (g_sfs_coverage || g_sfs_axis_sign_requested) {
+		for (list<LCSIndex>::iterator sv = LCS_out.begin(); sv != LCS_out.end(); ++sv)
+			cout << "[SFS-335] survivor " << sv->shard_x_ << "-" << sv->shard_y_
+			<< " score_legacy=" << sv->score_
+			<< " c=" << sv->coverage_
+			<< " rank_score=" << RankScore(*sv)
+			<< " axis_raw=" << sv->axis_raw_
+			<< " axis_angle=" << sv->axis_angle_ << endl;
+	}
 
 	////#################### Remove high score matching ####################//
 	int count_trans = 1;
@@ -1814,7 +1898,8 @@ void RegistrationPruning(vector<Geom>& shard,
 		iter->trans_.Output(R_axis, t_axis);
 		Vector3d axis_move_normal = R_axis * L[index_m].axis_norm_[axis_m];
 		double axis_angle = acos(axis_move_normal.dot(L[index_f].axis_norm_[axis_f]));
-		axis_angle = min(axis_angle, 3.14159 - axis_angle);
+		iter->axis_raw_ = axis_angle;
+		if (!g_sfs_axis_sign) axis_angle = min(axis_angle, 3.14159 - axis_angle);
 		iter->axis_angle_ = axis_angle;
 
 		//#################### Overlapping check ####################//
@@ -1857,7 +1942,8 @@ void RegistrationPruning(vector<Geom>& shard,
 				continue;
 			}
 		}
-		if ((iter->score_ > 10) || (iter->overlap_)) {
+		if ((iter->score_ > 10) || (iter->overlap_)) {   // TICKET 335: gates keep the legacy score
+			if (iter->score_ > 10) g_sfs_cand_erased_10++;
 			iter = LCS_out.erase(iter);
 		}
 		else

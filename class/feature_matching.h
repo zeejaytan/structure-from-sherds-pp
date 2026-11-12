@@ -10,6 +10,15 @@
 
 class RankingSubgraph;
 
+// TICKET 335 switches (see feature_matching.cpp): both default off.
+extern bool g_sfs_coverage;              // SFS_SCORE_COVERAGE=1
+extern bool g_sfs_axis_sign_requested;   // SFS_AXIS_SIGN=1, before the load-time guard
+extern bool g_sfs_axis_sign;
+extern long g_sfs_basket_erased_15;	// TICKET 335: measurement only
+extern long g_sfs_cand_erased_15;
+extern long g_sfs_cand_erased_10;             // SFS_AXIS_SIGN=1 and the guard accepted the set
+void InitSfsSwitches();                  // reads both env switches once, prints both banners
+
 void NoOverrange(vector<Geom>& shard,
 	LCSIndex& reout);
 void NoOverrange(vector<BreakLine>& breakline,

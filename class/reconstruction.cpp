@@ -101,6 +101,45 @@ double isClose2Eye(const Matrix3d& R, const Vector3d& t)
 	return (RmI.norm() + t.norm());
 }
 
+// TICKET 335: see the declaration in reconstruction.h. The released pot axes are LINES,
+// not directions -- the same true join reads 0 deg on one pair and 180 deg on another --
+// so an un-folded gate would reject true joins. There is no GT-free reference for a
+// piece's axis sign at load (each piece is in its own frame, and AxisAlignment then maps
+// every piece's axis onto +z), so the guard measures the sign structure against the GT
+// poses the batch shim already loads for scoring. The threshold is a stated starting
+// value (0.25 in the shim), not a knob to tune.
+bool SignAxisGuard(const vector<Vector3d>& axis_dir,
+	const vector<Trans>& GT_trans,
+	const MatrixXd& GT_graph,
+	double threshold_frac,
+	double& frac_beyond,
+	int& n_pairs)
+{
+	const int n = (int)axis_dir.size();
+	vector<Vector3d> v(n, Vector3d::Zero());
+	for (int i = 0; i < n; i++) {
+		Matrix3d R = Matrix3d::Identity();
+		Vector3d t = { 0, 0, 0 };
+		GT_trans[i].Output(R, t);
+		v[i] = R * axis_dir[i];
+		if (v[i].norm() > 0) v[i].normalize();
+	}
+	int beyond = 0;
+	n_pairs = 0;
+	for (int i = 0; i < n; i++) {
+		for (int j = i + 1; j < n; j++) {
+			if (GT_graph(i, j) == 0) continue;
+			double d = v[i].dot(v[j]);
+			if (d > 1.0) d = 1.0;
+			if (d < -1.0) d = -1.0;
+			n_pairs++;
+			if (acos(d) > 3.14159265358979 / 2.0) beyond++;
+		}
+	}
+	frac_beyond = (n_pairs > 0) ? ((double)beyond / (double)n_pairs) : 0.0;
+	return (frac_beyond <= threshold_frac);
+}
+
 void AxisAlignment(BreakLine& data,
 	Matrix3d& R_out,
 	Vector3d& t_out,

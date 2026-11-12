@@ -1,6 +1,6 @@
 # Ticket 335 — two ranking levers, measured separately: a coverage-aware score and a sign-aware axis test
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-12)
 **Branch:** 335-coverage-score-and-sign-aware-axis, in /c/PR/worktrees/structure-from-sherds-pp/335
 **Answers:** S1
@@ -225,3 +225,288 @@ The fidelity script was self-tested on the cluster before the job: `awk` extract
 - Jobs: 34942621 (pairs2) was cancelled while still PENDING and superseded by run 20261112-2201_23ca16b_t335-pairs3, job **34942720**, which carries the BASKET sections. Nothing in either cancelled job was a result; both index rows stay.
 
 Still waiting on the queue; nothing submitted to the assembly half yet.
+
+### Interim 5 — design change applied before the assembly half: coverage ranks, gates keep the legacy score
+
+Pulled b9e5b93 into the worktree (the only commit taken). The switch is now ranking-only. Nothing was submitted to the assembly half.
+
+**Site enumeration, done before wiring (file:line):**
+
+| site | what it does | verdict |
+|---|---|---|
+| `class/feature_matching.cpp:1656` (`MergeSimPair`) | the only place two survivors compete for one slot: keeps the lower-scoring twin of an `isSimilar(0.175, 20)` pair | **wired to rank_score** |
+| `class/feature_matching.cpp:1726` | basket cut, `lowest_score > 1.5` erases the basket | gate, keeps `score_legacy` |
+| `class/feature_matching.cpp:1860` | registration cut, `score_ > 10` erases the candidate | gate, keeps `score_legacy` |
+| `class/reconstruction.cpp:1567`, `:1776` | `MatchingScore(lcs.score_, ...)` writes `score_` | no ordering |
+| `class/ranking_system.cpp:908`, `:928`, `:1348`, `:1550` | state ranking by `state_score_`/`graph_score_`, both derived from `inliner_` | never reads `LCSIndex::score_` |
+
+No sort or order-by-score exists over `LCS_out`; its order is insertion order. No ambiguous competition site was found, so nothing was left on the legacy score for that reason.
+
+**Code:** `RankScore()` (`class/feature_matching.cpp:53-61`) returns `score_legacy / max(c, 0.05)` and is called only at `:1658`; both gates read `score_` (`:1790`, `:1945`). The survivor line prints `score_legacy`, `c`, `rank_score`. The three counters now count **legacy-gate** erasures, so the assembly half can compare them against the legacy arm mechanically.
+
+**Instrument:** `GateScore335` returns `score_legacy` unless `SFS_COVERAGE_AT_GATES=1`, which restores the pre-amendment shape as the `coverage-at-gates` diagnostic cell; `RankScore335` is used in the harness `MergeSimPair` copy; `MERGE` gained `kept_rank`/`dropped_rank`; `SURVIVOR335` prints `rank_score`; `BASKET`/`BASKETCAND` unchanged in meaning. `invariance335.py` compares the DROP verdicts (candidate + gate name) and every basket's `(n_cand, erased_1.5)` between `legacy/legacy` and `coverage/legacy`.
+
+**Jobs:** 34942720 (pairs3) FAILED 5:0 — my own compile error, `cov_by_idx` declared after its first use; no result. Resubmitted as run 20261112-2211_23ca16b_t335-pairs4, job **34943031**, five cells (four passing + the diagnostic) plus the invariance check.
+
+### Interim 6 — first pair run with the amended shape: fidelity PASS, invariance FAILed on my own reporting block
+
+Run 20261112-2211_23ca16b_t335-pairs4, job **34943031** COMPLETED 0:0, elapsed 00:02:42. Five cells ran clean (rc=0 each, 21-22 s):
+
+| cell | SURVIVOR lines |
+|---|---|
+| legacy/legacy | 79 |
+| coverage/legacy | 79 |
+| legacy/signed | 51 |
+| coverage/signed | 51 |
+| coverage-at-gates (diagnostic) | **22** |
+
+**Fidelity: PASS.** `legacy/legacy` gives 79 SURVIVOR lines, 30 unique pairs, and `fidelity335.py` reports PASS against ticket 334 (`logs/fidelity335.txt`). The instrument reproduces 334.
+
+**Invariance: FAIL, and the failure is in the instrument, not the switch.** The DROP verdicts — the shipped path — are identical: 97 vs 97, zero differing candidates, zero differing gate names (`logs/invariance335.txt`). What differed was the `erased_1.5` column of my own `BASKET` report: its lambda still divided by `c` when the coverage switch was on, i.e. it reported the pre-amendment number. That is exactly the 24-vs-1 basket count in the report, and it is a reporting bug: the candidate-level DROP lines show the gates never moved.
+
+Fixes, then resubmitted: the `BASKET` lambda now obeys the same rule as the gates (legacy unless the diagnostic cell asks otherwise), and `invariance335.py` now derives the erasure verdict from the DROP `basket_score` lines — the shipped path — instead of trusting the report column, and requires the erased-basket sets to be equal. Run 20261112-2229_23ca16b_t335-pairs5, job **34943439**.
+
+**Part A, already measured (run pairs4):**
+- 3x Juglet: 18 GT-joined pairs, **0** beyond 90 deg raw, worst raw 1.5e-05 deg, guard **ACCEPTED** (`logs/diag335_legacy_legacy.log`, AXSUMMARY).
+- Pot A: 15 GT-joined pairs, **6** beyond 90 deg raw (40%), worst 177.94 deg, guard **REFUSED** (`logs/diag335_pota.log`, AXSUMMARY) — the released pot axes are lines, as the ticket warned.
+
+**The diagnostic cell is the calibration evidence the amendment predicted:** with coverage through the gates, the Juglet keeps 22 of 79 survivors and 24 of 36 baskets are erased by the unchanged 1.5 cut; with coverage ranking only, 79 survive and the DROP verdicts match legacy exactly.
+
+### Interim 7 — pair level is green; Part A and the nine-seam table; assembly submitted
+
+Run 20261112-2229_23ca16b_t335-pairs5, job **34943439** COMPLETED 0:0, elapsed 00:02:55. Five cells rc=0.
+
+| cell | SURVIVOR lines | unique pairs | seams with a correct pose admitted | seams where the correct pose is the best-ranked survivor |
+|---|---|---|---|---|
+| legacy/legacy | 79 | 30 | 4/9 | **1/9** |
+| coverage/legacy | 79 | 30 | 4/9 | **2/9** |
+| legacy/signed | 51 | 29 | 4/9 | **4/9** |
+| coverage/signed | 51 | 29 | 4/9 | **4/9** |
+| coverage-at-gates (diagnostic) | 22 | 9 | 1/9 | 1/9 |
+
+"correct pose" = rotation error <= 15 deg from the GT pose (`work/seams335.py`, ROT_OK = 15.0); "best-ranked survivor" = lowest rank_score among the survivors of that pair, i.e. the candidate the pipeline would carry forward.
+
+**Fidelity: PASS** (`logs/fidelity335.txt`): legacy/legacy reproduces 334 — 79 SURVIVOR lines, 30 unique pairs, identical score multiset.
+**Gate-invariance: PASS** (`logs/invariance335.txt`): legacy/legacy vs coverage/legacy — DROP dispositions identical, 77 axis-gate / 1 basket-cut / 18 overlap in both cells, 36 baskets, 0 baskets with a different verdict.
+
+**Part A — is a raw-angle gate admissible?** (`work/analysis335.py`, AXPAIR/AXSUMMARY; angles in degrees)
+
+| dataset | GT-joined pairs | raw angle > 90 deg | worst raw | guard |
+|---|---|---|---|---|
+| 3x Juglet | 18 | **0** (0.0%) | 1.5e-05 | **ACCEPTED** |
+| Pot A | 15 | **6** (40.0%) | 177.9 | **REFUSED** |
+
+Pot A pairs beyond 90 deg: 1-5 177.9, 2-5 177.4, 3-5 177.9, 1-7 119.8, 4-7 121.6, 6-7 121.5. Every juglet GT pair reads 0.0 deg raw: the nine juglet axes are one line, and the GT poses make them coincide as directions.
+
+**One sentence per dataset.** 3x Juglet: a raw-angle gate is admissible — all 18 GT-joined axes agree as directions to within 1.5e-05 deg, so "up" and "down" are the same line and the 180-deg flip the gate must catch is a property of the candidate pose, not of the reference. Pot A: a raw-angle gate is NOT admissible — 6 of 15 GT-joined pairs have axes that are anti-parallel or 120 deg apart in the released files, so an unfolded comparison would reject the correct pose itself; the guard refuses, exactly as designed.
+
+**The nine seams, per cell** (`logs/seams335.txt`; rank = rank_score, rot in deg):
+
+| seam | legacy/legacy | coverage/legacy | legacy/signed | coverage/signed | diagnostic (gates) |
+|---|---|---|---|---|---|
+| 1-2 | flip 173.2 wins (0.4356 vs 0.4472) | flip wins (2.323 vs 2.385) | **correct 2.1 wins** | **correct 2.1 wins** | correct pose erased at the 1.5 cut |
+| 1-4 | no correct-pose candidate | none | none | none | none |
+| 1-8 | flip 171.3 wins (0.3581 vs 0.4048) | **correct 1.6 wins** (0.693 vs 3.760) | **correct 0.7 wins** | **correct 1.6 wins** | correct 1.6 survives |
+| 1-9 | flip 167.8 wins (0.4785 vs 0.6234) | flip wins (2.632 vs 4.800) | **correct 8.8 wins** | **correct 8.8 wins** | correct pose erased at the 1.5 cut |
+| 2-5 | no correct-pose candidate (best 45.9) | none | none | none | none |
+| 2-9 | no correct-pose candidate (15.1, just outside the 15 deg bar) | none | none | none | none |
+| 3-5 | no correct-pose candidate (48.3) | none | none | none | none |
+| 6-7 | lost before ranking (1 candidate, 165.7, erased by overlap) | lost | lost | lost | lost |
+| 7-9 | **correct 5.4 wins** | **correct 5.4 wins** | **correct 5.4 wins** | **correct 5.4 wins** | correct pose erased at the 1.5 cut |
+
+**Calibration of the unchanged cuts under the old design** (`work/calib335.py`, `logs/calib335.txt`) — this is the evidence the amendment asked for:
+
+| cell | axis-gate drops | 1.5-cut drops | overlap drops |
+|---|---|---|---|
+| legacy/legacy | 77 | 1 | 18 |
+| coverage/legacy | 77 | 1 | 18 |
+| legacy/signed | 116 | 2 | 6 |
+| coverage/signed | 116 | 2 | 6 |
+| coverage-at-gates | 77 | **75** | 3 |
+
+And the correct pose's gate score under the old design: 1-2 0.4472 / c 0.1875 = **2.385** (above 1.5), 1-9 0.6234 / 0.1299 = **4.800** (above 1.5), 7-9 0.3400 / 0.2078 = **1.636** (above 1.5); 1-8 0.4342 / 0.6270 = 0.693 (below). The diagnostic cell loses all three of those seams and keeps only 22 survivors — the prediction in the amendment, confirmed to the seam.
+
+**Reading against the pre-registered bars (no retuning):** coverage alone moves correct-win 1/9 -> 2/9, short of the "3/9 -> >=6/9" bar; sign alone moves it 1/9 -> 4/9 and removes the upside-down winners of 1-2, 1-8 and 1-9; both together are 4/9, i.e. no interaction at the pair level. Note the baseline here is 1/9, not the 3/9 the ticket quotes: my definition is the winner among the admitted survivors, which is stricter than "a correct candidate is admitted" (4/9 in the legacy cell).
+
+**Instrument bug, recorded:** the BASKET/BASKETCAND reporting columns are wrong — the captured per-basket index list accumulates across baskets, so the rows are cumulative and cannot be read per basket. The DROP lines are the shipped path and are correct (they are what the invariance check compares); the per-seam calibration above was computed from CAND and SURVIVOR335 instead, so nothing in the numbers above depends on the broken column.
+
+**Assembly submitted** (each job runs its two repeats sequenced inside one job):
+
+| lane | run | job |
+|---|---|---|
+| Pot A control, 4 cells x 2 repeats (8 arms) | 20261112-2235_23ca16b_t335-pota | **34943588** |
+| 3x Juglet legacy/legacy x2 | 20261112-2238_23ca16b_t335-juglet-legacy_legacy | **34943640** |
+| 3x Juglet coverage/legacy x2 | 20261112-2239_23ca16b_t335-juglet-coverage_legacy | **34943641** |
+| 3x Juglet legacy/signed x2 | 20261112-2239_23ca16b_t335-juglet-legacy_signed | **34943642** |
+| 3x Juglet coverage/signed x2 | 20261112-2239_23ca16b_t335-juglet-coverage_signed | **34943643** |
+
+### Interim 8 — Pot A control lane green so far; the signed arms refuse, as required
+
+Run 20261112-2235_23ca16b_t335-pota, job **34943588** (still running; 6 of 8 arms done at 22:57).
+
+| arm | coverage | sign | rc | wall | sherds | edges |
+|---|---|---|---|---|---|---|
+| pota_legacy_legacy_r1 | - | - | 0 | 163 s | 8/8 | 15/15 |
+| pota_legacy_legacy_r2 | - | - | 0 | 179 s | 8/8 | 15/15 |
+| pota_coverage_legacy_r1 | 1 | - | 0 | 165 s | 8/8 | 15/15 |
+| pota_coverage_legacy_r2 | 1 | - | 0 | 192 s | 8/8 | 15/15 |
+| pota_legacy_signed_r1 | - | 1 | 0 | 206 s | 8/8 | 15/15 |
+| pota_legacy_signed_r2 | - | 1 | 0 | 202 s | 8/8 | 15/15 |
+
+Both Pot A signed arms print the guard line verbatim and fall back for the whole run:
+
+    SIGN-AXIS: refused, axes are sign-arbitrary (40% of pairs > 90 deg)
+
+(`logs/binary_pota_legacy_signed_r1.log`, `..._r2.log`; 6 of 15 GT-joined pairs beyond 90 deg = 40.0%, matching the AXSUMMARY above). No Pot A arm ran with the fold removed.
+
+**Constants untouched, mechanically:** `t335_class.patch` removes 6 lines and each is replaced by a switch-guarded equivalent — `inliner_(0)` (initialiser, `coverage_(1.0)`/`axis_raw_(0)` added beside it), the merge comparison `if (iter->score_ < comp->score_)`, the two `axis_angle = min(axis_angle, 3.14159 - axis_angle);` fold lines, the basket `lowest_score = min(lowest_score, iter->score_);`, and the `if ((iter->score_ > 10) || (iter->overlap_))` gate (re-emitted unchanged plus a counter). No removed or added line alters 0.436, 1.5, 10, 0.175, 20, MINIMUM_NUMBER, INLIER_THRESHOLD or ANGLE_THRESHOLD.
+
+**Reading 2, recorded with both numbers (wins / admitted, never one alone):** coverage alone reaches **wins 2/9** (from 1/9) and **admitted 4/9** (unchanged from 4/9); the pre-registered coverage bar was wins 3 -> >= 6, so it **MISSES**, and twin ranking in `MergeSimPair` is not the binder. Sign alone reaches **wins 4/9 / admitted 4/9**; both together **wins 4/9 / admitted 4/9** — the two levers do not interact at the pair level.
+
+3x Juglet jobs still PENDING (34943640-43) behind a congested sapphire queue.
+
+### Interim 9 — Pot A lane complete (8/8 arms green); first Juglet arm reads 0/9
+
+Job **34943588** COMPLETED 0:0, 00:26:14. All eight Pot A arms: **8/8 sherds, 15/15 edges**, rc=0 — legacy/legacy r1 163 s, r2 179 s; coverage/legacy r1 165 s, r2 192 s; legacy/signed r1 206 s, r2 202 s; coverage/signed r1 217 s, r2 209 s. `Pot A lane failures: 0`. Both signed arms print `SIGN-AXIS: refused, axes are sign-arbitrary (40% of pairs > 90 deg)` and score 8/8.
+
+First Juglet arm, job 34943640 (`juglet_legacy_legacy_r1`, 549 s): **0/9 sherds, 0/18 edges**, three clusters `{6,9} {2,4,5,7} {1,3,8}`. This is a valid run, not an instrument failure: 9 pieces loaded, `LCS window: 6`, both switches off.
+
+Why 0/9 and not the 2/9 in the ticket: ticket 333's own Juglet arms were `arm1` (inlier gate unset = shipped 1.5 mm) **0/9, 0/18** and `arm2` (SFS_INLIER_MM=4.5) **2/9, 1/18** (`runs/20261112-1238_55473e9_t333-juglet-large/out/arm1_r1/1. Acc.txt`, `arm2_r1/1. Acc.txt`). My arms run with the shipped gate, so 0/9 is the correct legacy baseline here; the 2/9 quoted in the ticket belongs to the 4.5 mm arm.
+
+Part D machinery ready: `work/fate335.py` reads each arm's `T_<i>to_<i>.txt`, the `[T333-CLUSTER]` lines and the GT transforms, and prints per GT edge the cluster of each piece plus the rotation and translation error of the final relative pose. Tested on Pot A: all 15 edges in one cluster, rotations 0.9-3.8 deg, translations 4.9-26.4 mm.
+
+### Interim 10 — final: assembly (Part C), seam fate (Part D), render; both switches measured, bars stated plainly
+
+All jobs are closed. `sacct -X -n`, every one COMPLETED 0:0:
+
+| job | run | State / ExitCode | elapsed |
+|---|---|---|---|
+| 34943439 | 20261112-2229_23ca16b_t335-pairs5 | COMPLETED 0:0 | 00:02:55 |
+| 34943588 | 20261112-2235_23ca16b_t335-pota | COMPLETED 0:0 | 00:26:14 |
+| 34943640 | 20261112-2238_23ca16b_t335-juglet-legacy_legacy | COMPLETED 0:0 | 00:21:02 |
+| 34943641 | 20261112-2239_23ca16b_t335-juglet-coverage_legacy | COMPLETED 0:0 | 00:23:08 |
+| 34943642 | 20261112-2239_23ca16b_t335-juglet-legacy_signed | COMPLETED 0:0 | 00:12:55 |
+| 34943643 | 20261112-2239_23ca16b_t335-juglet-coverage_signed | COMPLETED 0:0 | 00:13:30 |
+
+Earlier jobs of this ticket, for the record: 34942542 CANCELLED (pending, my grep bug), 34942621 CANCELLED (pending), 34942720 FAILED 5:0 (my harness did not compile: `/panel/work/diag335_pairs.cpp:543:25: error: cov_by_idx was not declared in this scope`), 34943031 COMPLETED 0:0 00:02:42 (pairs4: fidelity PASS, my reporting block wrong). Every run above has its row in `runs/index.tsv` (lines 810-819; `verdict` and `human_note` left blank for the lead).
+
+#### Part C — 3x Juglet assembly, four cells, two repeats each
+
+Each job ran its two repeats sequenced inside it. "sherds" and "edges" are the two `Sherd accuracy` lines of `out/<arm>/1. Acc.txt` (first = 9 pieces, second = 18 GT edges).
+
+| cell | arm | sherds | edges | clusters (`[T333-CLUSTER]`) |
+|---|---|---|---|---|
+| legacy/legacy | r1 | 0/9 | 0/18 | {6,9} {2,4,5,7} {1,3,8} |
+| legacy/legacy | r2 | **2/9** | **1/18** | {6,9} {2,4,5,7} {1,3,8} |
+| coverage/legacy | r1 | 0/9 | 0/18 | {6,9} {1,3,8} {2,4,5,7} |
+| coverage/legacy | r2 | 0/9 | 0/18 | {6,9} {1,3,8} {2,4,5,7} |
+| legacy/signed | r1 | **2/9** | **1/18** | {2,4,5,7,9} {1,3,8} {6} |
+| legacy/signed | r2 | **2/9** | **1/18** | {5,7} {1,3,8} {2,4,6,9} |
+| coverage/signed | r1 | **2/9** | **1/18** | {5,7} {1,3,8} {2,4,6,9} |
+| coverage/signed | r2 | **2/9** | **1/18** | {2,4,5,7,9} {1,3,8} {6} |
+
+**The 4/9-sherd bar is MISSED in every arm** (best 2/9 = 22%), and nothing was retuned to chase it. Read with the noise in view: the legacy/legacy cell itself reads 0/9 in r1 and 2/9 in r2 on the same binary, so **the assembly is not repeat-stable** and a one-repeat difference of 2/9 sits inside run-to-run variation. The signed cells read 2/9 in all four repeats, which the legacy cell cannot claim, but the clusters still differ between the two repeats of a cell ({2,4,5,7,9} vs {5,7}), so I do not claim a signed gain from this table.
+
+**Pot A control (the acceptance bar):** run 20261112-2235_23ca16b_t335-pota, job 34943588 — **8 arms, 8/8 sherds and 15/15 edges each, rc=0, "Pot A lane failures: 0"**; wall 163 s, 179 s (legacy/legacy), 165 s, 192 s (coverage/legacy), 206 s, 202 s (legacy/signed), 217 s, 209 s (coverage/signed). **PASS, twice per cell.** The two signed arms print `SIGN-AXIS: refused, axes are sign-arbitrary (40% of pairs > 90 deg)` and fall back; no Pot A arm ran with the fold removed.
+
+#### Part D — where each of the nine true seams was lost
+
+`work/fate335.py` reads each arm's `T_<i>to_<i>.txt` (0-based), the 1-based `[T333-CLUSTER]` lines and the GT transforms; for each GT edge it prints whether the two pieces ended in the same cluster (**J**) or not (**S**) and the rotation error of the final relative pose in degrees (`fate_juglet_all.txt`, compressed by `work/fate_table.py`). A correct join is J with a small angle; **J with 90-180 deg is a wrong join, worse than S**, because the assembly asserts it.
+
+| arm | 1-2 | 1-4 | 1-8 | 1-9 | 2-5 | 2-9 | 3-5 | 6-7 | 7-9 |
+|---|---|---|---|---|---|---|---|---|---|
+| legacy/legacy r1 | S46 | S161 | **J2** | S34 | J95 | S69 | S137 | S156 | S165 |
+| legacy/legacy r2 | S68 | S164 | **J2** | S23 | J95 | S69 | S160 | S156 | S165 |
+| coverage/legacy r1 | S46 | S161 | **J2** | S34 | J95 | S69 | S137 | S156 | S165 |
+| coverage/legacy r2 | S46 | S161 | **J2** | S34 | J95 | S69 | S137 | S156 | S165 |
+| legacy/signed r1 | S86 | S108 | **J1** | S92 | J168 | **J9** | S55 | S158 | J159 |
+| legacy/signed r2 | S84 | S111 | **J1** | S89 | J171 | **J9** | S51 | S155 | J163 |
+| coverage/signed r1 | S84 | S111 | **J1** | S89 | J171 | **J9** | S51 | S155 | J163 |
+| coverage/signed r2 | S86 | S108 | **J1** | S92 | J168 | **J9** | S55 | S158 | J159 |
+
+Stage at which each seam is lost, read off this table together with the pair instrument (Interim 7):
+
+- **1-8** — joined correctly (1-2 deg) in **all eight arms**: never lost.
+- **7-9** — the pair instrument carries the correct pose to the top in every cell (5.4 deg), but the assembly joins it at **159-165 deg** in the signed cells and splits it in the legacy cells. Lost **after** pairwise ranking: the pose that reaches the top of the basket is not the pose written into the final transform.
+- **1-2, 1-9** — the pair instrument admits a correct pose and even ranks it first in the signed cells, yet the assembly splits them (S23-S92). Also lost downstream of pairwise ranking.
+- **2-9** — joined correctly (9 deg) in the signed cells, split (69 deg) in the legacy cells; the pair instrument never ranks a correct candidate for it (best 15.1 deg, just outside the 15 deg bar), so this join comes from the graph/state layer, not from a pair I can point at.
+- **2-5** — joined at **95-171 deg** in every arm: a wrong join, not a miss.
+- **1-4, 3-5, 6-7** — split everywhere and no correct candidate is ever admitted (best 18.6 / 48.3 / 165.7 deg); 6-7 has a single candidate and is erased by overlap before ranking.
+
+So pairwise ranking is not the binder for six of the nine seams. Both switches change *which* pose wins a pair (Part B: correct-winner 1/9 -> 4/9 with the sign switch), but the assembly does not inherit those wins: it makes its own choice at the state/graph stage. That is the measurement this ticket set out to make.
+
+#### Render
+
+[artifacts/t335/render/t335_juglet_legacy_signed_r1_vs_gt.png](artifacts/t335/render/t335_juglet_legacy_signed_r1_vs_gt.png) — left the GT juglet, right the legacy/signed r1 arm coloured by its three final clusters and aligned on pieces 1 and 8 (the pair it places correctly, 1.2 deg). Per-piece displacement after that alignment, mm: 1:10, 2:114, 3:45, 4:109, 5:54, 6:97, 7:72, 8:52, 9:109. The 5-piece cluster sits inside the vessel body but turned; the handle cluster (1,3,8) is displaced downward and outward. Render inputs in `C:/PR/artifacts/t335/render/{arm,gt}`; final script `work/render_run4.py`.
+
+#### What the two switches do, in one place
+
+| lever | pair level (correct pose is the best-ranked survivor) | assembly level (3x Juglet, sherds / edges) | Pot A control |
+|---|---|---|---|
+| coverage alone | 1/9 -> **2/9** (bar was 3 -> >=6: **MISSED**) | 0/9, 0/18 and 0/9, 0/18 | 8/8, 15/15 twice |
+| sign alone | 1/9 -> **4/9** | 2/9, 1/18 in both repeats | 8/8, 15/15 twice (guard refuses, falls back) |
+| both | 1/9 -> **4/9** (no interaction) | 2/9, 1/18 in both repeats | 8/8, 15/15 twice |
+
+Neither switch is default-on, both banner themselves at start-up, both fall back to legacy on an empty or unparseable value, and with both unset the shipped path is unchanged — fidelity PASS against ticket 334 (79 SURVIVOR lines, 30 unique pairs, identical score multiset) and gate-invariance PASS (identical DROP dispositions, 96 candidates, 0 differing verdicts).
+
+**Files:** code in the worktree (`class/feature_matching.cpp`, `class/data_structure.h`, `class/reconstruction.cpp`, `hpc/tools/main_pristine_batch.cpp`), patches in `C:/PR/artifacts/t335/work/{t335_class.patch,t335_shim.patch}`; instrument `work/diag335_pairs.cpp`; analysis `work/{analysis335.py,seams335.py,calib335.py,fate335.py,fate_table.py}`; logs under each run's `logs/` and `out/`. Uncommitted: no commit, no push, no branch or worktree command was run.
+
+
+## Lead verification (2026-11-12, after the worker's Interim 10)
+
+**All numbers below were re-read by me from the runs, not taken from the worker's report.**
+
+- **Jobs**, `sacct -X`: 34943439 pairs5 COMPLETED 0:0 00:02:55; 34943588 Pot A COMPLETED 0:0 00:26:14;
+  34943640 legacy/legacy 00:21:02; 34943641 coverage/legacy 00:23:08; 34943642 legacy/signed 00:12:55;
+  34943643 coverage/signed 00:13:30. Earlier: 34942542 and 34942621 CANCELLED while PENDING (nothing ran);
+  34942720 FAILED 5:0 (the worker's own harness compile error); 34943031 pairs4 COMPLETED 0:0.
+- **Pot A control**, `out/*/1. Acc.txt` for all eight arms: **8/8 sherds and 15/15 edges, both repeats, every
+  cell**. Both signed arms print `SIGN-AXIS: refused, axes are sign-arbitrary (40% of pairs > 90 deg)` and fall
+  back — verified in `logs/binary_*.log` (4 refusals, 4 `coverage score: coverage`, 4 `legacy`). No Pot A arm
+  ran with the fold removed.
+- **Pair level**, my independent recompute from the `SURVIVOR335` lines
+  (`C:/PR/artifacts/t335/lead_verify_pairs.py`; rank = `rank_score`): legacy 79 survivors / 30 pairs / **1 win**,
+  4 admitted; coverage 79/30/**2**, 4; legacy+signed 51/29/**4**, 4; coverage+signed 51/29/**4**, 4;
+  coverage-at-gates 22/9/**1**, 1. Matches the worker's table exactly. Winners' rotation errors — legacy:
+  1-2 173, 1-4 19, 1-8 171, 1-9 168, 2-5 46, 2-9 15, 3-5 48, 7-9 5; coverage turns 1-8 into 2 deg and 1-4 into
+  166; signed turns 1-2 into 2 and 1-9 into 9, keeps 1-8 at 1 and 7-9 at 5, leaves 2-9 at 15.1 (just outside the
+  15 deg bar), 2-5 at 46, 1-4 at 19, 3-5 at 48.
+- **Assembly**, `out/*/1. Acc.txt`: legacy 0/9 0/18 then 2/9 1/18; coverage 0/9 0/18 twice; legacy+signed
+  2/9 1/18 twice; coverage+signed 2/9 1/18 twice. **The 4/9-sherd / 6/18-edge bar is missed in every cell.**
+- **Fidelity and invariance** (`logs/fidelity335.txt`, `logs/invariance335.txt`): legacy/legacy reproduces 334's
+  79 survivor lines, 30 unique pairs and the score multiset; 96 DROP verdicts identical in legacy/legacy and
+  coverage/legacy, 0 differing.
+- **The code**, read in the worktree: the only competition site is `class/feature_matching.cpp:1658`
+  (`RankScore` in `MergeSimPair`); the basket cut reads `iter->score_` (:1790) and the registration cut reads
+  `score_` (:1945). `git diff -U0 | grep '^-'` shows six removed lines, each replaced by a switch-guarded
+  equivalent; 0.436, 1.5, 10, 0.175/20, MINIMUM_NUMBER, INLIER_THRESHOLD and ANGLE_THRESHOLD are unchanged.
+  `SignAxisGuard` (class/reconstruction.cpp:111) takes the GT transforms from its caller, so the library stays
+  GT-free and only the batch shim supplies them.
+
+### One correction to the worker's Part D
+
+7-9 is **not** "split in the legacy cells and joined flipped in the signed cells". Read from
+`artifacts/t335/fate_juglet_all.txt`: in **every** cell the final relative pose for 7-9 is **159-165 deg** — in
+legacy/legacy r1 it is cluster 1/0 (split) *and* 165 deg; in the signed cells cluster 0/0 (joined) at the same
+angle. So the assembly writes a flipped 7-9 everywhere, including the cell where the pair instrument had the
+correct 5.4 deg pose ranked first. That is stronger than the report says: the final transform is not the pairwise
+winner at all; it is re-derived downstream.
+
+### What the ticket establishes
+
+1. **The separation was necessary.** With coverage through the gates the unchanged 1.5 cut erases 75 candidates
+   (vs 1) and kills the correct poses of 1-2 (2.385), 1-9 (4.800) and 7-9 (1.636) — measured, and the reason the
+   gate split exists.
+2. **Coverage ranks, and it is weak.** 1 -> 2 of 9 wins, exactly one seam, because the twin merge is the only
+   competition site. Pre-registered reading 2 (twin ranking is not the binder) is the one that holds.
+3. **The sign test works at pair level** (1 -> 4 of 9 wins) **and cannot be used on the pots**: 40% of Pot A's
+   true joins read beyond 90 deg because the released pot axes are lines, not directions. The guard refuses
+   correctly and Pot A stays green.
+4. **Neither lever reaches the assembly bar.** With the pair-level choice improved fourfold the assembly stays
+   inside 1-2 of 9 — and the legacy cell itself moves 0/9 to 2/9 on the same binary, so that band is noise. The
+   pairwise choice is not the binder for six of nine seams: the pose written into the final transform is
+   re-derived at the state/graph stage (7-9 is the clean case).
+
+**Claim type: the method failed at the stage this ticket could reach.** Not a broken measurement (fidelity and
+invariance pass; Pot A green) and not a wrong reference (the 3x GT poses come from the released T matrices). The
+next question is the state/graph stage, not the pair score.

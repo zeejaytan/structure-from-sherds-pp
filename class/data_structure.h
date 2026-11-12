@@ -321,7 +321,9 @@ public:
 		shard_x_(0),
 		shard_y_(0),
 		score_(0),
-		inliner_(0) 
+		inliner_(0),
+		coverage_(1.0),
+		axis_raw_(0)
 	{
 		start_.x = 0;
 		start_.y = 0;
@@ -391,6 +393,8 @@ public:
 	bool remove_;							// Remove this edges? IF right then true
 	bool overlap_;							// Does this mathcing overlap to each other?
 	double axis_angle_;						// How much the angle difference between two axises : Unit rad
+	double axis_raw_;						// TICKET 335: the UNFOLDED axis angle (rad) at this matching
+	double coverage_;						// TICKET 335: matched dots / min(dots on either piece)
 	int axis_index_x_, axis_index_y_;		// Which axis is used in this matching?
 	Trans trans_;							// Transformation matrix shard_x to shard_y
 	double area_;

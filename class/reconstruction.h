@@ -56,6 +56,19 @@ void AxisAlignment(BreakLine& data,
 	Vector3d& t_out,
 	int axis_index = 0);
 
+// TICKET 335: load-time sign guard for the raw-angle (SFS_AXIS_SIGN) axis test.
+// Measures, over every GT-joined pair of the piece set, the RAW angle between the two
+// pieces' stored axis directions carried into the vessel frame by each piece's own GT
+// transform. Returns true when the axes are direction-consistent (at most threshold_frac
+// of the joined pairs read beyond 90 deg), i.e. when an un-folded gate is admissible.
+// frac_beyond and n_pairs are returned for the log line.
+bool SignAxisGuard(const vector<Vector3d>& axis_dir,
+	const vector<Trans>& GT_trans,
+	const MatrixXd& GT_graph,
+	double threshold_frac,
+	double& frac_beyond,
+	int& n_pairs);
+
 void RejectOutlier(Corres& cor,
 	double dist_TH,
 	double angle_TH);

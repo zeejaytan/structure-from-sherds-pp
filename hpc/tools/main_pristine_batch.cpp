@@ -96,6 +96,10 @@ int main(int argc, char** argv)
 		step_size = std::atoi(argv[1]);
 	}
 
+	// TICKET 335: both ranking switches are read once here; unset -> legacy, and both
+	// banners are printed before any geometry is touched.
+	InitSfsSwitches();
+
 	// TICKET 332: the effective LCS window, printed once so every log states its own regime.
 	const int lcs_window = ReadLcsWindowFromEnv();
 	cout << "LCS window: " << lcs_window << endl;
@@ -123,6 +127,16 @@ int main(int argc, char** argv)
 			shard[i].LoadSurface(surface_in[i], surface_out[i], surface_fr[i]);
 			shard[i].is_matching_ = true;
 			shard[i].sur_frac_.CalculateLineNormal();
+		}
+	}
+
+	// TICKET 335: keep each piece's STORED axis direction, before AxisAlignment maps every
+	// piece's axis onto +z. The sign guard needs it to measure the sign structure.
+	vector<Vector3d> axis_orig(SHARD_NUMBER, Vector3d::Zero());
+	for (int i = 0; i < SHARD_NUMBER; i++) {
+		if (!shard[i].edge_line_.axis_norm_.empty()) {
+			axis_orig[i] = shard[i].edge_line_.axis_norm_[0];
+			if (axis_orig[i].norm() > 0) axis_orig[i].normalize();
 		}
 	}
 
@@ -183,6 +197,23 @@ int main(int argc, char** argv)
 		}
 	}
 	cout << GT_graph << endl;
+
+	// TICKET 335: the sign guard. It needs the GT poses (loaded just above) because a
+	// piece's axis sign has no other reference at load. Refusal is one line and the whole
+	// run falls back to the legacy folded axis test; the guard fraction is a stated
+	// starting value (0.25), not a knob.
+	if (g_sfs_axis_sign_requested) {
+		double frac = 0.0;
+		int np = 0;
+		const bool ok = SignAxisGuard(axis_orig, GT_trans, GT_graph, 0.25, frac, np);
+		g_sfs_axis_sign = ok;
+		if (!ok)
+			cout << "SIGN-AXIS: refused, axes are sign-arbitrary (" << (frac * 100.0)
+			     << "% of pairs > 90 deg)" << endl;
+		else
+			cout << "SIGN-AXIS: accepted, axes are direction-consistent (" << (frac * 100.0)
+			     << "% of pairs > 90 deg, n=" << np << " GT pairs)" << endl;
+	}
 
 	cout << "#################### Save initial state ####################" << endl;
 	//#################### Save initial state ####################//
@@ -347,6 +378,15 @@ int main(int argc, char** argv)
 		SaveResult(pc_origin, manager, count_move_state, path_result);
 		cout << "#################### Result save finish : " << path_result << endl;
 	}
+
+	// TICKET 335: measurement only -- how often the unchanged cuts fired. Printed only when a
+	// switch is on, so the legacy path's output is unchanged.
+	if (g_sfs_coverage || g_sfs_axis_sign_requested)
+		cout << "[SFS-335] gates: baskets_erased_1.5=" << g_sfs_basket_erased_15
+		<< " cands_erased_1.5=" << g_sfs_cand_erased_15
+		<< " cands_erased_10=" << g_sfs_cand_erased_10
+		<< " coverage=" << (g_sfs_coverage ? 1 : 0)
+		<< " signed=" << (g_sfs_axis_sign ? 1 : 0) << endl;
 
 	// --- g (ground_): save transformation matrices ---
 	{
