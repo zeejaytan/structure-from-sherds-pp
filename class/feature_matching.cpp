@@ -24,6 +24,10 @@ bool g_sfs_axis_sign = false;              // SFS_AXIS_SIGN=1 AND the guard acce
 long g_sfs_basket_erased_15 = 0;   // baskets erased whole by the 1.5 cut
 long g_sfs_cand_erased_15 = 0;     // candidates erased by the 1.5 cut
 long g_sfs_cand_erased_10 = 0;     // candidates erased by the registration 10 cut
+// TICKET 336: read-only stage trace. SFS_STAGE_TRACE must be exactly "1"; any other
+// value (including unset) leaves it off, and with it off none of the dump blocks below
+// executes. Nothing here writes, sorts or reorders a container.
+bool g_sfs_stage_trace = false;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -41,14 +45,29 @@ void InitSfsSwitches()
 	if (g_sfs_switches_read) return;
 	g_sfs_switches_read = true;
 	bool bad_cov = false, bad_sign = false;
+	bool bad_trace = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
+	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
+	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
 	g_sfs_axis_sign = false;   // only SignAxisGuard() may switch this on
 	g_sfs_basket_erased_15 = 0; g_sfs_cand_erased_15 = 0; g_sfs_cand_erased_10 = 0;
 	cout << "coverage score: " << (g_sfs_coverage ? "coverage" : "legacy") << endl;
 	cout << "axis sign: " << (g_sfs_axis_sign_requested ? "signed (pending sign guard)" : "legacy") << endl;
+	cout << "stage trace: " << (g_sfs_stage_trace ? "on" : "off") << endl;
+}
+
+// TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
+// caller can put its own fields before and an endl after. Read-only (Trans::Output is const).
+void SfsTraceMat(const Trans& T)
+{
+	Matrix4d M;
+	T.Output(M);
+	for (int r = 0; r < 3; r++)
+		for (int c = 0; c < 4; c++)
+			cout << "\t" << M(r, c);
 }
 
 // TICKET 335 (amended): the ONLY consumer of the coverage term. It ranks two survivors that
@@ -1647,6 +1666,9 @@ void Merge(LCSIndex& ref, LCSIndex& add)
 	}
 }
 
+// TICKET 336: which call site a MERGE line comes from (read-only label).
+static const char* g_sfs_trace_site = "none";
+
 void MergeSimPair(list<LCSIndex>& LCS_out)
 {
 	list<LCSIndex>::iterator iter = LCS_out.begin();
@@ -1655,6 +1677,12 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 		for (; comp != LCS_out.end(); ) {
 			if (comp != iter) {
 				if ((iter->SamePart(*comp)) && (iter->trans_.isSimilar(comp->trans_, 0.175, 20))) {
+					if (g_sfs_stage_trace)
+						cout << "[SFS-336]\tMERGE\t" << g_sfs_trace_site
+						<< "\t" << (RankScore(*iter) < RankScore(*comp) ? iter->index_ : comp->index_)
+						<< "\t" << (RankScore(*iter) < RankScore(*comp) ? comp->index_ : iter->index_)
+						<< "\t" << iter->shard_y_ << "\t" << iter->shard_x_
+						<< "\t" << RankScore(*iter) << "\t" << RankScore(*comp) << endl;
 					if (RankScore(*iter) < RankScore(*comp)) {
 						Merge(*iter, *comp);
 						comp = LCS_out.erase(comp);
@@ -1675,6 +1703,7 @@ void MergeSimPair(list<LCSIndex>& LCS_out)
 
 void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 {
+	if (g_sfs_stage_trace) g_sfs_trace_site = "pair";
 	list<LCSIndex>::iterator iter = LCS_out.begin(), iter_tmp = LCS_out.begin();
 
 	double high_score = NULL;
@@ -1748,6 +1777,19 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 			iter->coverage_ = (n_min > 0) ? ((double)cycle.inlier / (double)n_min) : 1.0;
 		}
 
+		// TICKET 336: pair_enum candidate, after every per-candidate field is final.
+		if (g_sfs_stage_trace) {
+			cout << "[SFS-336]\tCAND\t" << iter->index_
+				<< "\t" << iter->shard_y_ << "\t" << iter->shard_x_
+				<< "\t" << iter->score_ << "\t" << iter->inliner_ << "\t" << iter->axis_raw_
+				<< "\t" << iter->axis_angle_ << "\t" << iter->overlap_ << "\t" << iter->area_
+				<< "\t" << iter->coverage_;
+			Matrix4d Mc;
+			iter->trans_.Output(Mc);
+			for (int r = 0; r < 3; r++) for (int c = 0; c < 4; c++) cout << "\t" << Mc(r, c);
+			cout << endl;
+		}
+
 		//#################### Restore breakline data ####################// 
 		Matrix3d R_re;
 		Vector3d t_re;
@@ -1783,6 +1825,9 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		iter = lcs_basket[i].begin();
 		for (; iter != lcs_basket[i].end();) {
 			if (iter->axis_angle_ > 0.436) {	
+				if (g_sfs_stage_trace)
+					cout << "[SFS-336]\tDROP\tpair_axis\t" << iter->index_ << "\t" << iter->shard_y_
+					<< "\t" << iter->shard_x_ << "\t" << iter->axis_angle_ << endl;
 				iter = lcs_basket[i].erase(iter);
 			}
 			else 
@@ -1796,9 +1841,15 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 		for (iter = lcs_basket[i].begin(); iter != lcs_basket[i].end();) {
 			if (lowest_score > 1.5) {
 				g_sfs_cand_erased_15++;
+				if (g_sfs_stage_trace)
+					cout << "[SFS-336]\tDROP\tpair_basket\t" << iter->index_ << "\t" << iter->shard_y_
+					<< "\t" << iter->shard_x_ << "\t" << lowest_score << endl;
 				iter = lcs_basket[i].erase(iter);
 			}
 			else if (iter->overlap_) {	
+				if (g_sfs_stage_trace)
+					cout << "[SFS-336]\tDROP\tpair_overlap\t" << iter->index_ << "\t" << iter->shard_y_
+					<< "\t" << iter->shard_x_ << "\t" << iter->area_ << endl;
 				iter = lcs_basket[i].erase(iter);
 			}
 			else {
@@ -1809,6 +1860,18 @@ void PairwisePruning(vector<Geom>& shard, list<LCSIndex>& LCS_out)
 	}
 
 	MergeSimPair(LCS_out);
+
+	// TICKET 336: survivors that will enter the state stage, with their matrices.
+	if (g_sfs_stage_trace) {
+		for (list<LCSIndex>::iterator sv = LCS_out.begin(); sv != LCS_out.end(); ++sv) {
+			cout << "[SFS-336]\tSURV\t" << sv->index_ << "\t" << sv->shard_y_ << "\t" << sv->shard_x_
+				<< "\t" << sv->score_ << "\t" << sv->axis_angle_;
+			Matrix4d Ms;
+			sv->trans_.Output(Ms);
+			for (int r = 0; r < 3; r++) for (int c = 0; c < 4; c++) cout << "\t" << Ms(r, c);
+			cout << endl;
+		}
+	}
 
 	// TICKET 335: the survivor line, so the audit can recompute the ranking from the log.
 	// Printed only when a switch is on: with both unset this block does not execute.
@@ -1838,6 +1901,10 @@ void RegistrationPruning(vector<Geom>& shard,
 	int g_index,
 	int step_counter)
 {
+	if (g_sfs_stage_trace) {
+		g_sfs_trace_site = "reg";
+		cout << "[SFS-336]\tPHASE\treg\t" << step_counter << "\t" << g_index << endl;
+	}
 	list<LCSIndex>::iterator iter = LCS_out.begin(), iter_tmp = LCS_out.begin();
 
 	double high_score = NULL;
@@ -1914,6 +1981,19 @@ void RegistrationPruning(vector<Geom>& shard,
 		iter->overlap_ = overlap;
 		iter->area_ = A_dummy;
 
+		// TICKET 336: registration candidate, after trans_/axis/overlap are final.
+		if (g_sfs_stage_trace) {
+			cout << "[SFS-336]\tRCAND\t" << step_counter << "\t" << g_index
+				<< "\t" << (is_outside ? 1 : 0) << "\t" << merge_index
+				<< "\t" << iter->index_ << "\t" << iter->shard_y_ << "\t" << iter->shard_x_
+				<< "\t" << iter->score_ << "\t" << iter->axis_raw_ << "\t" << iter->axis_angle_
+				<< "\t" << iter->overlap_ << "\t" << iter->area_;
+			Matrix4d Mr;
+			iter->trans_.Output(Mr);
+			for (int r = 0; r < 3; r++) for (int c = 0; c < 4; c++) cout << "\t" << Mr(r, c);
+			cout << endl;
+		}
+
 		//#################### Restore breakline data ####################// 
 		Matrix3d R_re;
 		Vector3d t_re;
@@ -1938,12 +2018,21 @@ void RegistrationPruning(vector<Geom>& shard,
 		if (iter->axis_angle_ > 0.436) {
 			//if (s_x_base || s_y_base) 	// �̰� ���־����� �ʳ�??
 			{
+				if (g_sfs_stage_trace)
+					cout << "[SFS-336]\tRDROP\treg_axis\t" << step_counter << "\t" << g_index
+					<< "\t" << iter->index_ << "\t" << iter->shard_y_ << "\t" << iter->shard_x_
+					<< "\t" << iter->axis_angle_ << endl;
 				iter = LCS_out.erase(iter);
 				continue;
 			}
 		}
 		if ((iter->score_ > 10) || (iter->overlap_)) {   // TICKET 335: gates keep the legacy score
 			if (iter->score_ > 10) g_sfs_cand_erased_10++;
+			if (g_sfs_stage_trace)
+				cout << "[SFS-336]\tRDROP\t" << (iter->score_ > 10 ? "reg_score" : "reg_overlap")
+				<< "\t" << step_counter << "\t" << g_index
+				<< "\t" << iter->index_ << "\t" << iter->shard_y_ << "\t" << iter->shard_x_
+				<< "\t" << iter->score_ << "\t" << iter->area_ << endl;
 			iter = LCS_out.erase(iter);
 		}
 		else

@@ -263,6 +263,15 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// TICKET 336: the per-piece axis alignment that every saved pose is composed with.
+	if (g_sfs_stage_trace) {
+		for (int i = 0; i < SHARD_NUMBER; i++) {
+			cout << "[SFS-336]\tAXIS\t" << (i + 1);
+			SfsTraceMat(T_axis[i]);
+			cout << endl;
+		}
+	}
+
 	cout << "#################### Feature matching ####################" << endl;
 	////#################### Feature matching ####################//
 	list<LCSIndex> LCS_out;
@@ -388,6 +397,22 @@ int main(int argc, char** argv)
 		<< " coverage=" << (g_sfs_coverage ? 1 : 0)
 		<< " signed=" << (g_sfs_axis_sign ? 1 : 0) << endl;
 
+	// TICKET 336: what the winning state is, before its matrices are written.
+	if (g_sfs_stage_trace) {
+		const State& out = manager.out_state_[count_move_state];
+		cout << "[SFS-336]\tOUTSTATE\t" << count_move_state << "\t" << out.state_score_
+			<< "\t" << out.graph_.size() << endl;
+		for (size_t j = 0; j < out.graph_.size(); j++) {
+			cout << "[SFS-336]\tCLUSTER\t" << j << "\t" << out.graph_[j].root_node_
+				<< "\t" << out.graph_[j].graph_score_ << "\t";
+			int first = 1;
+			for (size_t k = 0; k < out.graph_[j].node_.size(); k++) {
+				if (out.graph_[j].node_[k]) { cout << (first ? "" : ",") << (k + 1); first = 0; }
+			}
+			cout << endl;
+		}
+	}
+
 	// --- g (ground_): save transformation matrices ---
 	{
 		string path_result = path + "Result/";
@@ -401,6 +426,11 @@ int main(int argc, char** argv)
 				if (manager.out_state_[count_move_state].graph_[j].node_[i]) {
 					manager.out_state_[count_move_state].graph_[j].T_[i].Output(T_obj);
 					T_out.Input(T_obj);
+					if (g_sfs_stage_trace) {
+						cout << "[SFS-336]\tFINAL\t" << (i + 1) << "\t" << j;
+						SfsTraceMat(T_out);
+						cout << endl;
+					}
 					T_out.Save(path_result);
 					break;
 				}

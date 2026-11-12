@@ -17,7 +17,9 @@ extern bool g_sfs_axis_sign;
 extern long g_sfs_basket_erased_15;	// TICKET 335: measurement only
 extern long g_sfs_cand_erased_15;
 extern long g_sfs_cand_erased_10;             // SFS_AXIS_SIGN=1 and the guard accepted the set
+extern bool g_sfs_stage_trace;           // TICKET 336: SFS_STAGE_TRACE=1, read-only dumps
 void InitSfsSwitches();                  // reads both env switches once, prints both banners
+void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
 
 void NoOverrange(vector<Geom>& shard,
 	LCSIndex& reout);

@@ -897,6 +897,14 @@ void StateManager::BuildStep(void)
 			}
 		}
 	}
+	// TICKET 336: what this rung produced, before it is pruned.
+	if (g_sfs_stage_trace) {
+		cout << "[SFS-336]\tSTEP\t" << step_counter_ << "\tnext\t" << next_state_set.size();
+		for (size_t q = 0; q < next_state_set.size(); q++) cout << "\t" << next_state_set[q].state_score_;
+		cout << "\tout\t" << out_state_.size();
+		for (size_t q = 0; q < out_state_.size(); q++) cout << "\t" << out_state_[q].state_score_;
+		cout << endl;
+	}
 	step_counter_++;
 	ext_state_.clear();
 	vector<State>().swap(ext_state_);
@@ -932,6 +940,13 @@ void StateManager::BuildStep(void)
 		int N = next_state_set.size();
 		if (N > N_) N = N_;
 
+		// TICKET 336: the states that survive into the next rung.
+		if (g_sfs_stage_trace) {
+			cout << "[SFS-336]\tKEEP\t" << (step_counter_ - 1) << "\t" << N;
+			for (int q = 0; q < N; q++) cout << "\t" << next_state_set[q].state_score_;
+			cout << endl;
+		}
+
 		cout << "Start to pick" << N << " number of high rank state" << endl;
 		for (int iter = 0; iter < N; iter++) {
 			PrepareNextStep(next_state_set[iter]);
@@ -966,6 +981,39 @@ bool StateManager::BuildState(State& state,
 	int pr_index = state.graph_[graph_index].priority_index_;
 	int merge_graph = state.graph_[graph_index].priority_list_[pr_index].graph_index;
 
+	// TICKET 336: the priority entry being built, with the edges of its chunk.
+	// Read-only: walks lcs_reference_ to resolve the chunk's edge positions.
+	if (g_sfs_stage_trace) {
+		const PTR_PriorityList& pr = state.total_priority_[order_index];
+		const Chunk& ck = state.graph_[graph_index].priority_list_[pr_index];
+		cout << "[SFS-336]\tPRIO\t" << step_counter_ << "\t" << ext_index << "\t" << order_index
+			<< "\t" << graph_index << "\t" << pr.root_num_ << "\t" << pr.inlier_
+			<< "\t" << pr.priority_index_ << "\t" << merge_graph
+			<< "\t" << ck.node << "\t" << ck.inlier;
+		int epos = 0;
+		for (list<LCSIndex>::const_iterator e = state.graph_[graph_index].lcs_reference_.begin();
+			e != state.graph_[graph_index].lcs_reference_.end(); ++e, ++epos) {
+			for (size_t q = 0; q < ck.i_edge.size(); q++)
+				if (ck.i_edge[q] == epos)
+					cout << "\t" << e->index_ << "\t" << e->shard_y_ << "\t" << e->shard_x_ << "\t" << e->score_;
+		}
+		cout << endl;
+	}
+
+	// TICKET 336: one dump of every node's T_ at a named phase of this build.
+	auto trace_nodes = [&](const char* phase) {
+		if (!g_sfs_stage_trace) return;
+		const RankingSubgraph& G = state.graph_[graph_index];
+		for (int i = 0; i < num_shard; i++) {
+			if (!G.node_[i]) continue;
+			cout << "[SFS-336]\tNODE\t" << step_counter_ << "\t" << ext_index << "\t" << order_index
+				<< "\t" << graph_index << "\t" << phase << "\t" << (i + 1)
+				<< "\t" << (i + 1 == G.root_node_ ? 1 : 0);
+			SfsTraceMat(G.T_[i]);
+			cout << endl;
+		}
+	};
+
 	//########## merge_graph < 0 means reconstructing node is coming from outside state
 	if (merge_graph < 0) {
 		int current_node = state.graph_[graph_index].NodeOut() - 1;
@@ -989,6 +1037,8 @@ bool StateManager::BuildState(State& state,
 
 		state.ReplaceGraph(merge_graph, graph_index);
 	}
+
+	trace_nodes("init");
 
 	vector<Matrix3d> R(num_shard);
 	vector<Vector3d> t(num_shard);
@@ -1017,7 +1067,22 @@ bool StateManager::BuildState(State& state,
 			graph_index, 
 			R[i], t[i]);
 	}
+	// TICKET 336: the ICP increment itself, per node.
+	if (g_sfs_stage_trace) {
+		const RankingSubgraph& G = state.graph_[graph_index];
+		for (int i = 0; i < num_shard; i++) {
+			if (!G.node_[i]) continue;
+			double c = (R[i].trace() - 1.0) * 0.5;
+			if (c < -1.0) c = -1.0;
+			if (c > 1.0) c = 1.0;
+			cout << "[SFS-336]\tINCR\t" << step_counter_ << "\t" << ext_index << "\t" << order_index
+				<< "\t" << graph_index << "\t" << (i + 1) << "\t" << acos(c) * 57.29577951308232
+				<< "\t" << t[i].norm() << endl;
+		}
+	}
+	trace_nodes("icp");
 	GraphAxisRefinement(shard_, state.graph_[graph_index], state.history_, graph_index);
+	trace_nodes("refine");
 
 	return_value = CheckGraphPlausibility(shard_,
 		state.graph_[graph_index],
@@ -1026,6 +1091,13 @@ bool StateManager::BuildState(State& state,
 		ext_index,
 		order_index,
 		merge_graph);
+
+	// TICKET 336: the plausibility verdict, with the state's own score after it.
+	if (g_sfs_stage_trace)
+		cout << "[SFS-336]\tVETO\t" << step_counter_ << "\t" << ext_index << "\t" << order_index
+		<< "\t" << graph_index << "\t" << (return_value ? 1 : 0) << "\t"
+		<< state.graph_[graph_index].graph_score_ << "\t" << merge_graph << endl;
+	trace_nodes("veto");
 
 	for (int i = 0; i < num_shard; i++) {
 		Matrix3d R_i;
