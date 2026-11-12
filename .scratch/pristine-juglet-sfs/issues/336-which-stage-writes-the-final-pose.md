@@ -1,8 +1,8 @@
 # Ticket 336 — which stage writes the final pose? Trace each true join from the candidate list to the output transform
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-13)
-**Branch:** 336-which-stage-writes-the-final-pose
+**Branch:** 336-which-stage-writes-the-final-pose, in /c/PR/worktrees/structure-from-sherds-pp/336
 **Answers:** S1
 **Depends on:** 335, 334, 333, 331, 328
 **Blocks:** the next fix (the ranking ticket is spent; the fix depends on where the pose is decided)
