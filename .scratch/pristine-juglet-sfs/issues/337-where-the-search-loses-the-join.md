@@ -1,8 +1,8 @@
 # Ticket 337 — where the search loses the join: offered, explored, or pruned?
 
-**Status:** ready-for-agent
-**Working in:** —
-**Branch:** —
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-13)
+**Branch:** 337-where-the-search-loses-the-join, in /c/PR/worktrees/structure-from-sherds-pp/337
 **Answers:** S1
 **Depends on:** 336 (the trace instrument and the corrected class table), 335 (pair-level winners), 334 (nine-seam pair diagnosis), 333 (3x assembly)
 **Blocks:** the next fix, which cannot be chosen until we know whether the merge is never offered, never explored, or thrown away
