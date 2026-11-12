@@ -214,6 +214,8 @@ public:
 	vector<TransHistory> history_;
 	int state_score_;
 
+	int trace_id_ = -1;							// TICKET 337: id used only by the state trace
+
 	vector<vector<bool>> total_matched_index_;
 	vector<pair<int, int>> root_sequence_;
 };

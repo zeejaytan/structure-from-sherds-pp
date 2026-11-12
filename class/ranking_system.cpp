@@ -1,4 +1,133 @@
 #include "ranking_system.h"
+
+//============================== TICKET 337: state-level trace ==============================//
+// SFS_STATE_TRACE=1 only. Measurement only: every function below reads, prints and returns.
+// None of them sorts, mutates or reorders a container, so with the switch off the search
+// executes exactly the statements it executed before (the blocks are guarded, not the work).
+// The GT table comes from the batch shim (g_sfs_tr_gt); the breakline points come from
+// StateManager's own copy of the shards (g_sfs337_shard). class/* opens no GT file.
+static const vector<Geom>* g_sfs337_shard = NULL;
+
+// The piece partition of one state: "1,3,8|2,4|5,7" -- one comma list per graph.
+static string Sfs337Part(const vector<RankingSubgraph>& graph)
+{
+	string out;
+	for (size_t g = 0; g < graph.size(); g++) {
+		if (g) out += "|";
+		bool first = true;
+		for (size_t k = 0; k < graph[g].node_.size(); k++) {
+			if (!graph[g].node_[k]) continue;
+			char buf[16];
+			sprintf(buf, "%d", (int)k + 1);
+			if (!first) out += ",";
+			out += buf;
+			first = false;
+		}
+	}
+	return out;
+}
+
+static int Sfs337GtJoined(int a, int b)
+{
+	if (a < 1 || b < 1) return 0;
+	if ((size_t)a > g_sfs_tr_gt.size()) return 0;
+	if ((size_t)b > g_sfs_tr_gt[a - 1].size()) return 0;
+	return g_sfs_tr_gt[a - 1][b - 1] ? 1 : 0;
+}
+
+// The gate's own two numbers for a pair of matrices, exactly as isSimilarTrans builds them
+// (class/data_structure.cpp:711): rotation of T_a * T_b^-1 in degrees, translation in mm.
+static void Sfs337RotTrans(const Matrix4d& T_a, const Matrix4d& T_b, double& rot_deg, double& t_mm)
+{
+	Matrix4d T = T_a * T_b.inverse();
+	Matrix3d log_R = T.block<3, 3>(0, 0).log();
+	Vector3d w;
+	w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
+	rot_deg = w.norm() * 180.0 / 3.14159265358979323846;
+	t_mm = T.block<3, 1>(0, 3).norm();
+}
+
+// TICKET 337 (Part A): the numbers of the merge this priority entry actually offers. They come
+// from the candidate's own transform -- a relative placement of the two pieces in ONE frame --
+// never from two graphs' absolute poses, which live in different frames:
+//   rot_deg, t_mm  -- the candidate measured exactly as isSimilarTrans measures a pair, i.e.
+//                    T * I^-1 (data_structure.cpp:711), in degrees and mm
+//   mat_mm         -- RMS over piece B's breakline points of the distance from B's point placed
+//                    by the candidate to the nearest of A's breakline points: how far the
+//                    material is from seating (the physical quantity 336 established), mm.
+//                    Subsampled so the trace stays cheap; -1 when there is nothing to measure.
+static void Sfs337CandidateNumbers(const Trans& cand, int piece_a, int piece_b,
+	double& rot_deg, double& t_mm, double& mat_mm)
+{
+	Matrix4d T;
+	cand.Output(T);
+	Matrix4d I = Matrix4d::Identity();
+	Sfs337RotTrans(T, I, rot_deg, t_mm);
+
+	mat_mm = -1.0;
+	if (g_sfs337_shard == NULL) return;
+	if (piece_a < 1 || piece_b < 1) return;
+	if ((size_t)piece_a > g_sfs337_shard->size()) return;
+	if ((size_t)piece_b > g_sfs337_shard->size()) return;
+	const MatrixXd& PA = (*g_sfs337_shard)[piece_a - 1].edge_line_.point_;
+	const MatrixXd& PB = (*g_sfs337_shard)[piece_b - 1].edge_line_.point_;
+	if (PA.cols() < 1 || PB.cols() < 1) return;
+	const int stride_b = 1 + PB.cols() / 150;
+	const int stride_a = 1 + PA.cols() / 150;
+	double sum = 0.0;
+	int n = 0;
+	for (int c = 0; c < PB.cols(); c += stride_b) {
+		Vector3d p(PB(0, c), PB(1, c), PB(2, c));
+		Vector3d q = T.block<3, 3>(0, 0) * p + T.block<3, 1>(0, 3);
+		double best = -1.0;
+		for (int d = 0; d < PA.cols(); d += stride_a) {
+			Vector3d r(PA(0, d), PA(1, d), PA(2, d));
+			double d2 = (q - r).squaredNorm();
+			if (best < 0.0 || d2 < best) best = d2;
+		}
+		sum += best;
+		n++;
+	}
+	if (n > 0) mat_mm = sqrt(sum / n);
+}
+
+// TICKET 337 (Part D): two candidate placements of ONE piece, compared where the material is
+// instead of at the graph origin. Same two matrices the gate compares, so a refusal that reads
+// "same junction to a few mm at the breaklines" while the gate saw >20 mm is exactly the
+// question Part D asks. Reads the breakline points; writes nothing.
+static double Sfs337MatMismatch(const Matrix4d& T_i, const Matrix4d& T_c, int piece)
+{
+	if (g_sfs337_shard == NULL) return -1.0;
+	if (piece < 1 || (size_t)piece > g_sfs337_shard->size()) return -1.0;
+	const MatrixXd& P = (*g_sfs337_shard)[piece - 1].edge_line_.point_;
+	if (P.cols() < 1) return -1.0;
+	const int stride = 1 + P.cols() / 40;
+	double sum = 0.0;
+	int n = 0;
+	for (int c = 0; c < P.cols(); c += stride) {
+		Vector3d p(P(0, c), P(1, c), P(2, c));
+		Vector3d a = T_i.block<3, 3>(0, 0) * p + T_i.block<3, 1>(0, 3);
+		Vector3d b = T_c.block<3, 3>(0, 0) * p + T_c.block<3, 1>(0, 3);
+		sum += (a - b).squaredNorm();
+		n++;
+	}
+	if (n < 1) return -1.0;
+	return sqrt(sum / n);
+}
+
+// TICKET 337 (Part D): one refusal of the 0.436 / 20.0 gate, as it happened. piece_shared is 0
+// when the two candidates are not two placements of the same junction (different other end, or
+// opposite orientation) -- then the gate's comparison has no seating interpretation and mat is -1.
+static void Sfs337Refuse(const char* site, const Matrix4d& T_i, const Matrix4d& T_c,
+	int piece_i_out, int piece_c_out, int piece_shared)
+{
+	if (!g_sfs_state_trace) return;
+	double rot_deg = 0.0, t_mm = 0.0;
+	Sfs337RotTrans(T_c, T_i, rot_deg, t_mm);
+	const double mat_mm = (piece_shared > 0) ? Sfs337MatMismatch(T_i, T_c, piece_shared) : -1.0;
+	cout << "[SFS-337]\tREFUSE\t" << g_sfs_tr_step << "\t" << site << "\t" << piece_i_out << "\t" << piece_c_out
+		<< "\t" << piece_shared << "\t" << rot_deg << "\t" << t_mm << "\t" << mat_mm << endl;
+}
 //############################## class RankingSubgraph ##############################//
 void RankingSubgraph::Copy(RankingSubgraph& input)
 {
@@ -263,6 +392,14 @@ void RankingSubgraph::CombineGraphChunk(list<Chunk>& priority,
 				c_iter = priority.erase(c_iter);
 			}
 			else {
+				// TICKET 337 (Part D): the gate said no. Record what it compared, and whether the
+				// two candidates are two placements of one junction (then the seating is meaningful).
+				const bool i_from = (node_[i_trans_to]) ? false : true;
+				const bool c_from = (node_[c_trans_to]) ? false : true;
+				const int i_out = (i_from ? i_trans_from : i_trans_to) + 1;
+				const int c_out = (c_from ? c_trans_from : c_trans_to) + 1;
+				const int shared = (i_out == c_out && i_from == c_from) ? i_out : 0;
+				Sfs337Refuse("graph", T_i, T_c, i_out, c_out, shared);
 				++c_iter;
 			}
 		}
@@ -323,6 +460,15 @@ void RankingSubgraph::CombineChunk(list<Chunk>& priority)
 					c_iter = priority.erase(c_iter);
 				}
 				else {
+					// TICKET 337 (Part D): the gate said no. iter->node is the outside piece both
+					// edges touch; the seating is meaningful only when they share the other end and
+					// the orientation, since then both matrices place the same two pieces.
+					const bool i_from = (iter->node == i_trans_from) ? true : false;
+					const bool c_from = (iter->node == c_trans_from) ? true : false;
+					const int i_other = i_from ? i_trans_to : i_trans_from;
+					const int c_other = c_from ? c_trans_to : c_trans_from;
+					const int shared = (i_other == c_other && i_from == c_from) ? iter->node : 0;
+					Sfs337Refuse("chunk", T_i, T_c, iter->node, iter->node, shared);
 					++c_iter;
 				}
 			}
@@ -400,6 +546,43 @@ void State::MakeTotalHierarchyPriority(void)
 		});
 
 	RemoveSamePriority();
+
+	// TICKET 337: this state's inventory and the entries it offers, after the ordering the
+	// search will use. Read-only: a copy of what is already there, nothing is rewritten.
+	if (g_sfs_state_trace) {
+		cout << "[SFS-337]\tSTEP\t" << g_sfs_tr_step << "\t" << trace_id_
+			<< "\t" << state_score_ << "\t" << total_priority_.size()
+			<< "\t" << Sfs337Part(graph_) << endl;
+		for (size_t j = 0; j < total_priority_.size(); j++) {
+			const PTR_PriorityList& pr = total_priority_[j];
+			if (pr.graph_index_ < 0 || (size_t)pr.graph_index_ >= graph_.size()) continue;
+			const RankingSubgraph& base_graph = graph_[pr.graph_index_];
+			if (pr.priority_index_ < 0 || (size_t)pr.priority_index_ >= base_graph.priority_list_.size()) continue;
+			const Chunk& ck = base_graph.priority_list_[pr.priority_index_];
+			vector<pair<int, int> > done;
+			for (size_t e = 0; e < ck.i_edge.size(); e++) {
+				int ei = ck.i_edge[e];
+				if (ei < 0 || (size_t)ei >= base_graph.sub_graph_.size()) continue;
+				const LCSIndex& L = base_graph.sub_graph_[ei];
+				const int pa = L.shard_x_;
+				const int pb = L.shard_y_;
+				if (pa == pb) continue;
+				const int lo = (pa < pb) ? pa : pb;
+				const int hi = (pa < pb) ? pb : pa;
+				bool seen = false;
+				for (size_t d = 0; d < done.size(); d++)
+					if (done[d].first == lo && done[d].second == hi) { seen = true; break; }
+				if (seen) continue;
+				done.emplace_back(lo, hi);
+				double rot_deg(0.0), t_mm(0.0), mat_mm(-1.0);
+				Sfs337CandidateNumbers(L.trans_, pa, pb, rot_deg, t_mm, mat_mm);
+				cout << "[SFS-337]\tPRIO\t" << g_sfs_tr_step << "\t" << trace_id_ << "\t" << j
+					<< "\t" << lo << "-" << hi << "\t" << pr.inlier_
+					<< "\t" << rot_deg << "\t" << t_mm << "\t" << mat_mm
+					<< "\t" << (Sfs337GtJoined(lo, hi) ? "GT" : "not") << endl;
+			}
+		}
+	}
 }
 
 void State::SynchronizeTrueNode(void)
@@ -678,6 +861,11 @@ void StateManager::Initialize(int N,
 
 	getShard(shard);
 
+	// TICKET 337: the trace reads breakline points from this manager's own copy and numbers
+	// the root states. Both are measurement only; nothing downstream reads them.
+	if (g_sfs_state_trace) g_sfs337_shard = &shard_;
+	g_sfs_tr_step = 0;
+
 	vector<pair<int, int>> root_node = SortRoot(initial_graph_, shard_);
 
 	int num_shard = shard.size();
@@ -718,6 +906,7 @@ void StateManager::Initialize(int N,
 
 		if (isroot && !root_state.graph_.empty()) {
 			ext_state_.emplace_back(root_state);
+			ext_state_.back().trace_id_ = g_sfs_tr_next_id++;   // TICKET 337
 			ext_state_.back().SynchronizeTrueNode();
 			ext_state_.back().MakeTotalHierarchyPriority();
 		}
@@ -887,6 +1076,13 @@ void StateManager::BuildStep(void)
 				if (j > next_state.total_priority_.size() - 1)
 					break;
 				else if (BuildState(next_state, j, i)) {
+					// TICKET 337: the child state's own inventory, before the cut decides.
+					next_state.trace_id_ = g_sfs_tr_next_id++;
+					if (g_sfs_state_trace) {
+						cout << "[SFS-337]\tSTEP\t" << step_counter_ << "\t" << next_state.trace_id_
+							<< "\t" << next_state.state_score_ << "\t" << next_state.total_priority_.size()
+							<< "\t" << Sfs337Part(next_state.graph_) << endl;
+					}
 					next_state_set.push_back(next_state);
 					ext_counter++;
 				}
@@ -947,7 +1143,19 @@ void StateManager::BuildStep(void)
 			cout << endl;
 		}
 
+		// TICKET 337: the cut itself, by state id, so a dropped child is traceable.
+		if (g_sfs_state_trace) {
+			cout << "[SFS-337]\tCUT\t" << (step_counter_ - 1) << "\tKEPT\t";
+			for (int q = 0; q < N; q++)
+				cout << (q ? "," : "") << next_state_set[q].trace_id_ << ":" << next_state_set[q].state_score_;
+			cout << "\tDROPPED\t";
+			for (size_t q = N; q < next_state_set.size(); q++)
+				cout << (q > (size_t)N ? "," : "") << next_state_set[q].trace_id_ << ":" << next_state_set[q].state_score_;
+			cout << endl;
+		}
+
 		cout << "Start to pick" << N << " number of high rank state" << endl;
+		g_sfs_tr_step = step_counter_;   // TICKET 337: the rung these states enter
 		for (int iter = 0; iter < N; iter++) {
 			PrepareNextStep(next_state_set[iter]);
 			ext_state_.push_back(next_state_set[iter]);

@@ -86,6 +86,23 @@ static int ReadLcsWindowFromEnv()
 	return static_cast<int>(parsed);
 }
 
+// TICKET 337: search width as a switch pair (top-N states kept, s_ branches explored per
+// state). Read here and handed to StateManager; the library #defines are not touched, so
+// unset is exactly TOP_k / BRANCH_b.
+static int ReadWidthFromEnv(const char* name, int fallback, int lo, int hi)
+{
+	const char* raw = std::getenv(name);
+	if (raw == NULL || *raw == '\0') return fallback;
+	char* end = NULL;
+	const long parsed = std::strtol(raw, &end, 10);
+	if (end == raw || (end != NULL && *end != '\0') || parsed < lo || parsed > hi) {
+		cout << "[SFS-337] " << name << "='" << raw << "' is not an integer in [" << lo << "," << hi
+			<< "]; using " << fallback << endl;
+		return fallback;
+	}
+	return static_cast<int>(parsed);
+}
+
 int main(int argc, char** argv)
 {
 	double calculation_time(0);
@@ -103,6 +120,11 @@ int main(int argc, char** argv)
 	// TICKET 332: the effective LCS window, printed once so every log states its own regime.
 	const int lcs_window = ReadLcsWindowFromEnv();
 	cout << "LCS window: " << lcs_window << endl;
+
+	// TICKET 337: the search width, printed once so every log states its own regime.
+	const int state_topk = ReadWidthFromEnv("SFS_TOPK", TOP_k, 1, 200);
+	const int state_branch = ReadWidthFromEnv("SFS_BRANCH", BRANCH_b, 1, 200);
+	cout << "state width: topk=" << state_topk << " branch=" << state_branch << endl;
 
 	cout << "#################### Pottery Data load ####################" << endl;
 	//#################### Pottery Data load ####################//
@@ -196,6 +218,14 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+	// TICKET 337: the GT-joined piece table the state trace tags every priority entry with.
+	// Filled only when the trace is on; class/* reads this table and never a GT file.
+	if (g_sfs_state_trace) {
+		g_sfs_tr_gt.assign(SHARD_NUMBER, vector<char>(SHARD_NUMBER, 0));
+		for (int i = 0; i < SHARD_NUMBER; i++)
+			for (int j = 0; j < SHARD_NUMBER; j++)
+				g_sfs_tr_gt[i][j] = (GT_graph(i, j) > 0.0) ? 1 : 0;
+	}
 	cout << GT_graph << endl;
 
 	// TICKET 335: the sign guard. It needs the GT poses (loaded just above) because a
@@ -287,7 +317,7 @@ int main(int argc, char** argv)
 
 	cout << "#################### Incremental graph building ####################" << endl;
 	//////#################### Incremental graph building ####################//
-	StateManager manager(TOP_k, BRANCH_b, shard, LCS_out, step_size, path + "Result");
+	StateManager manager(state_topk, state_branch, shard, LCS_out, step_size, path + "Result");
 	manager.BuildStep();
 	if (manager.out_state_.empty()) {
 		cout << "SFS-NO-CANDIDATES no assembly state to save; exit 0" << endl;
