@@ -1,8 +1,8 @@
 # Ticket 333 — assemble juglet_large at 3x: do the recovered dots become joins?
 
-**Status:** ready-for-agent
-**Working in:** (claimed by the worker)
-**Branch:** 333-assemble-juglet-large
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-12)
+**Branch:** 333-assemble-juglet-large, in /c/PR/worktrees/structure-from-sherds-pp/333
 **Answers:** S1
 **Depends on:** 331 (the 3x input is built and measured), 332 (the dense 1x control on the cured tree)
 **Blocks:** none
