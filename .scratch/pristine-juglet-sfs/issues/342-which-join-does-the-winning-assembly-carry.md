@@ -1,6 +1,6 @@
 # Ticket 342 — which join does the winning assembly carry
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 342-which-join-does-the-winning-assembly-carry, in /c/PR/worktrees/structure-from-sherds-pp/342
 **Worker:** dsh one-shot subagent 5e1768bc, dispatched 2026-11-14 by the lead

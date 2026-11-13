@@ -144,6 +144,19 @@ fidelity arms, Pot A 8/8 and 15/15, tree md5 unchanged, and 31 accept lines per 
 across the two. So the falls are not "the right pair is never offered a good candidate": the good
 join is admitted and then either refused elsewhere, overwritten by a second edge of the same pair,
 or carried into a state that loses. Ticket 342 asks which of those the winner carries.
+Ticket 342 (2026-11-14) asked which join the winning state carries, and the answer is neither of the
+two edges on pair 1-2. The winner prints no 1-2 edge in either repeat (r1 state 30, score 260, four
+edges over three clusters; r2 state 33, score 263, five edges over three clusters), and the last build
+step's group that takes piece 2 is {2,4,5,6,7,9} - piece 1 is not in it. The 84 deg / 94 mm on that
+pair is therefore not an assembly error on a joined pair: the state that wins never joins them, and
+that pose is the honest distance between pieces the search left in different clusters. What the
+reading can and cannot say is bounded by the instrument: `edge_` records only priority and bridge
+entries (class/ranking_system.cpp:2270, :2334; the merge copies nodes at :2312-2320 but not `edge_`),
+so "carries-none" means no such entry, and r1's four edges over three clusters with all nine shards
+matched shows the printed list is a subset of the joins. The two repeats agree on the accuracy line
+and on the 1-8 / 3-8 / 5-7 backbone with identical scores, but not on the state itself - the winning
+state is not reproducible between repeats, only its score. Ticket 343 asks the question this leaves:
+whether the accepted 1-2 join is dropped by the search or only by the record.
 
 ## Why it matters
 
