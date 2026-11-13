@@ -1,8 +1,8 @@
 # Ticket 341 — the plausibility gate refuses joins that are inside the bar
 
-**Status:** needs-info — waits for ticket 340 (the applied candidate must be named before a veto can be called wrong)
+**Status:** ready-for-agent
 **Working in:** chat on Thinkbook16 (2026-11-13)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`, only after 340 lands
+**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
 **Answers:** S1
 **Depends on:** 340 (which candidate is applied), 339 (the veto reasons are already printed), 338 (the candidate table)
 **Blocks:** any change to the plausibility gate or its bars
@@ -34,6 +34,17 @@ of the refusals it makes are on pairs whose best candidate is inside the bar.
 Seam 1-2 is the other side of the same coin: it *is* kept (4 keeps in r1, 2 in r2) and its final pair
 still reads 84.40 deg / 93.99 mm (338). Ticket 340 is what says whether the kept edge is the in-bar
 candidate.
+
+### Premise check against ticket 340 (2026-11-14)
+
+340 landed and sharpens this ticket in one important way: `CheckGraphPlausibility` is **not** a blanket
+refusal. Each of the three pairs here is *accepted once* at step 0 — `PICK 0 1 0 5 7 160 0.322249 72 72`,
+`PICK 0 2 2 4 7 144 0.559114 36 36`, `PICK 4 25 1 6 9 66 0.520905 28 28` — and refused on most of its
+later offers, in states where other pieces have already moved. So the question this ticket must answer is
+no longer "why does the gate say no to a good join" but **"what do the numbers look like when the same
+join is refused later and accepted at step 0"**: a PC count that collapses as pieces move is pose drift,
+not a bar that is too tight, and reading 1 below must not be taken until Part B shows the numbers at both
+moments. Add to Part B one column: the same pair's step-0 accept (from 340's table) beside the refusal.
 
 ## Part A — the instrument
 

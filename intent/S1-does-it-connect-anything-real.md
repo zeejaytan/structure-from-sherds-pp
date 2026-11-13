@@ -132,6 +132,19 @@ window. The instrument itself is print-only: nine signed runs, eight at 2/9 sher
 1/18 edges, the single 3/9 the slowest run of the nine, with identical trace readings
 across the repeats — the residual run-to-run variety is twelve-thread Ceres, not the switch.
 
+Ticket 340 (2026-11-14) named the candidate the search actually applies, and the answer
+splits the two failing seams from the third. Seam 1-8 accepts candidate 70 (0.70 deg / 1.21 mm)
+at step 0 and the assembled pair reads 1.24 / 1.33. Seam 1-2 accepts its in-bar candidate, id 1
+(2.14 deg / 2.20 mm), at step 2 — and still reads 84 deg / 94 mm in the end, because a later state
+accepts the same pair again at step 3 with a different edge (`index_` 3) that the pruned table never
+listed. Seams 7-9 and 1-9 accept nothing at all — zero accept lines in either repeat — which is
+ticket 339's window verdict seen from the accept side rather than trusted from the offer side. The
+instrument is print-only and inert: four arms, signed 2/9 sherds and 1/18 edges in both trace and
+fidelity arms, Pot A 8/8 and 15/15, tree md5 unchanged, and 31 accept lines per repeat identical
+across the two. So the falls are not "the right pair is never offered a good candidate": the good
+join is admitted and then either refused elsewhere, overwritten by a second edge of the same pair,
+or carried into a state that loses. Ticket 342 asks which of those the winner carries.
+
 ## Why it matters
 
 The headline finding on this system is stark: **zero pairwise connections** between any of
