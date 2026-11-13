@@ -104,6 +104,20 @@ Next: tickets 12 and 02-Eq.6 measured out, Cauchy restored (1-4 seats
 again) — next Tray 000, the pot that can show the method works at all.
 Viewer: `juglet_sfs29`
 
+Tickets 336-338 (2026-11-13) moved the question from accuracy to *where* a join is
+lost. 336's stage trace found that in 22 of the 32 seam-arm cells the two sherds
+never share a graph at any step, so no stage ever sets their relative pose; 337
+swept the search width and the loss survived it; 338 followed one named,
+GT-good candidate per seam through every boundary. On the Juglet at signed 5/3
+(2/9 sherds, 1/18 edges, all three arms identical) seam 1-8 is joined and tracks
+its candidate to 1.24°/1.33 mm, while seam 7-9 — the one 338 opened on — has a
+candidate inside the bar (5.39°/4.24 mm) that never enters a state graph in
+either repeat, and 1-9's only usable candidate is already 8.82° before the search
+starts; 1-2 is admitted from step 2 and still ends 84°/94 mm apart. So wherever an
+edge is handed to the group fit it adds at most 0.55° and 0.15 mm: **the join is
+lost before the fit — in candidate admission and state-graph construction — not in
+the group pose fit.** The next fix belongs there, not at the pose stage.
+
 ## Why it matters
 
 The headline finding on this system is stark: **zero pairwise connections** between any of
