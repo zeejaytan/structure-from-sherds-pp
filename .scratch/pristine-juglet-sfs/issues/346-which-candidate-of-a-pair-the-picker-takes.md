@@ -1,7 +1,7 @@
 # Ticket 346 — which candidate of a pair the picker takes, and by what number
 
-**Status:** needs-info
-**Waits for:** ticket 345 (the step-0 dry run, same file — tickets sharing files run in order)
+**Status:** ready-for-agent
+**Waits for:** nothing -- ticket 345 landed 2026-11-14 (the 5-7 join is already 8.9 mm from its own profile when it is made); work only in the worktree this ticket opens
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
 **Answers:** S1
@@ -26,6 +26,15 @@
 - So if the order follows `CalculateMatchingScore`, and that quantity is built from inlier counts, the
   search is ordering by the quantity that does not predict accuracy. This ticket does not assume that; it
   prints the keys and lets the table say it.
+
+## Premise check against ticket 345 (2026-11-14)
+
+Ticket 345 measured the shape gate's quantity at step 0 and found the 5-7 join already 8.90688 / 8.84147 mm
+from its own profile at the moment it is applied (bar 7.0). Two things this ticket should expect:
+the 4-7 pair's in-bar candidate 145 **was not offered at all** in the step-0 chunk that carried 144, so the
+4-7 block may read `no-choice` rather than a choice between 144 and 145; and 5-7 is not in the four pairs
+below because its candidate is the one applied. If the table shows 144 and 145 in different states' lists,
+that is a real finding for Part C's `no-choice` reading, not a failed run.
 
 ## Part A — the switch
 
@@ -103,7 +112,7 @@ Private tree copy per arm, md5 before/after, `sbatch` only, poll, record `sacct`
 - [ ] `git diff HEAD -U0 -- class` additions only; no existing token re-implemented.
 - [ ] Part B table for both trace-on repeats, with the four pairs and the control.
 - [ ] One reading named from Part C, with the keys it rests on.
-- [ ] Winner identical to 342's in both trace-on arms.
+- [ ] Each trace-on arm printed one of 342's two winner tuples in the 342 WINNER line, and the two arms differ (345: the labels are a draw).
 - [ ] Signed 5/3 2/9 and 1/18 in all three signed arms; Pot A 8/8 and 15/15.
 - [ ] `sacct` State and ExitCode for every job id; tree md5 identical per arm.
 - [ ] `## Comments (worker, 2026-11-14)` section, ending with exactly one `**End state:**` line.
