@@ -592,6 +592,64 @@ void RankingSubgraph::PickEdges(const vector<bool>& true_node,
 	}
 }
 
+//############################## TICKET 339 admission trace ##############################//
+// SFS_ADMIT_TRACE=1 (read in class/feature_matching.cpp) turns on the four lines below. Every one
+// of them walks containers that already exist and prints; none writes, sorts or reorders anything,
+// so with the switch off the search executes exactly the statements it executed before. The verb
+// names the boundary that decided the entry's fate:
+//   drop sameprio | drop pc_*  -- an erase that happens before the entry is offered
+//   skip branch   -- offered, but j >= s_ so BuildStep never hands it to BuildState
+//   try build     -- handed to BuildState, before the new edge is applied
+//   veto <reason> / keep accept -- CheckGraphPlausibility's verdict on that build
+// One line per distinct piece pair of the entry (an entry can hold several edges); the join key
+// between OFFER and try/veto/keep is (state, j).
+static int g_sfs339_branch = -1;		// s_ (BRANCH_b), recorded once in Initialize
+static int g_sfs339_ctx_state = -1;		// state id PrepareNextStep is working on
+static string g_sfs339_fail_reason;		// the fail_reason CheckGraphPlausibility last set
+
+// The distinct piece pairs of one priority chunk, resolved through sub_graph_ exactly as
+// EdgeOut() and the TICKET 337 PRIO block do. First appearance wins; y is printed before x as
+// stored (shard_y_ then shard_x_, unchanged).
+static void Sfs339ChunkPairs(const RankingSubgraph& G,
+	const Chunk& ck,
+	vector<pair<int, int> >& out)
+{
+	out.clear();
+	for (size_t e = 0; e < ck.i_edge.size(); e++) {
+		int ei = ck.i_edge[e];
+		if (ei < 0 || (size_t)ei >= G.sub_graph_.size()) continue;
+		const int py = G.sub_graph_[ei].shard_y_;
+		const int px = G.sub_graph_[ei].shard_x_;
+		if (py == px) continue;
+		bool seen = false;
+		for (size_t d = 0; d < out.size(); d++) {
+			const int ay = out[d].first, ax = out[d].second;
+			if ((ay == py && ax == px) || (ay == px && ax == py)) { seen = true; break; }
+		}
+		if (!seen) out.emplace_back(py, px);
+	}
+}
+
+static const char* Sfs339PcReason(void)
+{
+	if (g_sfs339_pc_reason == 1) return "pc_dist";
+	if (g_sfs339_pc_reason == 2) return "pc_rim";
+	return "pc_other";
+}
+
+static void Sfs339Offer(int step, int state, int j, int nprio, int branch, int y, int x, int inlier)
+{
+	cout << "[SFS-339] OFFER " << step << " " << state << " " << j << " " << nprio
+		<< " " << branch << " " << y << " " << x << " " << inlier << endl;
+}
+
+static void Sfs339Fate(int step, int state, int j, int y, int x,
+	const char* verb, const char* reason, int value)
+{
+	cout << "[SFS-339] FATE " << step << " " << state << " " << j << " " << y << " " << x
+		<< " " << verb << " " << reason << " " << value << endl;
+}
+
 //############################## class State ##############################//
 void State::MakeTotalHierarchyPriority(void)
 {
@@ -666,6 +724,22 @@ void State::MakeTotalHierarchyPriority(void)
 					<< "\t" << rot_deg << "\t" << t_mm << "\t" << mat_mm
 					<< "\t" << (Sfs337GtJoined(lo, hi) ? "GT" : "not") << endl;
 			}
+		}
+	}
+
+	// TICKET 339: what this state offers after the same-priority drop, one line per distinct piece
+	// pair of each surviving entry. j is the index BuildStep will test against the branch window.
+	if (g_sfs_admit_trace) {
+		vector<pair<int, int> > pr_pairs;
+		for (size_t j = 0; j < total_priority_.size(); j++) {
+			const PTR_PriorityList& pr = total_priority_[j];
+			if (pr.graph_index_ < 0 || (size_t)pr.graph_index_ >= graph_.size()) continue;
+			const RankingSubgraph& base_graph = graph_[pr.graph_index_];
+			if (pr.priority_index_ < 0 || (size_t)pr.priority_index_ >= base_graph.priority_list_.size()) continue;
+			Sfs339ChunkPairs(base_graph, base_graph.priority_list_[pr.priority_index_], pr_pairs);
+			for (size_t d = 0; d < pr_pairs.size(); d++)
+				Sfs339Offer(g_sfs_tr_step, trace_id_, (int)j, (int)total_priority_.size(),
+					g_sfs339_branch, pr_pairs[d].first, pr_pairs[d].second, pr.inlier_);
 		}
 	}
 }
@@ -902,6 +976,22 @@ void State::RemoveSamePriority()
 		}
 	}
 
+	// TICKET 339: the same-priority drop, named before it happens (the erase below is unchanged).
+	if (g_sfs_admit_trace) {
+		vector<pair<int, int> > pr_pairs;
+		for (int i = 0; i < num; i++) {
+			if (!remove_table[i]) continue;
+			const PTR_PriorityList& pr = total_priority_[i];
+			if (pr.graph_index_ < 0 || (size_t)pr.graph_index_ >= graph_.size()) continue;
+			const RankingSubgraph& base_graph = graph_[pr.graph_index_];
+			if (pr.priority_index_ < 0 || (size_t)pr.priority_index_ >= base_graph.priority_list_.size()) continue;
+			Sfs339ChunkPairs(base_graph, base_graph.priority_list_[pr.priority_index_], pr_pairs);
+			for (size_t d = 0; d < pr_pairs.size(); d++)
+				Sfs339Fate(g_sfs_tr_step, trace_id_, i, pr_pairs[d].first, pr_pairs[d].second,
+					"drop", "sameprio", pr.inlier_);
+		}
+	}
+
 	for (int i = num - 1; i > -1; i--) {
 		if (remove_table[i])
 			total_priority_.erase(total_priority_.begin() + i);
@@ -940,6 +1030,8 @@ void StateManager::Initialize(int N,
 	cout << "----- Initialize Building graph  -----" << endl;
 	N_ = N;
 	s_ = s;
+	// TICKET 339: the branch window the OFFER/skip lines report. s_ never changes after this.
+	if (g_sfs_admit_trace) g_sfs339_branch = s_;
 	step_counter_ = 0;
 	ext_state_.clear();
 	out_state_.clear();
@@ -1039,6 +1131,8 @@ bool StateManager::EndCondition(State& state)
 
 void StateManager::PrepareNextStep(State& state)
 {
+	// TICKET 339: the state whose erases and offers the lines below belong to.
+	if (g_sfs_admit_trace) g_sfs339_ctx_state = state.trace_id_;
 	int num_shard = shard_.size();
 	for (int i = 0; i < state.graph_.size(); i++) {
 		//########## Clear previous priority list
@@ -1180,6 +1274,21 @@ void StateManager::BuildStep(void)
 					}
 					next_state_set.push_back(next_state);
 					ext_counter++;
+				}
+			}
+			// TICKET 339: entries offered past the branch window are never handed to BuildState.
+			if (g_sfs_admit_trace) {
+				const State& base_state = ext_state_[i];
+				vector<pair<int, int> > pr_pairs;
+				for (size_t j = (size_t)ext_s; j < base_state.total_priority_.size(); j++) {
+					const PTR_PriorityList& pr = base_state.total_priority_[j];
+					if (pr.graph_index_ < 0 || (size_t)pr.graph_index_ >= base_state.graph_.size()) continue;
+					const RankingSubgraph& base_graph = base_state.graph_[pr.graph_index_];
+					if (pr.priority_index_ < 0 || (size_t)pr.priority_index_ >= base_graph.priority_list_.size()) continue;
+					Sfs339ChunkPairs(base_graph, base_graph.priority_list_[pr.priority_index_], pr_pairs);
+					for (size_t d = 0; d < pr_pairs.size(); d++)
+						Sfs339Fate(step_counter_, base_state.trace_id_, (int)j, pr_pairs[d].first,
+							pr_pairs[d].second, "skip", "branch", ext_s);
 				}
 			}
 			//########## If the extension failed, Show current state as result
@@ -1333,6 +1442,17 @@ bool StateManager::BuildState(State& state,
 		}
 	};
 
+	// TICKET 339: the pairs this entry brings, before the new edge is applied. state is the parent
+	// state's id (the child id is handed out by the caller afterwards), so the line joins the
+	// OFFER that offered this j. The pairs are kept for the verdict line further down.
+	vector<pair<int, int> > sfs339_pairs;
+	if (g_sfs_admit_trace) {
+		Sfs339ChunkPairs(state.graph_[graph_index], state.graph_[graph_index].priority_list_[pr_index], sfs339_pairs);
+		for (size_t d = 0; d < sfs339_pairs.size(); d++)
+			Sfs339Fate(step_counter_, state.trace_id_, order_index, sfs339_pairs[d].first,
+				sfs339_pairs[d].second, "try", "build", state.total_priority_[order_index].inlier_);
+	}
+
 	//########## merge_graph < 0 means reconstructing node is coming from outside state
 	if (merge_graph < 0) {
 		int current_node = state.graph_[graph_index].NodeOut() - 1;
@@ -1463,6 +1583,19 @@ bool StateManager::BuildState(State& state,
 		cout << "[SFS-336]\tVETO\t" << step_counter_ << "\t" << ext_index << "\t" << order_index
 		<< "\t" << graph_index << "\t" << (return_value ? 1 : 0) << "\t"
 		<< state.graph_[graph_index].graph_score_ << "\t" << merge_graph << endl;
+
+	// TICKET 339: the plausibility verdict for this entry, with the fail_reason it set.
+	if (g_sfs_admit_trace) {
+		for (size_t d = 0; d < sfs339_pairs.size(); d++) {
+			if (return_value)
+				Sfs339Fate(step_counter_, state.trace_id_, order_index, sfs339_pairs[d].first,
+					sfs339_pairs[d].second, "keep", "accept", state.graph_[graph_index].graph_score_);
+			else
+				Sfs339Fate(step_counter_, state.trace_id_, order_index, sfs339_pairs[d].first,
+					sfs339_pairs[d].second, "veto", g_sfs339_fail_reason.c_str(),
+					state.graph_[graph_index].graph_score_);
+		}
+	}
 	trace_nodes("veto");
 
 	for (int i = 0; i < num_shard; i++) {
@@ -1846,15 +1979,27 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				g_index,
 				merge_index);
 
+			// TICKET 339: the merge-overlap erase, named before it happens (j = -1: the entry has
+			// not been offered yet, this runs in PrepareNextStep before the priority list exists).
+			if (overlap && g_sfs_admit_trace)
+				Sfs339Fate(g_sfs_tr_step, g_sfs339_ctx_state, -1, lcs_iter->shard_y_, lcs_iter->shard_x_,
+					"drop", "pc_overlap", lcs_iter->inliner_);
+
 			if (overlap)
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
+				g_sfs339_pc_reason = 0;	// TICKET 339: reset before CountPCInlier records why
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					graph[merge_index].node_,
 					shard,
 					7.0, 1.5);	//
+
+				// TICKET 339: the profile/inlier erase, with the reason CountPCInlier found.
+				if (!pc_out && g_sfs_admit_trace)
+					Sfs339Fate(g_sfs_tr_step, g_sfs339_ctx_state, -1, lcs_iter->shard_y_, lcs_iter->shard_x_,
+						"drop", Sfs339PcReason(), lcs_iter->inliner_);
 
 				if (pc_out)
 					lcs_iter++;
@@ -1875,15 +2020,26 @@ void RemoveEdgeUsingPCInlier(vector<Geom>& shard,
 				c_node - 1,
 				shard);
 
+			// TICKET 339: the single-overlap erase, named before it happens (j = -1, see above).
+			if (overlap && g_sfs_admit_trace)
+				Sfs339Fate(g_sfs_tr_step, g_sfs339_ctx_state, -1, lcs_iter->shard_y_, lcs_iter->shard_x_,
+					"drop", "pc_overlap", lcs_iter->inliner_);
+
 			if (overlap)
 				lcs_iter = graph[g_index].lcs_reference_.erase(lcs_iter);
 			else {
 				//########## Calculate PC based inlier
+				g_sfs339_pc_reason = 0;	// TICKET 339: reset before CountPCInlier records why
 				bool pc_out = CountPCInlier(lcs_iter->inliner_,
 					graph[g_index].node_,
 					shard,
 					c_node,
 					7.0, 1.5, false);
+
+				// TICKET 339: the profile/inlier erase, with the reason CountPCInlier found.
+				if (!pc_out && g_sfs_admit_trace)
+					Sfs339Fate(g_sfs_tr_step, g_sfs339_ctx_state, -1, lcs_iter->shard_y_, lcs_iter->shard_x_,
+						"drop", Sfs339PcReason(), lcs_iter->inliner_);
 
 				if (pc_out)
 					lcs_iter++;
@@ -2294,6 +2450,8 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 		}
 	}
 
+	// TICKET 339: the reason the veto line names ("NONE_" when the graph passed).
+	if (g_sfs_admit_trace) g_sfs339_fail_reason = fail_reason;
 	return return_value;
 }
 
