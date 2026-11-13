@@ -1,12 +1,12 @@
 # Ticket 340 — which candidate does the search accept
 
-**Status:** ready-for-agent
-**Working in:** chat on Thinkbook16 (2026-11-13)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-14)
+**Branch:** 340-which-candidate-does-the-search-accept, in /c/PR/worktrees/structure-from-sherds-pp/340
 **Answers:** S1
 **Depends on:** 338 (the pair-level table and the fit budget), 339 (the branch window — do not re-measure it)
 **Blocks:** the next fix: whether the selection key among the candidates of one pair is wrong, or whether a pose moves between acceptance and the final assembly
-**Worker:** unassigned
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one GT-free print; the hidden check is the tuple table in Part B.
 
