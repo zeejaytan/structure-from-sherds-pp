@@ -1,9 +1,9 @@
 # Ticket 338 — the join is lost between the candidate list and the group fit
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-13)
 **Branch:** 338-the-join-is-lost-between-the-list-and-the-fit, in /c/PR/worktrees/structure-from-sherds-pp/338
-**Worker:** f53606b1-0307-4f82-94c6-1ef2c97e3399 (dsh one-shot subagent, qoder-global/qmodel_latest; dispatched 2026-11-13 by the lead — dsh-opencode-go is not an allowed provider in this session)
+**Worker:** lead - dispatched subagent f53606b1-0307-4f82-94c6-1ef2c97e3399 (qoder-global/qmodel_latest) hit its provider quota twice after the arms finished; the lead completed the attribution, the renders and the write-back
 **Answers:** S1
 **Depends on:** 337 (search width), 336 (stage trace), 335 (pair-level winners), 334 (nine-seam pair diagnosis)
 **Blocks:** the next fix — whether the binder is the state score or the group pose fit; nothing can be chosen until the two are told apart
