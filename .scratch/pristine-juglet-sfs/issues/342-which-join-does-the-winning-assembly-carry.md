@@ -86,11 +86,116 @@ Tree md5 before and after per signed arm. `sacct` State and ExitCode for every j
 
 ## Acceptance
 
-- [ ] `win trace: on`/`off` in the respective arms; zero `[SFS-342]` lines with the switch off.
-- [ ] Additions only in `class/`; no threshold, gate, `TOP_k`, `BRANCH_b` or ordering change; no GT in `class/`.
-- [ ] Part B filled for both trace-on repeats, and the two repeats compared.
-- [ ] Signed 5/3 reads 2/9 and 1/18 in the trace-on arms and in the fidelity arm; Pot A 8/8 and 15/15.
-- [ ] Tree md5 identical before/after per signed arm; `sacct` State/ExitCode recorded.
-- [ ] `## Comments (worker, <date>)` appended, ending with exactly one `**End state:**` line.
+- [x] `win trace: on`/`off` in the respective arms; zero `[SFS-342]` lines with the switch off.
+- [x] Additions only in `class/`; no threshold, gate, `TOP_k`, `BRANCH_b` or ordering change; no GT in `class/`.
+- [x] Part B filled for both trace-on repeats, and the two repeats compared.
+- [x] Signed 5/3 reads 2/9 and 1/18 in the trace-on arms and in the fidelity arm; Pot A 8/8 and 15/15.
+- [x] Tree md5 identical before/after per signed arm; `sacct` State/ExitCode recorded.
+- [x] `## Comments (worker, <date>)` appended, ending with exactly one `**End state:**` line.
 
 **Report, do not conclude.**
+
+## Comments (worker, 2026-11-14)
+
+**What changed.** One switch, additions only: 37 insertions / 0 deletions over
+`class/feature_matching.cpp` (global `g_sfs_win_trace`, `ReadSfsSwitch("SFS_WIN_TRACE", bad_wt)`, banner
+`win trace: on|off` beside the other six), `class/feature_matching.h` (`extern`), and
+`class/ranking_system.cpp` (`static void Sfs342Winner(const State&)` after `Sfs338GEdges`; called from
+`BuildStep` at class/ranking_system.cpp:1340-1343, right after `RemoveSameState(out_state_)`, on
+`out_state_[0]` — the same index the shim places the pot from, `count_move_state = 0`). It prints
+`[SFS-342] TAB WINNER <trace_id> <state_score> <n_edges> <n_clusters>` then one
+`[SFS-342] TAB WIN <trace_id> <rank> <shard_y> <shard_x> <index_> <score_> <inliner_>` per edge of that
+state, in the state's own order, clusters then list. No GT in `class/`; nothing sorted or mutated;
+thresholds, gates, `TOP_k`, `BRANCH_b`, widths untouched; no earlier ticket's token re-printed.
+
+**Runs** (Spartan, `/data/gpfs/projects/punim2657/SfSpp/runs/20261114-0139_0229a78_t342-winner`):
+
+| arm | job | State | ExitCode | elapsed | banner | accuracy |
+|---|---|---|---|---|---|---|
+| signed 5/3, trace on, r1 | 35024613_0 | COMPLETED | 0:0 | 6:25 | on | SHERD=2/9 EDGE=1/18 |
+| signed 5/3, trace on, r2 | 35024613_1 | COMPLETED | 0:0 | 6:23 | on | SHERD=2/9 EDGE=1/18 |
+| signed 5/3, fidelity | 35024613_2 | COMPLETED | 0:0 | 6:27 | off | SHERD=2/9 EDGE=1/18 |
+| Pot A, default | 35024237 | COMPLETED | 0:0 | 6:31 | off | SHERD=8/8 EDGE=15/15 |
+
+First attempt `35024236_0/_1/_2` FAILED 1:0 (5:19 / 0:54 / 5:03) — 340's pota script began with
+`rm -rf $RUN/work/trees` and deleted the juglet tasks' private trees mid-run; the pota script now owns
+`$RUN/pota_work` and never touches `$RUN/work/trees`. Those failed runs' trace lines are not used here.
+Tree md5 identical before/after per signed arm (55 files each) and for Pot A (49).
+
+**Part B — the winner.**
+
+| repeat | winner id | state_score | n_edges | n_clusters |
+|---|---|---|---|---|
+| r1 | 30 | 260 | 4 | 3 |
+| r2 | 33 | 263 | 5 | 3 |
+
+| seam | r1 (index_ / score_ / inliner_) | r2 | 340 accepted | 338 assembled (deg / mm) |
+|---|---|---|---|---|
+| 1-2 | absent | absent | id 1 @ 0.494465 (40), 0.494447 (40); id 3 @ 0.534665 (46) | 84.40 / 93.99 |
+| 1-8 | 67 / 0.440855 / 76 | 67 / 0.440855 / 76 | — | 1.24 / 1.33 |
+| 7-9 | absent | absent | none | 163.18 / 94.46 |
+| 1-9 | absent | absent | none | 89.33 / 102.18 |
+
+r1 holds 5-7 (160), 1-8 (67), 3-8 (97), 4-6 (77). r2 holds 5-7 (160), 4-7 (86), 2-9 (51), 1-8 (67), 3-8 (97).
+No edge on 1-2, 7-9 or 1-9 in either winner. The two repeats share the accuracy line and the
+1-8 / 3-8 / 5-7 backbone with identical `index_` and score; they differ in state id, score, edge count and
+the remaining joins (4-6 vs 4-7 + 2-9). The winning state is not reproducible between repeats; the
+accuracy is.
+
+**Verdict slugs.** r1: **carries-none** — the winner's printed edge list holds no 1-2 edge, and neither
+id 1 nor id 3 appears. r2: **carries-none**, same reading.
+
+**Caveats.** `RankingSubgraph::edge_` is the accumulated used-edge record, appended only at
+class/ranking_system.cpp:2270 (priority entry) and :2334 (bridge into a merge); the merge path copies the
+merged graph's nodes (:2312-2320) but not its `edge_`. r2's winner has all nine shards matched
+(`End condition : All shards are matched`) yet prints 5 edges over 3 clusters, where a 3-cluster spanning
+forest over nine pieces needs 6 — so the printed list is provably a subset of the joins the state used.
+"carries-none" therefore means no 1-2 edge was *used as a priority or bridge entry*; it is not a proof
+that pieces 1 and 2 never shared a cluster. The final build step's group is `{1,4,5,6,7,9}` in both
+repeats (piece 2 absent), which points the same way but is not the whole state. Nothing here measures the
+state score against a counterfactual with the 1-2 edge forced in, so Part D's "the state score prefers a
+split" remains unmeasured. Renders are shape comparisons, not registrations: the arm frame and the GT
+frame do not share an origin.
+
+Attribution, the full tables and seven renders: `C:/PR/artifacts/t342/`.
+
+### Lead - verification (2026-11-14, Thinkbook16)
+
+The lead re-read the code, the logs and the run records before recording anything here.
+
+- `verified:` `python C:/PR/artifacts/dsh-handover/342/accept342.py` -> 36 cases, 36 pass (the lead relaxed one
+  case of its own that demanded the unit word beside every figure; the table's header carries deg / mm).
+- `verified:` `git -C C:/PR/worktrees/structure-from-sherds-pp/342 diff HEAD -U0 -- class` -> 37 added, 0 deleted
+  (`class/feature_matching.cpp` +11, `class/feature_matching.h` +1, `class/ranking_system.cpp` +25). The call
+  site is at `class/ranking_system.cpp:1340-1343`, after the sort and `RemoveSameState(out_state_)` and before
+  the shard `Move` loop; `Sfs342Winner` only reads `graph_` and `edge_` and prints.
+- `verified:` the winner lines in `artifacts/t342/logs/binary_juglet_signed_on_r1.log` (5 lines) and
+  `..._on_r2.log` (6 lines); the switch-off log carries 0 `[SFS-342]` lines and the banner appears once per log.
+- `verified:` `artifacts/t342/runs/acc342_*.txt` -> trace-on r1 2/9 and 1/18, trace-on r2 2/9 and 1/18, fidelity
+  2/9 and 1/18, Pot A 8/8 and 15/15; `runs/sacct342.txt` -> 35024613_0/_1/_2 COMPLETED 0:0 (6:25 / 6:23 / 6:27),
+  35024237 COMPLETED 0:0 (6:31).
+- `verified:` tree md5 identical before and after in all three signed arms (55 files each) and for Pot A (49).
+- `verified:` the final-step GROUP records in both trace-on logs. In r1 the group that takes piece 2 is
+  `{2,4,5,6,7,9}` (`[SFS-338] GROUP 6 0 0 2 6 74 175 1 1`, `GROUPNODE 6 0 0 2` then `4 5 6 7 9`); in r2 the same set
+  (`GROUP 6 2 0 2 6 74 177 1 1`). Piece 1 is not in the group that takes piece 2 in either repeat.
+
+**Correction to the worker's caveat.** The caveat says the final group is `{1,4,5,6,7,9}` with piece 2 absent.
+The log says the opposite: the group carries piece 2 and omits piece 1. The substance the caveat draws is
+unchanged - pieces 1 and 2 are not in the same final group - but the membership was mis-copied and must not be
+quoted as written.
+
+**What that leaves the answer able to say.** The winner's own printed edge list holds no 1-2 edge in either
+repeat, and the last group that takes piece 2 does not take piece 1. Both facts point the same way, and both
+are bounded: `edge_` is a record of priority and bridge entries, not of every join inside a merged group
+(`class/ranking_system.cpp:2270`, `:2334`; the merge copies nodes at `:2312-2320` but not `edge_`), and r1's
+winner prints 4 edges over 3 clusters with all shards matched. So the reading is `carries-none` in the sense
+the ticket defined, not proof that pieces 1 and 2 never shared a cluster.
+
+### What this leaves open
+
+Whether the accepted 1-2 edge (candidate id 1, step 2, ticket 340) is lost by the search or only by the
+record cannot be settled with a print that reads `edge_`. It needs a node-level print: the cluster id of
+each piece in each state that holds the pair, which survives the merges that drop `edge_` entries.
+
+**End state:** ready - code and write-back on the branch; the lead lands and closes.
+

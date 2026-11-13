@@ -176,6 +176,27 @@ static void Sfs338GEdges(const RankingSubgraph& G, int step, int state, int grap
 	}
 }
 
+// TICKET 342: the winning state's own edge list, once, at the commit point. Walks out_state_[0]
+// (the state the shim's count_move_state = 0 assembles) cluster by cluster, and each cluster's
+// edge_ in the order that cluster holds it. Reads only: no sort, no mutation, no GT.
+static void Sfs342Winner(const State& S)
+{
+	int n_edges = 0;
+	for (size_t g = 0; g < S.graph_.size(); g++)
+		n_edges += (int)S.graph_[g].edge_.size();
+	cout << "[SFS-342]\tWINNER " << S.trace_id_ << " " << S.state_score_ << " " << n_edges
+		<< " " << (int)S.graph_.size() << endl;
+	int rank_in_list = 0;
+	for (size_t g = 0; g < S.graph_.size(); g++) {
+		for (list<LCSIndex>::const_iterator e = S.graph_[g].edge_.begin(); e != S.graph_[g].edge_.end(); ++e) {
+			cout << "[SFS-342]\tWIN " << S.trace_id_ << " " << rank_in_list << " "
+				<< e->shard_y_ << " " << e->shard_x_ << " " << e->index_ << " "
+				<< e->score_ << " " << e->inliner_ << endl;
+			rank_in_list++;
+		}
+	}
+}
+
 // Part D: one TransAverage call -- each input edge proposal vs the blended transform, measured
 // where the material is. node>0 for the int variant; merge_node for the merge variant. The
 // per-edge proposal is Output when the edge's index piece is on the moving side, InvOut otherwise
@@ -1316,6 +1337,10 @@ void StateManager::BuildStep(void)
 			return a.state_score_ > b.state_score_;
 			});
 		RemoveSameState(out_state_);
+		// TICKET 342: the state the run commits as the answer, at the same sort-and-dedupe the shim's
+		// count_move_state = 0 reads just after BuildStep returns. Additions only; off prints nothing.
+		if (g_sfs_win_trace && !out_state_.empty())
+			Sfs342Winner(out_state_[0]);
 
 		for (int i = 0; i < out_state_.size(); i++) {
 			for (int j = 0; j < out_state_[i].graph_.size(); j++) {
