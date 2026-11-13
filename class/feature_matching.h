@@ -23,6 +23,8 @@ extern int g_sfs_tr_step;                // TICKET 337: step whose lines are bei
 extern int g_sfs_tr_next_id;             // TICKET 337: next state id handed out
 extern vector<vector<char>> g_sfs_tr_gt; // TICKET 337: GT-joined pairs, filled by the batch shim
 extern bool g_sfs_edge_trace;            // TICKET 338: SFS_EDGE_TRACE=1 (edge-level trace)
+extern bool g_sfs_admit_trace;           // TICKET 339: SFS_ADMIT_TRACE=1 (admission trace)
+extern int g_sfs339_pc_reason;           // TICKET 339: 0 none, 1 pc_dist, 2 pc_rim (CountPCInlier)
 void InitSfsSwitches();                  // reads both env switches once, prints both banners
 void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
 

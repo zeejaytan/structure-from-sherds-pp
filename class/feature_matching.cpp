@@ -40,6 +40,15 @@ vector<vector<char>> g_sfs_tr_gt;          // [pieceA-1][pieceB-1] = 1 when GT-j
 // nothing here writes, sorts or reorders a container; every dump block is guarded by this
 // flag, so with it off the search executes exactly the statements it executed before.
 bool g_sfs_edge_trace = false;
+// TICKET 339: admission trace (SFS_ADMIT_TRACE=1). Read-only in the same sense as 336/337/338:
+// nothing here writes, sorts or reorders a container, and every [SFS-339] line is guarded by this
+// flag. Off (the default) prints one banner line and no [SFS-339] line at all, so the search
+// executes exactly the statements it executed before.
+bool g_sfs_admit_trace = false;
+// TICKET 339: why CountPCInlier() last refused a pair, for the pc_* drop line. 0 = nothing set,
+// 1 = a profile distance above 10, 2 = the breakline over the rim on both sides. It is reset by
+// the caller (RemoveEdgeUsingPCInlier) before each call and only written when the trace is on.
+int g_sfs339_pc_reason = 0;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -60,11 +69,16 @@ void InitSfsSwitches()
 	bool bad_trace = false;
 	bool bad_st = false;
 	bool bad_et = false;
+	bool bad_at = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
 	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
 	g_sfs_state_trace = ReadSfsSwitch("SFS_STATE_TRACE", bad_st);
 	g_sfs_edge_trace = ReadSfsSwitch("SFS_EDGE_TRACE", bad_et);
+	g_sfs_admit_trace = ReadSfsSwitch("SFS_ADMIT_TRACE", bad_at);
+	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
+	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
+	(void)bad_at;
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
 	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
@@ -77,6 +91,7 @@ void InitSfsSwitches()
 	cout << "stage trace: " << (g_sfs_stage_trace ? "on" : "off") << endl;
 	cout << "state trace: " << (g_sfs_state_trace ? "on" : "off") << endl;
 	cout << "edge trace: " << (g_sfs_edge_trace ? "on" : "off") << endl;
+	cout << "admit trace: " << (g_sfs_admit_trace ? "on" : "off") << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
@@ -1310,6 +1325,7 @@ bool CountPCInlier(int& inlier,
 					}
 					else if (dist > 10) {
 						result = false;
+						if (g_sfs_admit_trace && g_sfs339_pc_reason == 0) g_sfs339_pc_reason = 1;
 					}
 					num_points++;
 				}
@@ -1336,6 +1352,7 @@ bool CountPCInlier(int& inlier,
 		double bottom_gap = H_rim - z_total.min_value - 10;
 		if ((top_gap > 0) && (bottom_gap > 0)) {
 			result = false;
+			if (g_sfs_admit_trace && g_sfs339_pc_reason == 0) g_sfs339_pc_reason = 2;
 		}
 	}
 
@@ -1443,6 +1460,7 @@ bool CountPCInlier(int& inlier,
 				}
 				else if (dist > 10) {
 					result = false;
+					if (g_sfs_admit_trace && g_sfs339_pc_reason == 0) g_sfs339_pc_reason = 1;
 				}
 				num_points++;
 			}
@@ -1466,6 +1484,7 @@ bool CountPCInlier(int& inlier,
 		double bottom_gap = H_rim - z_total.min_value - 10;
 		if ((top_gap > 0) && (bottom_gap > 0)) {
 			result = false;
+			if (g_sfs_admit_trace && g_sfs339_pc_reason == 0) g_sfs339_pc_reason = 2;
 		}
 	}
 
