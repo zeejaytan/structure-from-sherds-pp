@@ -68,6 +68,11 @@ bool g_sfs_veto_trace = false;
 // only while SFS_VETO_TRACE=1 (same pattern as g_sfs339_pc_reason). -1 means no bin failed: the profile
 // was empty or matched and something else (the rim margin) refused.
 double g_sfs341_pc_dist = -1.0;
+// TICKET 345: step-0 shape dry run (SFS_STEP0_TRACE=1). Read-only in the same sense as 336-342: the
+// gate's profile-and-rim block is reproduced for an edge the gate is asked about at step 0 (that block
+// is skipped there), the three numbers are printed and discarded, and every [SFS-345] line is guarded
+// by this flag. Off (the default) the gate executes exactly the statements it executed before.
+bool g_sfs_step0_trace = false;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -92,6 +97,7 @@ void InitSfsSwitches()
 	bool bad_pt = false;
 	bool bad_wt = false;
 	bool bad_vt = false;
+	bool bad_s0 = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
 	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
@@ -101,6 +107,7 @@ void InitSfsSwitches()
 	g_sfs_pick_trace = ReadSfsSwitch("SFS_PICK_TRACE", bad_pt);
 	g_sfs_win_trace = ReadSfsSwitch("SFS_WIN_TRACE", bad_wt);
 	g_sfs_veto_trace = ReadSfsSwitch("SFS_VETO_TRACE", bad_vt);
+	g_sfs_step0_trace = ReadSfsSwitch("SFS_STEP0_TRACE", bad_s0);
 	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
 	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
 	(void)bad_at;
@@ -113,6 +120,9 @@ void InitSfsSwitches()
 	// TICKET 341: same reasoning as 339/340/342 -- with the switch off the run must print no
 	// [SFS-341] line at all, and the banner below says which state it is in.
 	(void)bad_vt;
+	// TICKET 345: same reasoning as 339/340/342/341 -- with the switch off the run must print no
+	// [SFS-345] line at all, and the banner below says which state it is in.
+	(void)bad_s0;
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
 	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
@@ -129,6 +139,7 @@ void InitSfsSwitches()
 	cout << "pick trace: " << (g_sfs_pick_trace ? "on" : "off") << endl;
 	cout << "win trace: " << (g_sfs_win_trace ? "on" : "off") << endl;
 	cout << "veto trace: " << (g_sfs_veto_trace ? "on" : "off") << endl;
+	cout << "step0 trace: " << (g_sfs_step0_trace ? "on" : "off") << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
@@ -1058,6 +1069,51 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 	}
 
 	return out;
+}
+
+// TICKET 345: read-only peer of ProfileChecking for the step-0 dry run. It walks the same bins with the
+// same least-squares fit and the same comparison, on a COPY of the profile (so the caller's vector is
+// never sorted or touched), and it writes nothing -- in particular not g_sfs341_pc_dist, which belongs to
+// the veto trace. Returns the first point distance over `threshold` in the first failing bin (the number
+// [SFS-341] prints as value_a); when the profile passes, returns the largest point distance it saw, which
+// is always <= threshold, so a passing row is not mistaken for an unmeasured one; -1 when the profile is
+// empty or no bin could be measured.
+double ProfileCheckingDistance(vector<Vector3d> profile, double bin_size, double threshold)
+{
+	if (profile.empty()) return -1.0;
+	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
+		return a(2) < b(2);
+	});
+	double max_dist = -1.0;
+	double z_max = profile.back()(2);
+	double z_min = profile.front()(2);
+	int Q_size = floor((z_max - z_min) / bin_size) + 1;
+	int s_index(0);
+	for (int i = 0; i < Q_size; i++) {
+		double bin_min = bin_size * i + z_min;
+		double bin_max = bin_size * (i + 1) + z_min;
+		int start = s_index;
+		for (int j = s_index; j < (int)profile.size(); j++) {
+			if (profile[j](2) > bin_max) break;
+			else if (profile[j](2) < bin_min) break;
+			else s_index++;
+		}
+		int end = s_index - 1;
+		MatrixXd coeff = CalculateLeastSquare(profile, start, end);
+		double den = sqrt(coeff(0) * coeff(0) + 1);
+		for (int j = start; j < end; j++) {
+			double dist(0);
+			if (abs(coeff(0)) > 1) {
+				dist = abs((coeff(0) * profile[j](2) - profile[j](0) + coeff(1)) / den);
+			}
+			else {
+				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
+			}
+			if (dist > max_dist) max_dist = dist;
+			if (dist > threshold) return dist;
+		}
+	}
+	return max_dist;
 }
 
 bool ProfileCheckingWithInlier(vector<Vector3d>& profile,
