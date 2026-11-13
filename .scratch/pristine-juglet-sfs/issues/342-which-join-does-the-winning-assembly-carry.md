@@ -1,12 +1,12 @@
 # Ticket 342 — which join does the winning assembly carry
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Branch:** 342-which-join-does-the-winning-assembly-carry
 **Answers:** S1
 **Depends on:** 340 (which candidate the search accepts), 338 (the winner and the assembled pair errors)
 **Blocks:** whether the next change is in the search or in the assembly — nothing should be changed in either until this is answered
-**Worker:** unassigned
+**Worker:** dsh one-shot subagent 5e1768bc, dispatched 2026-11-14 by the lead
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one dump of the winning state's edges; the hidden check is the table in Part B.
 
@@ -83,6 +83,9 @@ Tree md5 before and after per signed arm. `sacct` State and ExitCode for every j
 3. **The winner carries no 1-2 edge.** Pieces 1 and 2 are only joined in states that lost. The next
    ticket is the state score that prefers a split over a correct join.
 4. **Instrument void** if the fidelity arm differs from 2/9 and 1/18, or Pot A is not 8/8 and 15/15.
+
+State the reading for each repeat with one slug — `carries-id-1`, `carries-id-3` or `carries-none` — and
+name the id you found, so the lead can check it against Part B without re-reading the logs.
 
 ## Acceptance
 
