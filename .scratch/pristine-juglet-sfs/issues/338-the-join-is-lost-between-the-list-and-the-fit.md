@@ -239,7 +239,8 @@ surviving state the assembled pose tracks the candidate almost exactly — 1-8: 
 in, 1.24 / 1.33 out; 1-9: 8.82 / 3.48 in, 9.12 / 3.62 out — so the group fit adds at most
 **0.55 deg and 0.15 mm**, and `BLEND` reports 0.00 deg / 0.00 mm between an edge and its own
 proposal on the winner's joins. The seam this ticket was opened on, **7-9**, has exactly one
-candidate (id 174, inside the bar at 5.39 deg / 4.24 mm) and **no edge on 7-9 enters a state graph
+candidate (id 174, 5.39 deg / 4.24 mm — just past the 5 deg test, and still about thirty times
+closer than the 163 deg / 94 mm the assembly produced) and **no edge on 7-9 enters a state graph
 in either repeat**: the pair is never offered a join at all. 1-9's only usable candidate is already
 8.82 deg, outside the bar before the search starts. 1-2 is the exception: an edge on the pair is
 admitted from step 2 and the winner still separates 1 from 2, so that one is lost after the fit, at

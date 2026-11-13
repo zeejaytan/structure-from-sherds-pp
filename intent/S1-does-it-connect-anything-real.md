@@ -111,7 +111,8 @@ swept the search width and the loss survived it; 338 followed one named,
 GT-good candidate per seam through every boundary. On the Juglet at signed 5/3
 (2/9 sherds, 1/18 edges, all three arms identical) seam 1-8 is joined and tracks
 its candidate to 1.24°/1.33 mm, while seam 7-9 — the one 338 opened on — has a
-candidate inside the bar (5.39°/4.24 mm) that never enters a state graph in
+candidate at 5.39°/4.24 mm — just past the 5° test, but about thirty times closer
+than the 163°/94 mm the assembly produced — that never enters a state graph in
 either repeat, and 1-9's only usable candidate is already 8.82° before the search
 starts; 1-2 is admitted from step 2 and still ends 84°/94 mm apart. So wherever an
 edge is handed to the group fit it adds at most 0.55° and 0.15 mm: **the join is
