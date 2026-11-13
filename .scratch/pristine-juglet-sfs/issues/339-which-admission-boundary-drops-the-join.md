@@ -205,14 +205,17 @@ agrees with fidelity" rests on one comparison.
 |------|--------|------------------|------------------------------------------|---------|
 | 7-9 | r1 | 4 — branch window | `OFFER 0 1 12 24 3 7 9 16` then `FATE 0 1 12 7 9 skip branch 3`; 10/10 offers skip, j 4–25, steps 0–5; no drop, no veto, no GEDGE | `past-branch` |
 | 7-9 | r2 | 4 — branch window | same first offer `0 1 12 24 3 7 9 16`, same `skip branch 3`; 12/12 skip, j 3–26, steps 0–4 | `past-branch` |
-| 1-9 | r1 | 4 first, 5 in one attempt | 24/26 skip (`OFFER 0 0 30 46 3 1 9 10` → `skip branch 3`, j 4–44, steps 0–4); one `try` at step 5 state 29 j 0 then `veto PC_ 164` | `past-branch` |
+| 1-9 | r1 | 4 first, 5 in one attempt | 24/26 `skip branch 3` from `OFFER 0 0 30 46 3 1 9 10` (j 3–44, steps 0–4); 6 `pc_*` drops at j = −1; one `try` → `veto PC_ 164` (step 5, state 29, j 0) | `past-branch` |
 | 1-9 | r2 | 4 — branch window | 29/30 skip from the same first offer `0 0 30 46 3 1 9 10`; no `try`, no veto | `past-branch` |
 | 1-8 | r1 | none — control | `OFFER 0 0 0 46 3 1 8 70` → `try build 70` → `keep accept 70`; 4/4 keep, steps 0–1 | `kept` |
 | 1-8 | r2 | none — control | identical from step 0; 5/5 keep, steps 0–2 | `kept` |
 
 Both refused seams are refused by the **branch window**: `BuildStep` calls `BuildState` only for
-`j < s_ = 3`, and every offer of 7-9 and of 1-9 sits at j = 3 or higher. The control's offer sits at
-j = 0 and is kept at step 0. Best pruned candidates are identical in both repeats (pairwise pruning is
+`j < s_ = 3`. Seam 7-9 is offered ten to twelve times and never at j below 3; seam 1-9 is offered
+26 to 30 times and reaches the first three tries exactly once, in r1, at j = 0 — where
+CheckGraphPlausibility refused it (`veto PC_ 164`). The control's offer sits at j = 0 and is kept at
+step 0. So the window is what keeps both seams out of the search; for 1-9 the plausibility check also
+had one look at it and said no. Best pruned candidates are identical in both repeats (pairwise pruning is
 deterministic): 7-9 id 174 = 5.39 deg / 4.24 mm, score 0.340, inlier 16; 1-9 id 77 = 8.82 deg /
 3.48 mm, score 0.623, inlier 10; 1-8 id 70 = 0.70 deg / 1.21 mm, score 0.447, inlier 70.
 

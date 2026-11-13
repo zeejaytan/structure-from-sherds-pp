@@ -124,7 +124,8 @@ gate. A trace of every candidate offered to a state, with its priority index and
 shows 7-9 first offered at index 12 and 1-9 at index 30 — in all five repeats — while the
 build only tries the first three (BRANCH_b 3, unchanged since 337 swept it). Control seam
 1-8 is offered at index 0 and kept from step 0. So no threshold refuses either failing
-join; they are never among the first three tries, and 7-9 gets no graph edge anywhere,
+join: 7-9 is never among the first three tries, and 1-9 is once, at index 0, where the plausibility
+check refused it (inlier 164). 7-9 gets no graph edge anywhere,
 which is why 338's empty column was a lower bound and not a verdict. The lever is therefore
 the *order* of the priority list (CalculateMatchingScore / InlierCompare), not a wider
 window. The instrument itself is print-only: nine signed runs, eight at 2/9 sherds and

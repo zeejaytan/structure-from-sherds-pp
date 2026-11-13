@@ -46,8 +46,9 @@ bool g_sfs_edge_trace = false;
 // executes exactly the statements it executed before.
 bool g_sfs_admit_trace = false;
 // TICKET 339: why CountPCInlier() last refused a pair, for the pc_* drop line. 0 = nothing set,
-// 1 = a profile distance above 10, 2 = the breakline over the rim on both sides. It is reset by
-// the caller (RemoveEdgeUsingPCInlier) before each call and only written when the trace is on.
+// 1 = a profile distance above 10, 2 = the breakline over the rim on both sides. RemoveEdgeUsingPCInlier
+// resets it unconditionally before each call - a plain zero store that nothing reads while the trace
+// is off - and it is only set to 1 or 2 while the trace is on.
 int g_sfs339_pc_reason = 0;
 static bool g_sfs_switches_read = false;
 
