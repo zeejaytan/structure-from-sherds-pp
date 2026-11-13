@@ -1,10 +1,11 @@
 # Ticket 344 — one bounded bar arm: does admitting 5-7 buy accuracy
 
-**Status:** ready-for-agent
+**Status:** needs-info
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
 **Answers:** S1
 **Depends on:** 341 (the numbers behind the refusals), 340 (which candidate is applied), 337 (widening the branch window did not help)
+**Waits for:** ticket 345 (the step-0 shape dry run) — 8.86 mm cannot be read as a property of candidate 160 until the same test is run at the moment the join is made
 **Blocks:** any change to the plausibility gate's bars
 **Worker:** unassigned
 **Budget:** small (4 failed acceptance runs)
@@ -88,3 +89,20 @@ State plainly which reading the numbers give; do not conclude which is the bette
 - [ ] The 5-7 refusals counted per arm at each bar; the 4-7 11.2 mm refusals counted (they must stay).
 - [ ] Pot A at bar 9 reads 8/8 and 15/15, or the drop is recorded exactly.
 - [ ] Part B table, one reading named, one `**End state:**` line.
+
+## Why this moved back (2026-11-14, lead)
+
+The bar arm was written on the reading that 8.86 mm is the applied edge's own shape error. Two facts from
+the check of ticket 341 stop that reading short: the profile is built from **every piece of the chunk**
+(`class/ranking_system.cpp:2535-2537`), so the number describes the group, not candidate 160; and the gate
+never runs that test at step 0, which is the only step at which 5-7 is ever accepted. So the number that
+would justify moving the bar has never been measured where the join is made.
+
+Ticket 345 measures it, print-only, without touching the gate. Its readings decide this ticket's status:
+
+- `step0-shape-fails-the-applied-edge` → this ticket becomes ready as written (the bar is a real question).
+- `step0-shape-clean` → this ticket stays held; the lever is the step-0 skip and the picker (346).
+- `step0-shape-splits-within-4-7` → 346 first, then re-read this ticket's Part C.
+- `step0-unreachable` → this ticket waits for a readable number, not for an arm.
+
+Nothing in Part A-C changes; only the order in which the levers are tried.

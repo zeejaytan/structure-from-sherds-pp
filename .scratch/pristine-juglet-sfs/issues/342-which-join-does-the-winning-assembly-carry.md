@@ -188,7 +188,7 @@ quoted as written.
 repeat, and the last group that takes piece 2 does not take piece 1. Both facts point the same way, and both
 are bounded: `edge_` is a record of priority and bridge entries, not of every join inside a merged group
 (`class/ranking_system.cpp:2270`, `:2334`; the merge copies nodes at `:2312-2320` but not `edge_`), and r1's
-winner prints 4 edges over 3 clusters with all shards matched. So the reading is `carries-none` in the sense
+winner prints 4 edges over 3 clusters (r2's log says 'All shards are matched'; r1 prints no such line). So the reading is `carries-none` in the sense
 the ticket defined, not proof that pieces 1 and 2 never shared a cluster.
 
 ### What this leaves open

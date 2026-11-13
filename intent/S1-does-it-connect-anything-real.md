@@ -853,11 +853,16 @@ it judges carries a score no candidate-stage row has.
 
 - 5-7: eight refusals, profile distance 8.856-8.860 mm against the 7.0 bar (27% over),
   every one on an edge of score .35974 / inlier 77; the pair's candidate is 160
-  (.322249 / 72, 4.71 deg / 3.69 mm). It was applied once, at step 0.
-- 4-7: six refusals at 7.033-11.271 mm; the only 4-7 join ever applied is 144 —
+  (.322249 / 72, 4.71 deg / 3.69 mm). It was applied once, at step 0. The 8.86 mm, and every
+  other distance here, is a group-shape number: the profile is built from every piece of
+  the chunk (`class/ranking_system.cpp:2535-2537`), not from the pair, and the printed value
+  is the first point over the bar in the first failing bin, so later bins are never examined.
+- 4-7: six refusals at 7.033-11.271 mm; the picker’s only 4-7 accept is 144, in both
+  repeats —
   18.69 deg / 14.86 mm, outside the bar — not the in-bar 145 (3.35 deg / 2.68 mm).
 - 6-9: three refusals on overlap 73.70 / 76.06 / 76.06 against the 50 bar; the applied
-  edge is id 66, which has no candidate row at all, not 170 (2.35 deg / 1.72 mm).
+  edge is id 66 in r1 and 55 in r2, neither of which has a candidate row, not 170
+  (2.35 deg / 1.72 mm).
 
 The step-0 finding is the structural one: the whole profile-and-rim block sits inside
 `if (step_counter > 0)` (class/ranking_system.cpp:2531), so a step-0 accept is never
@@ -870,5 +875,8 @@ added lines, 0 deleted). One pot, signed sweep.
 
 Open: whether the judged edge is the table's candidate or a re-scored/regenerated one —
 scores are rewritten in place (`iter->score_ = cycle.score`, and `lcs.score_ = 11.0` at
-six sites), so the tuple mismatch is not proof. What follows: one bounded bar arm for
-5-7, whose margin is 1.9 mm; 4-7's question is the picker that chose 144 over 145.
+six sites), so the tuple mismatch is not proof. What follows: the bounded bar arm for
+5-7 is written but held (ticket 344) until a print-only arm runs the shape test at step 0
+on the edges actually applied (ticket 345) — the gate never measured a step-0 join, so
+8.86 mm cannot yet be read as a property of candidate 160. The picker’s choice within 4-7
+is ticket 346.

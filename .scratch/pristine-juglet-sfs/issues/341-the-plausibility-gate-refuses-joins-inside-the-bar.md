@@ -101,12 +101,12 @@ As 339 and 340: 3x tree, `SFS_TOPK`/`SFS_BRANCH` unset.
 
 ## Acceptance
 
-- [ ] `veto trace: on`/`off` in the respective arms; zero `[SFS-341]` lines with the switch off.
-- [ ] Additions only in `class/`; no threshold, gate, `TOP_k`, `BRANCH_b` or ordering change.
-- [ ] Part B filled for 5-7, 4-7 and 6-9 in both trace-on repeats, with the three numbers per refusal.
-- [ ] Signed 5/3 2/9 and 1/18 in the trace-on arms and the fidelity arm; Pot A 8/8 and 15/15.
-- [ ] `sacct` State and ExitCode recorded for every job id.
-- [ ] `## Comments (worker, 2026-11-14)` section appended, ending with exactly one `**End state:**` line.
+- [x] `veto trace: on`/`off` in the respective arms; zero `[SFS-341]` lines with the switch off (runs table).
+- [x] Additions only in `class/`; no threshold, gate, `TOP_k`, `BRANCH_b` or ordering change (106 added, 0 deleted).
+- [x] Part B filled for 5-7, 4-7 and 6-9 in both trace-on repeats, with the three numbers per refusal (17 rows).
+- [x] Signed 5/3 2/9 and 1/18 in the trace-on arms and the fidelity arm; Pot A 8/8 and 15/15 (`acc341_*.txt`).
+- [x] `sacct` State and ExitCode recorded for every job id (35026928, 35026977_0/_1/_2, 35026980).
+- [x] `## Comments (worker, 2026-11-14)` section appended, ending with exactly one `**End state:**` line.
 
 **Report, do not conclude.** No gate is changed in this ticket.
 ## Comments (worker, 2026-11-14)
@@ -128,7 +128,9 @@ veto print at the point the reason string is set:
 
 `y` prints before `x`. `step` is the gate's `step_counter`; `state` is `state.trace_id_`; `j` is the parameter
 named `graph_index` in the gate's signature, which `BuildState` fills with `order_index`. For `PC_`: value_a =
-the largest profile-point deviation in the bin that failed, value_b = the bar that refused (7.0 profile
+the first profile point over the bar in the first failing bin — the largest in that bin, but later bins are
+never examined, and the profile is built from every piece of the chunk (`class/ranking_system.cpp:2535-2537`),
+so this is a group-shape number rather than a pair's; value_b = the bar that refused (7.0 profile
 distance, or 10.0 when the rim-gap margin refused), value_c = the failing rim gap, -1 when no rim test ran. For
 `Overlap_<n>_`: value_a = n, value_b = 50, value_c = number of edges in the chunk. For `Score_`: graph_score_,
 0, the chunk's inlier sum. The `EDGE` line resolves the chunk's edge exactly as `[SFS-340] PICK` does.
@@ -185,7 +187,7 @@ Candidate evidence (step-0 `CAND338` table of the 339 r1 log): 5-7 = id 160, .32
 | 6-9 | 2/16/2 | Overlap_76.063163_ | 76.0632 | 50 | 1 | 123, .660523, 44 | no | refused-on-pose |
 | 6-9 | 3/20/1 | Overlap_76.063163_ | 76.0632 | 50 | 1 | 101, .660523, 44 | no | refused-on-pose |
 
-The `a` column is r1/r2 where the two repeats differ; reasons, ids and inliers are identical across repeats.
+The `a` column is r2/r1 where the two repeats differ (the smaller value is r2); reasons, ids and inliers are identical across repeats.
 Full table, instrument and checks: `C:/PR/artifacts/t341/attribution.md`.
 
 ### Slugs and readings
@@ -198,14 +200,15 @@ pass' reading of 5-7** (which said refused-while-in-bar): the old reading had on
 `EDGE` line now shows the judged edge is a regenerated 5-7 edge, not 160.
 
 **4-7 — refused-on-pose.** Six refusals on edges .361115/30, .508306/23, .517547/21, .373922/24, .429171/18;
-neither 144 (.559114/36) nor 145 (.359451/28) is among them. The only 4-7 join ever applied is 144, whose own
-pose (18.69 deg / 14.86 mm) is outside the bar; 145, the in-bar candidate, is never applied. Distances
+neither 144 (.559114/36) nor 145 (.359451/28) is among them. The picker's only 4-7 accept is 144, in both repeats, whose own
+pose (18.69 deg / 14.86 mm) is outside the bar; 145, the in-bar candidate, is never applied (r2's winner
+nonetheless carries a 4-7 edge, index 86, so other 4-7 edges do reach states). Distances
 7.033-11.271 vs 7.0 — the closest call in the table is 4/27 at 0.5% over; everything else is 9-61% over. Hands
 to 340: why prefer 144 (score .559114, 18.69 deg) over 145 (score .359451, 3.35 deg)?
 
 **6-9 — refused-on-pose.** Three `Overlap_` refusals, 73.70/76.06/76.06 against the 50 bar, on chunks with 2,
 1 and 1 edges; the judged edge is 156 (.758858/36) then 123/101 (.660523/44), not candidate 170 (.343843/18),
-and the step-4 accept uses 66 (.520905/28), which has no `CAND338` row. Hands to 340: why 156/123/101 rather
+and the step-4 accept uses 66 in r1 and 55 in r2 (.520905/28 both times), neither of which has a `CAND338` row. Hands to 340: why 156/123/101 rather
 than 170, and what is 66?
 
 No pair reads **refused-while-in-bar** and none reads **refused-on-its-own-data**. Consequence: no bounded bar
@@ -279,7 +282,7 @@ verified: `sed -n '2495,2545p' class/ranking_system.cpp` -> overlap test outside
 inside `if (step_counter > 0)` at `:2531`.
 verified: reason census on `artifacts/t341/logs/binary_juglet_signed_on_r{1,2}.log` -> 31 `PC_` + 14 `Overlap_`
 each; 5-7 distances 8.8565-8.8597; 4-7 7.0333-11.2715; 6-9 73.7024/76.0632/76.0632.
-verified: five `[SFS-341] EDGE` lines for 5-7 -> index 58-126, score .35974, inlier 77 every time.
+verified: eight `[SFS-341] EDGE` lines for 5-7 in each repeat -> index 58-126, score .35974, inlier 77 every time.
 verified: `awk` on the 339 r1 log -> four `CAND338` rows for these pairs (160, 144, 145, 170), none at .35974.
 verified: `artifacts/t341/runs/acc341_*.txt` -> signed on r1/r2 and off r1 all SHERD=2/9 EDGE=1/18; Pot A 8/8
 and 15/15; sacct 35026928 COMPLETED 0:0, 35026977_0/_1/_2 COMPLETED 0:0, 35026980 COMPLETED 0:0.

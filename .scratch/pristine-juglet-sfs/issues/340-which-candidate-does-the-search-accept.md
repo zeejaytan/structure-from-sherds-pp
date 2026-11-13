@@ -91,8 +91,9 @@ One row per accepted join of the four seams, per trace-on repeat:
 `PICK` lines for those pairs, which must be **0**.
 
 **Counted: `7-9` = 0 and `1-9` = 0 `PICK` lines in both
-trace-on repeats** (31 `PICK` lines per repeat in total, and the two repeats list the same
-31 lines with the same step/state/j, `index_`, score and inlier). 339's window verdict stands.
+trace-on repeats** (31 `PICK` lines per repeat in total; the repeats agree on step/state/j for nearly all of them, but not on every
+tuple — r2 picks 6-9 as index 55 where r1 picks 66, its 4-6 accept sits in state 29 rather than 28, and some
+scores differ in the sixth digit). 339's window verdict stands.
 
 Verdict per seam, exactly one of: `applied-in-bar` (the applied tuple is the seam's in-bar candidate
 from the table above), `applied-other` (a different candidate of the same pair), `no-accept`,
@@ -182,7 +183,7 @@ The fidelity arm reads 2/9 and 1/18 and Pot A 8/8 and 15/15, so the instrument i
 The switch is real: `binary_juglet_signed_off_r1.log` carries 0 `[SFS-340]` lines and the filtered
 pick file is 0 bytes; over the four logs the banner count is 2 on / 2 off.
 
-### PICK tuples (both trace-on repeats list the same 31 lines)
+### PICK tuples (31 lines in each repeat; the repeats differ where noted)
 
 Counts per pair: 1-8 = 4, 1-2 = 3, **7-9 = 0, 1-9 = 0**, 5-7 = 1, 4-7 = 1, 6-9 = 1.
 
@@ -240,7 +241,7 @@ Reported, not concluded.
   `worktrees/CSC/04` — a different project — gained two untracked scripts at 13:23Z and 13:33Z, after
   my 13:02Z baseline. Scoped to this project's two worktree directories; nothing else changed.
 - **Code:** `git diff HEAD -U0 -- class` = **37 added, 0 deleted** (the worker's note said 38). The
-  print is `class/ranking_system.cpp:1599-1623`, guarded by `g_sfs_pick_trace && return_value`, before
+  print is `class/ranking_system.cpp:1682-1706` (at c3985ab; 1599-1623 was true before ticket 341 landed), guarded by `g_sfs_pick_trace && return_value`, before
   the `shard_[i].Move` loop, with a `break` after the first edge of a pair, so one line per pair; the
   switch is read in `InitSfsSwitches` and the banner is `pick trace: on|off`.
 - **What the arms actually switched on:** r1 banners are `stage trace: off / state trace: off / edge
@@ -249,9 +250,10 @@ Reported, not concluded.
   arms ran EDGE + PICK only, not the three-switch set the brief asked for. Nothing this ticket needs is
   missing — the PICK line and the 338 edge lines are both present, and 7-9/1-9 = 0 is delivered — but the
   deviation is recorded rather than glossed.
-- **PICK lines:** 31 in each trace-on repeat, same tuples: per pair 1-8 = 4, 1-2 = 3, **7-9 = 0,
+- **PICK lines:** 31 in each trace-on repeat, same counts: per pair 1-8 = 4, 1-2 = 3, **7-9 = 0,
   1-9 = 0**, 5-7 = 1, 4-7 = 1, 6-9 = 1. First accepts read `PICK 0 0 0 1 8 70 0.404823 70 70` and
-  `PICK 2 14 0 1 2 1 0.494465 40 78`.
+  `PICK 2 14 0 1 2 1 0.494465 40 78`. The 6-9 tuple is `PICK 4 25 1 6 9 66 0.520905 28 28` in r1 and
+  `... 55 0.520905 28 28` in r2 — the same accept, renumbered.
 - **The score drift is a real mechanism, not a guess:** `class/feature_matching.cpp:1819`
   (`iter->score_ = cycle.score;`) rewrites an `LCSIndex`'s score, and `class/reconstruction.cpp:1487,
   1556, 1571, 1680, 1765, 1779` set `lcs.score_ = 11.0`. At a seam's first accept the printed score still
