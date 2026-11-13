@@ -9,7 +9,7 @@
 **Worker:** unassigned
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one dump of cluster membership per state; the hidden check is the table in Part B.
-**Waits for:** ticket 341 to land — both touch `class/ranking_system.cpp`, so they run in order.
+**Waits for:** ticket 344 (the one bounded bar arm for 5-7) — it can change which joins exist to follow, and both touch `class/ranking_system.cpp`.
 
 > **In one line.** Ticket 340 showed pair 1-2 accepted with its in-bar candidate (id 1, 2.14 deg /
 > 2.20 mm) at step 2. Ticket 342 showed the winning state carries no edge on that pair. Between those
