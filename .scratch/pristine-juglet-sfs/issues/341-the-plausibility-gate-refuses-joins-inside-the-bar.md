@@ -1,12 +1,12 @@
 # Ticket 341 — the plausibility gate refuses joins that are inside the bar
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Branch:** 341-the-plausibility-gate-refuses-joins-inside-the-bar, in /c/PR/worktrees/structure-from-sherds-pp/341
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Answers:** S1
 **Depends on:** 340 (which candidate is applied), 339 (the veto reasons are already printed), 338 (the candidate table)
 **Blocks:** any change to the plausibility gate or its bars
-**Worker:** unassigned
 **Budget:** small (4 failed acceptance runs)
 **Hand-over:** DeepSeek: numbers behind an existing `fail_reason`; the hidden check is the veto table in Part B.
 
