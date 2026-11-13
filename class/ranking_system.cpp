@@ -362,6 +362,11 @@ void RankingSubgraph::ResetMatchedIndex(const vector<Geom>& shard)
 	}
 }
 
+// TICKET 346: the state id the [SFS-346] RANK lines carry. Same trick as g_sfs341_state
+// (ranking_system.cpp:667) and g_sfs345_state (:726), which MakeTotalHierarchyPriority sets for
+// itself because BuildState does not run until after the list exists.
+static int g_sfs346_state = -1;
+
 void RankingSubgraph::MakeHierarchyPriorityList(int index,
 	vector<RankingSubgraph>& graph)
 {
@@ -434,6 +439,40 @@ void RankingSubgraph::MakeHierarchyPriorityList(int index,
 	}
 
 	sort(graph[index].priority_list_.begin(), graph[index].priority_list_.end(), InlierCompare);
+	// TICKET 346: the key every entry of the list just sorted carries, printed in the order the
+	// sort put it in. The last column is chunk.inlier -- the sum CalculateMatchingScore wrote
+	// (ranking_system.cpp:1839) and the field InlierCompare compares (ranking_system.cpp:1823) --
+	// read here off the same Chunk the comparator saw, never recomputed. One line per entry per
+	// distinct piece pair: an entry normally holds one pair, and a pair split over two entries
+	// prints twice so both entries are visible (the double-listing of ticket 339). An entry with no
+	// usable pair prints -1s but still prints, so every entry has a line. A state that gains a new
+	// root graph rebuilds every list (PrepareNextStep, ranking_system.cpp:1383) and so prints its
+	// block again; the last block before the PICK line is the one BuildStep walks. Additions only.
+	if (g_sfs_order_trace) {
+		for (size_t j346 = 0; j346 < graph[index].priority_list_.size(); j346++) {
+			const Chunk& ck346 = graph[index].priority_list_[j346];
+			vector<pair<int, int> > done346;
+			for (size_t e346 = 0; e346 < ck346.i_edge.size(); e346++) {
+				int ei346 = ck346.i_edge[e346];
+				if (ei346 < 0 || (size_t)ei346 >= graph[index].sub_graph_.size()) continue;
+				const LCSIndex& L346 = graph[index].sub_graph_[ei346];
+				int py346 = L346.shard_y_, px346 = L346.shard_x_;
+				if (py346 == px346) continue;
+				bool dup346 = false;
+				for (size_t d346 = 0; d346 < done346.size(); d346++)
+					if ((done346[d346].first == py346 && done346[d346].second == px346) ||
+					    (done346[d346].first == px346 && done346[d346].second == py346)) dup346 = true;
+				if (dup346) continue;
+				done346.push_back(make_pair(py346, px346));
+				cout << "[SFS-346] RANK " << g_sfs_tr_step << " " << g_sfs346_state << " "
+					<< (int)j346 << " " << py346 << " " << px346 << " " << L346.index_ << " "
+					<< L346.score_ << " " << L346.inliner_ << " " << ck346.inlier << endl;
+			}
+			if (done346.empty())
+				cout << "[SFS-346] RANK " << g_sfs_tr_step << " " << g_sfs346_state << " "
+					<< (int)j346 << " -1 -1 -1 -1 -1 " << ck346.inlier << endl;
+		}
+	}
 	graph[index].priority_index_ = 0;
 }
 
@@ -819,6 +858,8 @@ static void Sfs339Fate(int step, int state, int j, int y, int x,
 //############################## class State ##############################//
 void State::MakeTotalHierarchyPriority(void)
 {
+	// TICKET 346: which state the list being built belongs to (guarded: off changes nothing).
+	if (g_sfs_order_trace) g_sfs346_state = trace_id_;
 	int graph_size = graph_.size();
 	total_priority_.clear();
 	vector<PTR_PriorityList>().swap(total_priority_);

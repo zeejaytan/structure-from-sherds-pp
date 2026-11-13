@@ -29,6 +29,7 @@ extern bool g_sfs_win_trace;             // TICKET 342: SFS_WIN_TRACE=1 (winning
 extern bool g_sfs_veto_trace;            // TICKET 341: SFS_VETO_TRACE=1 (plausibility-gate veto trace)
 extern double g_sfs341_pc_dist;          // TICKET 341: failing profile distance for the veto line
 extern bool g_sfs_step0_trace;           // TICKET 345: SFS_STEP0_TRACE=1 (step-0 shape dry run)
+extern bool g_sfs_order_trace;           // TICKET 346: SFS_ORDER_TRACE=1 (priority-list order trace)
 extern int g_sfs339_pc_reason;           // TICKET 339: 0 none, 1 pc_dist, 2 pc_rim (CountPCInlier)
 void InitSfsSwitches();                  // reads both env switches once, prints both banners
 void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
