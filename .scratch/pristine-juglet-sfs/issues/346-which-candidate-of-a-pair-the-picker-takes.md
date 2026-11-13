@@ -1,6 +1,6 @@
 # Ticket 346 — which candidate of a pair the picker takes, and by what number
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 346-which-candidate-of-a-pair-the-picker-takes, in /c/PR/worktrees/structure-from-sherds-pp/346
 **Worker:** dsh one-shot subagent b10b2864, dispatched 2026-11-14 by the lead

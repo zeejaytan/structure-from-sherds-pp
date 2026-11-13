@@ -892,3 +892,16 @@ measures the gate's quantity. The drift hypothesis is dead by measurement: for 5
 over the bar when the edge is applied. Two consequences: ticket 344 (one bounded bar arm) has a live
 premise again, and the number the gate judges is a property of the whole chunk, not of the pair
 (ticket 341's second caveat).
+
+## 2026-11-14 - The order is not the problem; the candidate never reaches a list (ticket 346)
+
+Ticket 346 printed the number each candidate carried into the priority order (`matching_score`, a sum of
+inlier counts) and joined it to the accept. Wherever the picker has two candidates of one pair, the order is
+followed: within pair 1-2 at step 3 state 18 the list carries matching_score 84 and 33 and the picker takes 84;
+within 4-7 at step 4 state 25 it takes 21 over 19. The failing pairs are not misordered -- pair 4-7's in-bar
+candidate (3.35 deg / 2.68 mm, score .359451, inlier 28) has no row in **any** priority list in either repeat,
+and pair 6-9's in-bar candidate (2.35 deg / 1.72 mm) is listed only at step 0, four steps before the edge the
+search applies. A correct candidate that never enters a list cannot be ordered into a state, so the lever is
+upstream of the ranking key: which candidates reach a graph at all. (342's r1 assembly was reproduced at the
+edge-set level by all five trace arms; 342's r2 assembly, five edges and score 263, was not reproduced by any
+of them -- the winner remains a set-level statement.)
