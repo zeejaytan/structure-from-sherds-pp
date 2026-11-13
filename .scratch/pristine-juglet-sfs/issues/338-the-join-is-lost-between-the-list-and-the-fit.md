@@ -1,10 +1,12 @@
 # Ticket 338 — the join is lost between the candidate list and the group fit
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-13)
+**Branch:** 338-the-join-is-lost-between-the-list-and-the-fit, in /c/PR/worktrees/structure-from-sherds-pp/338
+**Worker:** dsh one-shot subagent, dispatched 2026-11-13 by the lead (dsh-opencode-go unavailable this session)
 **Answers:** S1
 **Depends on:** 337 (search width), 336 (stage trace), 335 (pair-level winners), 334 (nine-seam pair diagnosis)
 **Blocks:** the next fix — whether the binder is the state score or the group pose fit; nothing can be chosen until the two are told apart
-**Worker:** unassigned
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: four gated print blocks plus one shim dump; the hidden check is the per-arm attribution table this ticket exists to produce.
 
