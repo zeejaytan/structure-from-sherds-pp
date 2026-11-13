@@ -1596,6 +1596,31 @@ bool StateManager::BuildState(State& state,
 					state.graph_[graph_index].graph_score_);
 		}
 	}
+	// TICKET 340: the candidate this build is about to apply, one line per distinct piece pair,
+	// printed before the pose change below so it names what the search accepted and not what the
+	// assembly ended up with. Read-only, in the same sense as 336/337/338/339: no sort, no mutation,
+	// no reference outliving the call. index_ is the same LCSIndex field CAND338 prints; inlier is
+	// the chunk sum CalculateMatchingScore hands to the priority order.
+	if (g_sfs_pick_trace && return_value) {
+		const RankingSubgraph& G340 = state.graph_[graph_index];
+		const Chunk& ck340 = G340.priority_list_[pr_index];
+		vector<pair<int, int> > pairs340;
+		Sfs339ChunkPairs(G340, ck340, pairs340);
+		for (size_t d = 0; d < pairs340.size(); d++) {
+			const int py = pairs340[d].first;
+			const int px = pairs340[d].second;
+			for (size_t e = 0; e < ck340.i_edge.size(); e++) {
+				int ei = ck340.i_edge[e];
+				if (ei < 0 || (size_t)ei >= G340.sub_graph_.size()) continue;
+				const LCSIndex& L340 = G340.sub_graph_[ei];
+				if (L340.shard_y_ != py || L340.shard_x_ != px) continue;
+				cout << "[SFS-340] PICK " << step_counter_ << " " << state.trace_id_ << " "
+					<< order_index << " " << py << " " << px << " " << L340.index_ << " "
+					<< L340.score_ << " " << L340.inliner_ << " " << ck340.inlier << endl;
+				break;
+			}
+		}
+	}
 	trace_nodes("veto");
 
 	for (int i = 0; i < num_shard; i++) {
