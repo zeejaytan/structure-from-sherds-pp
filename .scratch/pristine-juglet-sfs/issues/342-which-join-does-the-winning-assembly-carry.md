@@ -1,12 +1,12 @@
 # Ticket 342 — which join does the winning assembly carry
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Branch:** 342-which-join-does-the-winning-assembly-carry, in /c/PR/worktrees/structure-from-sherds-pp/342
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Answers:** S1
 **Depends on:** 340 (which candidate the search accepts), 338 (the winner and the assembled pair errors)
 **Blocks:** whether the next change is in the search or in the assembly — nothing should be changed in either until this is answered
-**Worker:** unassigned
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one dump of the winning state's edges; the hidden check is the table in Part B.
 
