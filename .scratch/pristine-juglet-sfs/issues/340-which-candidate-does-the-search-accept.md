@@ -1,6 +1,6 @@
 # Ticket 340 — which candidate does the search accept
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 340-which-candidate-does-the-search-accept, in /c/PR/worktrees/structure-from-sherds-pp/340
 **Answers:** S1
