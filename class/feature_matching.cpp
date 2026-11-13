@@ -60,6 +60,14 @@ bool g_sfs_pick_trace = false;
 // and every [SFS-342] line is guarded by this flag. Off (the default) the commit point executes
 // exactly the statements it executed before.
 bool g_sfs_win_trace = false;
+// TICKET 341: plausibility-gate veto trace (SFS_VETO_TRACE=1). Read-only in the same sense as
+// 336-342: every [SFS-341] line is guarded by this flag, and nothing here writes, sorts or reorders
+// a container. Off (the default) the gate executes exactly the statements it executed before.
+bool g_sfs_veto_trace = false;
+// TICKET 341: the largest profile-point distance ProfileChecking saw in the bin that failed, written
+// only while SFS_VETO_TRACE=1 (same pattern as g_sfs339_pc_reason). -1 means no bin failed: the profile
+// was empty or matched and something else (the rim margin) refused.
+double g_sfs341_pc_dist = -1.0;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -83,6 +91,7 @@ void InitSfsSwitches()
 	bool bad_at = false;
 	bool bad_pt = false;
 	bool bad_wt = false;
+	bool bad_vt = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
 	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
@@ -91,6 +100,7 @@ void InitSfsSwitches()
 	g_sfs_admit_trace = ReadSfsSwitch("SFS_ADMIT_TRACE", bad_at);
 	g_sfs_pick_trace = ReadSfsSwitch("SFS_PICK_TRACE", bad_pt);
 	g_sfs_win_trace = ReadSfsSwitch("SFS_WIN_TRACE", bad_wt);
+	g_sfs_veto_trace = ReadSfsSwitch("SFS_VETO_TRACE", bad_vt);
 	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
 	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
 	(void)bad_at;
@@ -100,6 +110,9 @@ void InitSfsSwitches()
 	// TICKET 342: same reasoning as 339/340 -- with the switch off the run must print no
 	// [SFS-342] line at all, and the banner below says which state it is in.
 	(void)bad_wt;
+	// TICKET 341: same reasoning as 339/340/342 -- with the switch off the run must print no
+	// [SFS-341] line at all, and the banner below says which state it is in.
+	(void)bad_vt;
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
 	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
@@ -115,6 +128,7 @@ void InitSfsSwitches()
 	cout << "admit trace: " << (g_sfs_admit_trace ? "on" : "off") << endl;
 	cout << "pick trace: " << (g_sfs_pick_trace ? "on" : "off") << endl;
 	cout << "win trace: " << (g_sfs_win_trace ? "on" : "off") << endl;
+	cout << "veto trace: " << (g_sfs_veto_trace ? "on" : "off") << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
@@ -988,6 +1002,7 @@ bool OverlapCheck_3d(BreakLine& L0,
 bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshold)
 {
 	bool out = true;
+	if (g_sfs_veto_trace) g_sfs341_pc_dist = -1.0;	// TICKET 341: no failing bin yet
 	// Fist, sort profile curve based on height
 	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
 		return a(2) < b(2);
@@ -1030,6 +1045,9 @@ bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshol
 				dist = abs(profile[j](0) - (coeff(0) * profile[j](2) + coeff(1)));
 			}
 			if (dist > threshold) {
+				// TICKET 341: every earlier point in this bin was <= threshold, so this distance is the
+				// largest the failing bin saw; the bar is `threshold` (the gate passes 7.0).
+				if (g_sfs_veto_trace) g_sfs341_pc_dist = dist;
 				out = false;
 				break;
 			}
