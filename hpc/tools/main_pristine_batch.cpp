@@ -28,6 +28,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cstdlib>
+#include <cmath>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <boost/thread/thread.hpp>
@@ -313,6 +314,49 @@ int main(int argc, char** argv)
 
 	list<LCSIndex>::iterator iter = LCS_out.begin();
 	cout << "Total number pruned : " << LCS_out.size() << endl;
+
+	// TICKET 338 (Part A): every pruned candidate, with its placement error against GT in the
+	// axis-aligned frame the search actually uses. G_axis = T_axis[y].GT[y]^-1.GT[x].T_axis[x]^-1
+	// is the GT relative placement conjugated into the axis frame; rot is conjugation-invariant
+	// and the breakline RMS is rigid-invariant, so these equal the original-frame PlaceErr numbers
+	// (placeerr_check.py). GT is read here in the shim only; class/* never sees it. Measurement only.
+	if (g_sfs_edge_trace) {
+		for (list<LCSIndex>::iterator ci = LCS_out.begin(); ci != LCS_out.end(); ++ci) {
+			const int x = ci->shard_x_, y = ci->shard_y_;
+			Matrix4d M, Ay, Ax, GTy_inv, GTx, Ax_inv;
+			ci->trans_.Output(M);
+			T_axis[y - 1].Output(Ay);
+			T_axis[x - 1].Output(Ax);
+			T_axis[x - 1].InvOut(Ax_inv);
+			GT_trans[y - 1].InvOut(GTy_inv);
+			GT_trans[x - 1].Output(GTx);
+			Matrix4d G_axis = Ay * GTy_inv * GTx * Ax_inv;
+			Matrix4d D = M * G_axis.inverse();
+			double cc = (D.block<3, 3>(0, 0).trace() - 1.0) * 0.5;
+			if (cc < -1.0) cc = -1.0;
+			if (cc > 1.0) cc = 1.0;
+			const double rot = acos(cc) * 180.0 / 3.14159265358979323846;
+			double mat = -1.0;
+			const MatrixXd& P = shard[x - 1].edge_line_.point_;
+			if (P.cols() > 0) {
+				double sum = 0.0; int n = 0;
+				for (int c = 0; c < P.cols(); c++) {
+					Vector3d p(P(0, c), P(1, c), P(2, c));
+					Vector3d a = M.block<3, 3>(0, 0) * p + M.block<3, 1>(0, 3);
+					Vector3d b = G_axis.block<3, 3>(0, 0) * p + G_axis.block<3, 1>(0, 3);
+					sum += (a - b).squaredNorm(); n++;
+				}
+				if (n > 0) mat = sqrt(sum / n);
+			}
+			const int gt_edge = (GT_graph(y - 1, x - 1) > 0.0) ? 1 : 0;
+			cout << "[SFS-338]\tCAND338\t" << ci->index_ << "\t" << y << "\t" << x
+				<< "\t" << ci->score_ << "\t" << ci->inliner_
+				<< "\t" << (ci->axis_raw_ * 180.0 / 3.14159265358979323846)
+				<< "\t" << gt_edge << "\t" << rot << "\t" << mat << endl;
+		}
+		cout << "[SFS-338]\tCANDTOTAL\t" << LCS_out.size() << endl;
+	}
+
 	int count_move_state(0);
 
 	cout << "#################### Incremental graph building ####################" << endl;

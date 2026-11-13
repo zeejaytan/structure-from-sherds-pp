@@ -36,6 +36,10 @@ bool g_sfs_state_trace = false;
 int g_sfs_tr_step = -1;                    // step whose lines are being printed
 int g_sfs_tr_next_id = 0;                  // next state id handed out
 vector<vector<char>> g_sfs_tr_gt;          // [pieceA-1][pieceB-1] = 1 when GT-joined
+// TICKET 338: edge-level trace (SFS_EDGE_TRACE=1). Read-only in the same sense as 336/337:
+// nothing here writes, sorts or reorders a container; every dump block is guarded by this
+// flag, so with it off the search executes exactly the statements it executed before.
+bool g_sfs_edge_trace = false;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -55,20 +59,24 @@ void InitSfsSwitches()
 	bool bad_cov = false, bad_sign = false;
 	bool bad_trace = false;
 	bool bad_st = false;
+	bool bad_et = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
 	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
 	g_sfs_state_trace = ReadSfsSwitch("SFS_STATE_TRACE", bad_st);
+	g_sfs_edge_trace = ReadSfsSwitch("SFS_EDGE_TRACE", bad_et);
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
 	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
 	if (bad_st) cout << "[SFS-337] SFS_STATE_TRACE is not 1; state trace off" << endl;
+	if (bad_et) cout << "[SFS-338] SFS_EDGE_TRACE is not 1; edge trace off" << endl;
 	g_sfs_axis_sign = false;   // only SignAxisGuard() may switch this on
 	g_sfs_basket_erased_15 = 0; g_sfs_cand_erased_15 = 0; g_sfs_cand_erased_10 = 0;
 	cout << "coverage score: " << (g_sfs_coverage ? "coverage" : "legacy") << endl;
 	cout << "axis sign: " << (g_sfs_axis_sign_requested ? "signed (pending sign guard)" : "legacy") << endl;
 	cout << "stage trace: " << (g_sfs_stage_trace ? "on" : "off") << endl;
 	cout << "state trace: " << (g_sfs_state_trace ? "on" : "off") << endl;
+	cout << "edge trace: " << (g_sfs_edge_trace ? "on" : "off") << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a

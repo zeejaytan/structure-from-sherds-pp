@@ -170,3 +170,81 @@ A mixed answer is reported as a split, seam by seam.
   `cand_table.py`, `placeerr_check.py`, `render_seams.py`.
 
 ## Comments
+
+## Comments (worker, 2026-11-13)
+
+The dispatched worker session (`f53606b1-0307-4f82-94c6-1ef2c97e3399`) lost its provider quota
+twice — once at 18:05 while setting up the runs, again at 19:51 while computing final pose errors —
+*after* the code, the three arms and the Pot A control had completed. The code, the staging, the
+submission and the logs are the worker's; the attribution table, the renders and this section are
+the lead's, so the seam-level conclusions are the lead's and not the worker's.
+
+### What changed
+
+| file | lines | content |
+|------|-------|---------|
+| `class/feature_matching.h` | +1 | `extern bool g_sfs_edge_trace;` |
+| `class/feature_matching.cpp` | +8 | the switch (`SFS_EDGE_TRACE=1`, banner `edge trace: on`) and `Sfs338MatRMS`, GT-free breakline RMS between two placements |
+| `class/ranking_system.cpp` | +162 | `Sfs338GEdges` (GEDGE), `Sfs338Blend` (BLEND), GROUP/GROUPNODE around `IcpIncGraphAxis`, the `TOTALS` line |
+| `hpc/tools/main_pristine_batch.cpp` | +44 | `CAND338` dump of the pruned candidate list, placed against GT (GT read here only) |
+
+215 insertions, 0 deletions. `[SFS-336]` and `[SFS-337]` print lines untouched; no threshold,
+gate, `TOP_k`, `BRANCH_b` or width change.
+
+### Runs (signed 5/3 unless stated)
+
+| job | arm | sacct |
+|-----|-----|-------|
+| `35008961_0` | signed 5/3, all three traces on, r1 | COMPLETED, ExitCode 0:0, 5:09 |
+| `35008961_1` | signed 5/3, all three traces on, r2 | COMPLETED, ExitCode 0:0, 7:35 |
+| `35008961_2` | signed 5/3, edge trace off, r1 | COMPLETED, ExitCode 0:0, 8:28 |
+| `35008962` | Pot A, default settings | COMPLETED, ExitCode 0:0, 4:57 |
+
+`sacct -j 35008961,35008962 --format=JobID,State,ExitCode -P` — every row COMPLETED, ExitCode 0:0.
+
+Accuracy: **2/9 sherds, 1/18 edges** in all three signed arms (281 s / 418 s / 470 s), so the
+trace is fidelity-clean; **Pot A 8/8 sherds, 15/15 edges**, so the run is not void.
+
+### The four seams
+
+| seam | best candidate (GT) | edge on the pair in a state? | final pair, r1 | final pair, r2 | verdict |
+|------|--------------------|------------------------------|----------------|----------------|---------|
+| 1-2 | id 1: 2.14 deg / 2.20 mm | yes, from step 2, 13 GEDGE lines | 84.40 deg / 93.99 mm, split | 32.79 deg / 41.76 mm, split | lost |
+| 1-8 | id 70: 0.70 deg / 1.21 mm | yes, from step 0, 71 / 82 lines | 1.24 deg / 1.33 mm, one cluster | 1.27 deg / 1.38 mm, one cluster | joined |
+| 1-9 | id 77: 8.82 deg / 3.48 mm | no in r1; one edge in r2 | 89.33 deg / 102.18 mm, split | 9.12 deg / 3.62 mm, one cluster | lost (outside the bar either way) |
+| 7-9 | id 174: 5.39 deg / 4.24 mm | **no, either arm** | 163.18 deg / 94.46 mm, split | 141.23 deg / 89.88 mm, split | lost |
+
+**Where the join is lost: before the fit, not in it.** Where an edge on a pair is present in a
+surviving state the assembled pose tracks the candidate almost exactly — 1-8: 0.70 deg / 1.21 mm
+in, 1.24 / 1.33 out; 1-9: 8.82 / 3.48 in, 9.12 / 3.62 out — so the group fit adds at most
+**0.55 deg and 0.15 mm**, and `BLEND` reports 0.00 deg / 0.00 mm between an edge and its own
+proposal on the winner's joins. The seam this ticket was opened on, **7-9**, has exactly one
+candidate (id 174, inside the bar at 5.39 deg / 4.24 mm) and **no edge on 7-9 enters a state graph
+in either repeat**: the pair is never offered a join at all. 1-9's only usable candidate is already
+8.82 deg, outside the bar before the search starts. 1-2 is the exception: an edge on the pair is
+admitted from step 2 and the winner still separates 1 from 2, so that one is lost after the fit, at
+winner selection.
+
+### Renders
+
+`artifacts/t338/renders/`: `seam_7_9_gt.png`, `seam_7_9_juglet_signed_on_r1.png`,
+`seam_7_9_juglet_signed_on_r2.png`, `seam_7_9_juglet_signed_off_r1.png`, the same three for
+`seam_1_2` and `seam_1_9`, plus `assembly_winner_r1.png` and `assembly_reference.png`.
+In every assembled panel pieces 7 and 9 are separate arcs tens of millimetres apart; in the
+reference panel they form one continuous rim arc.
+
+### Instrument caveat
+
+`GEDGE` prints `LCSIndex::index_` and that value is **not** the `CAND338` id (GEDGE id 77 is the
+4-6 edge while candidate 77 is the 1-9 edge), so candidates are followed by piece pair, not by id.
+`GEDGE` also prints on state entry, so an edge applied at the last step of a state that then fails
+to extend may be missing: the "in a state" column is a lower bound on use.
+
+### Artefacts
+
+`artifacts/t338/attribution.md`, `attribution.tsv`, `analyze338.py`, `render338.py`,
+`runs/` (three binary logs, four `acc75` files), `renders/` (14 PNG). Staged on Spartan under
+`/data/gpfs/projects/punim2657/SfSpp/stage338/` (source tarball, the worktree diff, both submit
+scripts, arm map).
+
+**End state:** ready — code uncommitted on the branch, all four arms complete, attribution and renders in `artifacts/t338`; the lead commits and closes this ticket.

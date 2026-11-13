@@ -128,6 +128,91 @@ static void Sfs337Refuse(const char* site, const Matrix4d& T_i, const Matrix4d& 
 	cout << "[SFS-337]\tREFUSE\t" << g_sfs_tr_step << "\t" << site << "\t" << piece_i_out << "\t" << piece_c_out
 		<< "\t" << piece_shared << "\t" << rot_deg << "\t" << t_mm << "\t" << mat_mm << endl;
 }
+//============================== TICKET 338: edge-level trace ==============================//
+// SFS_EDGE_TRACE=1 only. Measurement only: every function below reads, prints and returns.
+// None sorts, mutates or reorders a container; with the switch off the search executes exactly
+// the statements it executed before. Breakline points come from StateManager's own copy
+// (g_sfs338_shard); class/* opens no GT file. The GT conjugate for CAND338 lives in the shim.
+static const vector<Geom>* g_sfs338_shard = NULL;
+static int g_sfs338_step = 0;
+static int g_sfs338_state = -1;
+static int g_sfs338_graph = -1;
+static long g_sfs338_n_gedge = 0;
+static long g_sfs338_n_states = 0;
+static long g_sfs338_n_group = 0;
+static long g_sfs338_n_groupnode = 0;
+static long g_sfs338_n_blend = 0;
+
+// RMS over one piece's breakline of the distance between two placements of the SAME points.
+// Subsampled so the trace stays cheap; -1 when there is nothing to measure.
+static double Sfs338MatRMS(const Matrix4d& T_a, const Matrix4d& T_b, int piece)
+{
+	if (g_sfs338_shard == NULL) return -1.0;
+	if (piece < 1 || (size_t)piece > g_sfs338_shard->size()) return -1.0;
+	const MatrixXd& P = (*g_sfs338_shard)[piece - 1].edge_line_.point_;
+	if (P.cols() < 1) return -1.0;
+	const int stride = 1 + P.cols() / 200;
+	double sum = 0.0;
+	int n = 0;
+	for (int c = 0; c < P.cols(); c += stride) {
+		Vector3d p(P(0, c), P(1, c), P(2, c));
+		Vector3d a = T_a.block<3, 3>(0, 0) * p + T_a.block<3, 1>(0, 3);
+		Vector3d b = T_b.block<3, 3>(0, 0) * p + T_b.block<3, 1>(0, 3);
+		sum += (a - b).squaredNorm();
+		n++;
+	}
+	if (n < 1) return -1.0;
+	return sqrt(sum / n);
+}
+
+// Part B: every edge in one graph's edge_ (the accumulated used-edge history), one line each.
+static void Sfs338GEdges(const RankingSubgraph& G, int step, int state, int graph)
+{
+	for (list<LCSIndex>::const_iterator e = G.edge_.begin(); e != G.edge_.end(); ++e) {
+		cout << "[SFS-338]\tGEDGE\t" << step << "\t" << state << "\t" << graph
+			<< "\t" << e->index_ << "\t" << e->shard_y_ << "\t" << e->shard_x_
+			<< "\t" << e->score_ << endl;
+		g_sfs338_n_gedge++;
+	}
+}
+
+// Part D: one TransAverage call -- each input edge proposal vs the blended transform, measured
+// where the material is. node>0 for the int variant; merge_node for the merge variant. The
+// per-edge proposal is Output when the edge's index piece is on the moving side, InvOut otherwise
+// (exactly the convention TransAverage itself uses). Reads only; writes nothing.
+static void Sfs338Blend(int node, const vector<bool>* merge_node,
+	const vector<LCSIndex>& edges, const Matrix3d& R, const Vector3d& t)
+{
+	g_sfs338_n_blend++;
+	Matrix4d T_blend = Matrix4d::Identity();
+	T_blend.block<3, 3>(0, 0) = R;
+	T_blend.block<3, 1>(0, 3) = t;
+	int rep = node;
+	if (merge_node != NULL) {
+		rep = -1;
+		for (size_t k = 0; k < merge_node->size(); k++)
+			if ((*merge_node)[k]) { rep = (int)k + 1; break; }
+	}
+	string ids, rots, mats;
+	for (size_t i = 0; i < edges.size(); i++) {
+		bool is_node = (merge_node != NULL)
+			? ((*merge_node)[edges[i].trans_.index_ - 1])
+			: (edges[i].trans_.index_ == node);
+		Matrix4d T_e;
+		if (is_node) edges[i].trans_.Output(T_e);
+		else edges[i].trans_.InvOut(T_e);
+		double rot_deg = 0.0, t_mm = 0.0;
+		Sfs337RotTrans(T_blend, T_e, rot_deg, t_mm);
+		const double mat = Sfs338MatRMS(T_blend, T_e, rep);
+		char buf[64];
+		if (i) { ids += " "; rots += " "; mats += " "; }
+		sprintf(buf, "%d", edges[i].index_); ids += buf;
+		sprintf(buf, "%.4f", rot_deg); rots += buf;
+		sprintf(buf, "%.4f", mat); mats += buf;
+	}
+	cout << "[SFS-338]\tBLEND\t" << g_sfs338_step << "\t" << g_sfs338_state << "\t" << g_sfs338_graph
+		<< "\t" << rep << "\t" << (int)edges.size() << "\t" << ids << "\t" << rots << "\t" << mats << endl;
+}
 //############################## class RankingSubgraph ##############################//
 void RankingSubgraph::Copy(RankingSubgraph& input)
 {
@@ -797,7 +882,9 @@ void State::RemoveSamePriority()
 
 			Matrix3d R, r_R, c_R;
 			Vector3d t, r_t, c_t;
+			if (g_sfs_edge_trace) { g_sfs338_step = g_sfs_tr_step; g_sfs338_state = trace_id_; g_sfs338_graph = r_graph_i; }
 			TransAverage(graph_[r_graph_i].node_, r_edge, r_R, r_t);
+			if (g_sfs_edge_trace) { g_sfs338_graph = c_graph_i; }
 			TransAverage(graph_[c_graph_i].node_, c_edge, c_R, c_t);
 
 			R = r_R * c_R;
@@ -864,6 +951,7 @@ void StateManager::Initialize(int N,
 	// TICKET 337: the trace reads breakline points from this manager's own copy and numbers
 	// the root states. Both are measurement only; nothing downstream reads them.
 	if (g_sfs_state_trace) g_sfs337_shard = &shard_;
+	if (g_sfs_edge_trace) g_sfs338_shard = &shard_;
 	g_sfs_tr_step = 0;
 
 	vector<pair<int, int>> root_node = SortRoot(initial_graph_, shard_);
@@ -1083,6 +1171,13 @@ void StateManager::BuildStep(void)
 							<< "\t" << next_state.state_score_ << "\t" << next_state.total_priority_.size()
 							<< "\t" << Sfs337Part(next_state.graph_) << endl;
 					}
+					// TICKET 338: the accepted child's used-edge history. state=trace_id_ joins the
+					// 337 STEP/CUT winner lines for this surviving child.
+					if (g_sfs_edge_trace) {
+						g_sfs338_n_states++;
+						for (size_t g = 0; g < next_state.graph_.size(); g++)
+							Sfs338GEdges(next_state.graph_[g], step_counter_, next_state.trace_id_, (int)g);
+					}
 					next_state_set.push_back(next_state);
 					ext_counter++;
 				}
@@ -1121,6 +1216,12 @@ void StateManager::BuildStep(void)
 					out_state_[i].graph_[j].T_[k].Output(R, t);
 				}
 			}
+		}
+		// TICKET 338: totals for the whole search, once, at the end of BuildStep.
+		if (g_sfs_edge_trace) {
+			cout << "[SFS-338]\tTOTALS\tgedge=" << g_sfs338_n_gedge
+				<< "\tstates=" << g_sfs338_n_states << "\tgroup=" << g_sfs338_n_group
+				<< "\tgroupnode=" << g_sfs338_n_groupnode << "\tblend=" << g_sfs338_n_blend << endl;
 		}
 		return;
 	}
@@ -1188,6 +1289,16 @@ bool StateManager::BuildState(State& state,
 	state.graph_[graph_index].priority_index_ = state.total_priority_[order_index].priority_index_;
 	int pr_index = state.graph_[graph_index].priority_index_;
 	int merge_graph = state.graph_[graph_index].priority_list_[pr_index].graph_index;
+
+	// TICKET 338: context for the edge-level trace of this build, then every graph's used-edge
+	// history before the fit. state=ext_index joins the 336 STAGE lines of this expansion.
+	if (g_sfs_edge_trace) {
+		g_sfs338_step = step_counter_;
+		g_sfs338_state = ext_index;
+		g_sfs338_graph = graph_index;
+		for (size_t g = 0; g < state.graph_.size(); g++)
+			Sfs338GEdges(state.graph_[g], step_counter_, ext_index, (int)g);
+	}
 
 	// TICKET 336: the priority entry being built, with the edges of its chunk.
 	// Read-only: walks lcs_reference_ to resolve the chunk's edge positions.
@@ -1258,6 +1369,17 @@ bool StateManager::BuildState(State& state,
 	bool rim_restrain = true, axis_restrain = true;
 	vector<RankingSubgraph> Dummy_graph;
 
+	// TICKET 338: the group score before the incremental group ICP, and each node's breakline
+	// before the fit moves it. Capture only; the ICP call below is unchanged.
+	int sfs338_score_before = state.graph_[graph_index].graph_score_;
+	vector<MatrixXd> sfs338_pre;
+	if (g_sfs_edge_trace) {
+		sfs338_pre.resize(num_shard);
+		for (int i = 0; i < num_shard; i++)
+			if (state.graph_[graph_index].node_[i])
+				sfs338_pre[i] = shard_[i].edge_line_.point_;
+	}
+
 	IcpIncGraphAxis(shard_,
 		R,
 		t,
@@ -1266,6 +1388,42 @@ bool StateManager::BuildState(State& state,
 		state.graph_[graph_index].graph_score_,
 		rim_restrain,
 		axis_restrain);
+
+	// TICKET 338: the group score after the incremental group ICP, and per node how far the
+	// fit moved the material. score_before/after are graph_score_ read around the call above.
+	if (g_sfs_edge_trace) {
+		const RankingSubgraph& G338 = state.graph_[graph_index];
+		int n_nodes = 0;
+		for (int i = 0; i < num_shard; i++) if (G338.node_[i]) n_nodes++;
+		cout << "[SFS-338]\tGROUP\t" << g_sfs338_step << "\t" << g_sfs338_state << "\t" << g_sfs338_graph
+			<< "\t" << merge_graph << "\t" << n_nodes << "\t" << sfs338_score_before
+			<< "\t" << G338.graph_score_ << "\t" << (rim_restrain ? 1 : 0)
+			<< "\t" << (axis_restrain ? 1 : 0) << endl;
+		g_sfs338_n_group++;
+		for (int i = 0; i < num_shard; i++) {
+			if (!G338.node_[i]) continue;
+			double c = (R[i].trace() - 1.0) * 0.5;
+			if (c < -1.0) c = -1.0;
+			if (c > 1.0) c = 1.0;
+			const double rot = acos(c) * 180.0 / 3.14159265358979323846;
+			const double t_mm = t[i].norm();
+			double mat = -1.0;
+			const MatrixXd& P = sfs338_pre[i];
+			if (P.cols() > 0) {
+				const int stride = 1 + P.cols() / 200;
+				double sum = 0.0; int n = 0;
+				for (int cc = 0; cc < P.cols(); cc += stride) {
+					Vector3d p(P(0, cc), P(1, cc), P(2, cc));
+					Vector3d q = R[i] * p + t[i];
+					sum += (q - p).squaredNorm(); n++;
+				}
+				if (n > 0) mat = sqrt(sum / n);
+			}
+			cout << "[SFS-338]\tGROUPNODE\t" << g_sfs338_step << "\t" << g_sfs338_state << "\t" << g_sfs338_graph
+				<< "\t" << (i + 1) << "\t" << rot << "\t" << t_mm << "\t" << mat << endl;
+			g_sfs338_n_groupnode++;
+		}
+	}
 
 	for (int i = 0; i < num_shard; i++) {
 		state.graph_[graph_index].T_[i].Input(R[i], t[i]);
@@ -1485,6 +1643,7 @@ void TransAverage(int current_node,
 	if (num_edge == 1) {
 		R = R_ref;
 		t = t_ref;
+		if (g_sfs_edge_trace) Sfs338Blend(current_node, NULL, edges, R, t);
 		return;
 	}
 
@@ -1523,6 +1682,7 @@ void TransAverage(int current_node,
 
 	R = R_avg * R_ref;
 	t = R_avg * t_ref + t_avg;
+	if (g_sfs_edge_trace) Sfs338Blend(current_node, NULL, edges, R, t);
 }
 
 void TransAverage(const vector<bool>& merge_node,
@@ -1552,6 +1712,7 @@ void TransAverage(const vector<bool>& merge_node,
 	if (num_edge == 1) {
 		R = R_ref;
 		t = t_ref;
+		if (g_sfs_edge_trace) Sfs338Blend(-1, &merge_node, edges, R, t);
 		return;
 	}
 
@@ -1591,6 +1752,7 @@ void TransAverage(const vector<bool>& merge_node,
 
 	R = R_avg * R_ref;
 	t = R_avg * t_ref + t_avg;
+	if (g_sfs_edge_trace) Sfs338Blend(-1, &merge_node, edges, R, t);
 }
 
 void PickEdges(list<LCSIndex>& lcs_out, const vector<bool>& true_node)
