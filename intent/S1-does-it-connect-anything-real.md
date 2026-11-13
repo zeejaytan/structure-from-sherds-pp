@@ -880,3 +880,15 @@ six sites), so the tuple mismatch is not proof. What follows: the bounded bar ar
 on the edges actually applied (ticket 345) — the gate never measured a step-0 join, so
 8.86 mm cannot yet be read as a property of candidate 160. The picker’s choice within 4-7
 is ticket 346.
+
+## 2026-11-14 - The join inside the bar is already over the shape bar (ticket 345)
+
+Ticket 341 showed the plausibility gate refusing 5-7 with a profile distance of 8.86 mm against a 7.0 mm
+bar, but it could not say whether the join had been good when it was made and only the growing group had
+drifted. Ticket 345 measured the same quantity at step 0, on the chunk that contains the pair, without
+letting it act: 5-7's own distance **at the moment of the join** is 8.90688 mm (r1) and 8.84147 mm (r2) --
+the same order as the later refusals. The 1-8 control, a join that sticks, measures 5.83 mm, so the dry run
+measures the gate's quantity. The drift hypothesis is dead by measurement: for 5-7 the group is already
+over the bar when the edge is applied. Two consequences: ticket 344 (one bounded bar arm) has a live
+premise again, and the number the gate judges is a property of the whole chunk, not of the pair
+(ticket 341's second caveat).

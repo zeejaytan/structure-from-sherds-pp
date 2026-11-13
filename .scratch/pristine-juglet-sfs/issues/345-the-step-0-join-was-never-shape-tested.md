@@ -1,6 +1,6 @@
 # Ticket 345 — the step-0 join was never shape-tested: what does the test say about it
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 345-the-step-0-join-was-never-shape-tested, in /c/PR/worktrees/structure-from-sherds-pp/345
 **Worker:** dsh one-shot subagent d299a21d, dispatched 2026-11-14 by the lead
@@ -114,8 +114,44 @@ is not print-only and the ticket ends incomplete (record both lists).
 Ceres solves, see § Proof the dry run did not act), and ticket 342's own two arms differ from line 217.
 - [x] Signed 5/3 2/9 and 1/18 in all three signed arms; Pot A 8/8 and 15/15. — `SHERD=2/9 EDGE=1/18` in `step0_on_r1`, `step0_on_r2`, `step0_unset`; `SHERD=8/8 EDGE=15/15` in `step0_pota`.
 - [x] `sacct` State and ExitCode for every job id; tree md5 identical per arm. — § Arms below; 55 files per juglet arm identical before/after (all three), 49 files for Pot A.
-- [x] `## Comments (worker, 2026-11-14)` section, ending with exactly one `**End state:**` line.
+- [x] `## Comments (worker, 2026-11-14)` section, ending with exactly one `### Lead -- verification (2026-11-14, Thinkbook16)
 
+The lead re-read the diff, both trace-on logs, the four acc files and the sacct record before recording
+anything here.
+
+- Code: `git diff HEAD -U0 -- class` is 168 additions and 0 deletions across three files
+  (`class/feature_matching.cpp` +56, `class/feature_matching.h` +6, `class/ranking_system.cpp` +106).
+  `bool ProfileChecking(vector<Vector3d>& profile, double bin_size, double threshold)` is still at
+  `class/feature_matching.cpp:1013`, byte-identical to `origin/main`, and its one call site
+  `class/ranking_system.cpp:2649` is untouched; the added peer `ProfileCheckingDistance`
+  (`class/feature_matching.cpp:1081`) is called once from `class/ranking_system.cpp:758` inside the trace
+  block, so the gate still runs the old function.
+- The numbers: 5-7's step-0 group-profile distance is 8.90688 mm (r1) and 8.84147 mm (r2); the 1-8 control is
+  5.82739 / 5.82647 mm; 4-7's applied edge 144 is 9.66546 / 9.66524 mm; 1-3's applied edge 22 is 7.00427 mm.
+  Nine `[SFS-345] STEP0` rows per trace-on repeat, every one at step 0, 11 fields.
+- The switch: 0 `[SFS-345]` lines with `SFS_STEP0_TRACE` unset, 9 with it on; banner read both ways.
+- Accuracy: `SHERD=2/9 EDGE=1/18` in all three signed arms, `SHERD=8/8 EDGE=15/15` for Pot A; the two
+  trace-on jobs report `FAILED 1:0` only because the worker's own winner assertion exited non-zero after the
+  binary had already written a correct acc file, which the lead read.
+- Isolation: tree md5 identical before and after in all four arms (55 / 55 / 55 / 49 files).
+- Correction the lead made before landing: the write-back first blamed the winner swap on
+  `std::random_device` in the signed-axis RANSAC. `ComputePotSACAxis` is declared
+  (`class/axis_estimation.h:19`) and defined (`class/axis_estimation.cpp:106`) but has **no caller**, so it
+  cannot be the cause; the recorded cause is the twelve-thread Ceres solves
+  (`#define NUMBER_OF_THREAD 12` at `class/data_structure.h:18`), as established for ticket 339. What the
+  worker drew from the swap still stands: the rep label is a draw, so box 5 is met as a set, not rep for rep.
+- Hidden check: 43 of 43 cases pass (`C:/PR/artifacts/dsh-handover/345/accept345.py`).
+
+verified: `python artifacts/dsh-handover/345/accept345.py` -> 43/43 cases pass
+verified: `git -C worktrees/structure-from-sherds-pp/345 diff HEAD -U0 -- class` -> 168 additions, 0 deletions
+verified: `grep 'SFS-345. STEP0' artifacts/t345/logs/binary_juglet_signed_on_r1.log` -> 9 rows; 5-7 8.90688, 1-8 control 5.82739
+verified: `cat artifacts/t345/runs/acc345_juglet_signed_on_r1.txt` -> SHERD=2/9 EDGE=1/18 (same in _on_r2 and _unset_r1)
+verified: `cat artifacts/t345/runs/acc345_pota.txt` -> SHERD=8/8 EDGE=15/15
+verified: `sacct -j 35029471,35029472,35029367` -> recorded in the arms table above
+verified: `cmp tree_md5_before_juglet_signed_on_r1.txt tree_md5_after_juglet_signed_on_r1.txt` -> identical, and likewise for the other three arms
+
+**End state:** ready -- the branch carries the code, the logs, the acc files and this write-back; the lead
+lands and closes.
 ## Comments (worker, 2026-11-14)
 
 **What the run says, in one paragraph.** At step 0, when the gate is asked about the chunk that contains
