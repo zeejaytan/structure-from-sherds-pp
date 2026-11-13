@@ -1,13 +1,13 @@
 # Ticket 346 — which candidate of a pair the picker takes, and by what number
 
-**Status:** ready-for-agent
-**Waits for:** nothing -- ticket 345 landed 2026-11-14 (the 5-7 join is already 8.9 mm from its own profile when it is made); work only in the worktree this ticket opens
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Branch:** 346-which-candidate-of-a-pair-the-picker-takes, in /c/PR/worktrees/structure-from-sherds-pp/346
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
+**Waits for:** nothing -- ticket 345 landed 2026-11-14 (the 5-7 join is already 8.9 mm from its own profile when it is made); work only in the worktree this ticket opens
 **Answers:** S1
 **Depends on:** 340 (which candidate the search applies), 341 (the gate's refusals), 339 (the priority order is the window)
 **Blocks:** any change to the priority order, and ticket 344 if 345 reads `step0-shape-splits-within-4-7`
-**Worker:** unassigned
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one print of the ordering key each candidate carried, joined to the accept; the hidden check is the table in Part B.
 
