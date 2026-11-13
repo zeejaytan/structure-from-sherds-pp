@@ -3,7 +3,7 @@
 **Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-13)
 **Branch:** 338-the-join-is-lost-between-the-list-and-the-fit, in /c/PR/worktrees/structure-from-sherds-pp/338
-**Worker:** dsh one-shot subagent, dispatched 2026-11-13 by the lead (dsh-opencode-go unavailable this session)
+**Worker:** f53606b1-0307-4f82-94c6-1ef2c97e3399 (dsh one-shot subagent, qoder-global/qmodel_latest; dispatched 2026-11-13 by the lead — dsh-opencode-go is not an allowed provider in this session)
 **Answers:** S1
 **Depends on:** 337 (search width), 336 (stage trace), 335 (pair-level winners), 334 (nine-seam pair diagnosis)
 **Blocks:** the next fix — whether the binder is the state score or the group pose fit; nothing can be chosen until the two are told apart
@@ -171,6 +171,26 @@ A mixed answer is reported as a split, seam by seam.
 
 ## Comments
 
+### Lead — dispatch (2026-11-13, Thinkbook16)
+
+Opened with `scripts/ticket_dispatch.sh --worker ...` (dry-run first): worktree
+`C:/PR/worktrees/structure-from-sherds-pp/338`, branch
+`338-the-join-is-lost-between-the-list-and-the-fit`, claim commit `1ad906c` pushed to `origin`.
+The worker edits only that worktree plus `artifacts/t338/`; it does not commit.
+
+Routing deviation, recorded because it changes who did the work: the DeepSeek route named in the
+Hand-over line (`dsh-opencode-go`) is **not an allowed provider in this harness session** — the model
+list rejects it, and no `dsh_send`/`dsh_status` tools exist here. The ticket went instead to a dsh
+one-shot subagent `f53606b1-0307-4f82-94c6-1ef2c97e3399` on `qoder-global/qmodel_latest`, the only
+permitted route, with the full task book (Parts A-E, arms, budget of 8 failed checks, four end states).
+The lead's own acceptance check was written and smoke-run **before** the hand-over, per
+`docs/agents/delegation.md`; the worker is not told it exists.
+
+Arms the worker must return: signed 5/3 trace-on x2, signed 5/3 trace-off x1 (fidelity), Pot A default
+x1 as the 8/8 + 15/15 control (else the ticket is void); signed 20/10 optional and non-gating.
+Verdict stays with the lead: nothing is recorded until the per-seam numbers and the renders are
+re-checked here.
+
 ## Comments (worker, 2026-11-13)
 
 The dispatched worker session (`f53606b1-0307-4f82-94c6-1ef2c97e3399`) lost its provider quota
@@ -247,4 +267,4 @@ to extend may be missing: the "in a state" column is a lower bound on use.
 `/data/gpfs/projects/punim2657/SfSpp/stage338/` (source tarball, the worktree diff, both submit
 scripts, arm map).
 
-**End state:** ready — code uncommitted on the branch, all four arms complete, attribution and renders in `artifacts/t338`; the lead commits and closes this ticket.
+**End state:** ready — code committed on the branch, all four arms complete, attribution and renders in `artifacts/t338`; the lead lands and closes this ticket.
