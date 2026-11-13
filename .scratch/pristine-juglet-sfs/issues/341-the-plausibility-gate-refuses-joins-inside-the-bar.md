@@ -1,7 +1,7 @@
 # Ticket 341 — the plausibility gate refuses joins that are inside the bar
 
 **Status:** ready-for-agent
-**Working in:** chat on Thinkbook16 (2026-11-13)
+**Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
 **Answers:** S1
 **Depends on:** 340 (which candidate is applied), 339 (the veto reasons are already printed), 338 (the candidate table)
@@ -106,6 +106,6 @@ As 339 and 340: 3x tree, `SFS_TOPK`/`SFS_BRANCH` unset.
 - [ ] Part B filled for 5-7, 4-7 and 6-9 in both trace-on repeats, with the three numbers per refusal.
 - [ ] Signed 5/3 2/9 and 1/18 in the trace-on arms and the fidelity arm; Pot A 8/8 and 15/15.
 - [ ] `sacct` State and ExitCode recorded for every job id.
-- [ ] `## Comments (worker, 2026-11-13)` section appended, ending with exactly one `**End state:**` line.
+- [ ] `## Comments (worker, 2026-11-14)` section appended, ending with exactly one `**End state:**` line.
 
 **Report, do not conclude.** No gate is changed in this ticket.
