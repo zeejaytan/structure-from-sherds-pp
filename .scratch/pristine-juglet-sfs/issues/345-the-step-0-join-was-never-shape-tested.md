@@ -1,12 +1,12 @@
 # Ticket 345 — the step-0 join was never shape-tested: what does the test say about it
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Branch:** 345-the-step-0-join-was-never-shape-tested, in /c/PR/worktrees/structure-from-sherds-pp/345
 **Answers:** S1
 **Depends on:** 341 (the gate's numbers and the step-0 skip), 340 (which candidate is applied), 342 (the winner)
 **Blocks:** ticket 344 (the bar arm) and ticket 346 (the picker) — neither reading can be trusted until this one exists
-**Worker:** unassigned
+**Worker:** dsh one-shot subagent d299a21d-a249-4b44-a188-1977506ac34e, dispatched 2026-11-14 by the lead
 **Budget:** small (4 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: one print-only dry run of the shape test on the step-0 accepts; the hidden check is the table in Part B.
 
