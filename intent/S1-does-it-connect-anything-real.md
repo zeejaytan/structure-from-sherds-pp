@@ -119,6 +119,18 @@ edge is handed to the group fit it adds at most 0.55° and 0.15 mm: **the join i
 lost before the fit — in candidate admission and state-graph construction — not in
 the group pose fit.** The next fix belongs there, not at the pose stage.
 
+Ticket 339 (2026-11-13) then asked *which* boundary, and the answer is a window, not a
+gate. A trace of every candidate offered to a state, with its priority index and its fate,
+shows 7-9 first offered at index 12 and 1-9 at index 30 — in all five repeats — while the
+build only tries the first three (BRANCH_b 3, unchanged since 337 swept it). Control seam
+1-8 is offered at index 0 and kept from step 0. So no threshold refuses either failing
+join; they are never among the first three tries, and 7-9 gets no graph edge anywhere,
+which is why 338's empty column was a lower bound and not a verdict. The lever is therefore
+the *order* of the priority list (CalculateMatchingScore / InlierCompare), not a wider
+window. The instrument itself is print-only: nine signed runs, eight at 2/9 sherds and
+1/18 edges, the single 3/9 the slowest run of the nine, with identical trace readings
+across the repeats — the residual run-to-run variety is twelve-thread Ceres, not the switch.
+
 ## Why it matters
 
 The headline finding on this system is stark: **zero pairwise connections** between any of
