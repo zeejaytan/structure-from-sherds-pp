@@ -651,6 +651,62 @@ static void Sfs339ChunkPairs(const RankingSubgraph& G,
 	}
 }
 
+//############################## TICKET 341 plausibility veto trace ##############################//
+// SFS_VETO_TRACE=1 (read in class/feature_matching.cpp) extends the veto print: CheckGraphPlausibility
+// prints, at the exact statement where it sets fail_reason, one [SFS-341] line per distinct piece pair
+// of the chunk BuildState is building, with the three numbers that decision used. Read-only in the same
+// sense as 336-342: the chunk is the one BuildState already put on the graph (priority_index_), resolved
+// through sub_graph_ exactly as Sfs339ChunkPairs does for [SFS-339], and nothing is written, sorted or
+// reordered. With the switch off the gate executes exactly the statements it executed before.
+//   [SFS-341] VETO <step> <state> <j> <y> <x> <reason> <value_a> <value_b> <value_c>
+//   [SFS-341] EDGE <step> <state> <j> <y> <x> <index_> <score_> <inliner_>
+// y is printed before x (shard_y_ then shard_x_, as stored -- the order [SFS-339]/[SFS-340] use).
+// The EDGE line names the sub_graph_ entry the gate is judging for that pair, resolved exactly as
+// [SFS-340]'s PICK line resolves it (first matching i_edge, then break), so a refusal can be compared
+// with the CAND338 row of the edge it actually carries rather than with the table's best candidate.
+static int g_sfs341_state = -1;		// state.trace_id_ of the state BuildState is building
+
+static const Chunk* Sfs341Chunk(const RankingSubgraph& G)
+{
+	if (G.priority_index_ < 0 || (size_t)G.priority_index_ >= G.priority_list_.size()) return NULL;
+	return &G.priority_list_[G.priority_index_];
+}
+
+static void Sfs341Veto(const RankingSubgraph& G,
+	int step, int j, const string& reason,
+	double value_a, double value_b, double value_c)
+{
+	vector<pair<int, int> > pairs;
+	const Chunk* ck = Sfs341Chunk(G);
+	if (ck != NULL) Sfs339ChunkPairs(G, *ck, pairs);
+	if (pairs.empty()) pairs.push_back(make_pair(-1, -1));
+	for (size_t p = 0; p < pairs.size(); p++) {
+		cout << "[SFS-341] VETO " << step << " " << g_sfs341_state << " " << j << " "
+			<< pairs[p].first << " " << pairs[p].second << " " << reason << " "
+			<< value_a << " " << value_b << " " << value_c << endl;
+		// TICKET 341: the edge this pair's refusal is about (the same entry [SFS-340] prints as PICK
+		// when the pair is accepted). -1s when the chunk holds no such edge, so silence cannot be
+		// mistaken for a zero.
+		int e_index = -1, e_inlier = -1;
+		double e_score = -1;
+		if (ck != NULL) {
+			for (size_t e = 0; e < ck->i_edge.size(); e++) {
+				int ei = ck->i_edge[e];
+				if (ei < 0 || (size_t)ei >= G.sub_graph_.size()) continue;
+				const LCSIndex& L341 = G.sub_graph_[ei];
+				if (L341.shard_y_ != pairs[p].first || L341.shard_x_ != pairs[p].second) continue;
+				e_index = L341.index_;
+				e_score = L341.score_;
+				e_inlier = L341.inliner_;
+				break;
+			}
+		}
+		cout << "[SFS-341] EDGE " << step << " " << g_sfs341_state << " " << j << " "
+			<< pairs[p].first << " " << pairs[p].second << " " << e_index << " " << e_score
+			<< " " << e_inlier << endl;
+	}
+}
+
 static const char* Sfs339PcReason(void)
 {
 	if (g_sfs339_pc_reason == 1) return "pc_dist";
@@ -1595,6 +1651,8 @@ bool StateManager::BuildState(State& state,
 	GraphAxisRefinement(shard_, state.graph_[graph_index], state.history_, graph_index);
 	trace_nodes("refine");
 
+	// TICKET 341: the state id the veto line inside the gate reports (the id [SFS-339]'s veto line uses).
+	if (g_sfs_veto_trace) g_sfs341_state = state.trace_id_;
 	return_value = CheckGraphPlausibility(shard_,
 		state.graph_[graph_index],
 		log_path_,
@@ -2421,6 +2479,12 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 	if (toprank_graph.graph_score_ < 0)
 	{
 		fail_reason = "Score_";
+		// TICKET 341: value_a graph_score_, value_b the bar (0), value_c the chunk's inlier sum.
+		if (g_sfs_veto_trace) {
+			const Chunk* ck341 = Sfs341Chunk(toprank_graph);
+			Sfs341Veto(toprank_graph, step_counter, graph_index, fail_reason,
+				toprank_graph.graph_score_, 0.0, (ck341 != NULL) ? (double)ck341->inlier : -1.0);
+		}
 		return_value = false;
 	}
 
@@ -2439,6 +2503,14 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
 					if (overlap) {
 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
+						// TICKET 341: value_a the overlap area the reason names, value_b the bar (50),
+						// value_c the number of edges in the chunk.
+						if (g_sfs_veto_trace) {
+							const Chunk* ck341 = Sfs341Chunk(toprank_graph);
+							Sfs341Veto(toprank_graph, step_counter, graph_index, fail_reason,
+								toprank_graph.max_overlap_area_, 50.0,
+								(ck341 != NULL) ? (double)ck341->i_edge.size() : -1.0);
+						}
 						return_value = false;
 						break;
 					}
@@ -2454,6 +2526,8 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 	vector<Vector3d> profile;
 	if (return_value) {
 		bool profile_matched = true;
+		bool sfs341_rim_checked = false;	// TICKET 341: the rim-gap sub-check ran (it runs only if profile_matched)
+		double sfs341_rim_gap = -1;		// TICKET 341: the rim gap that failed
 		if (step_counter > 0) {
 			bool interpolation = false, is_rim = false;
 			double H_rim(0), R_rim(0);
@@ -2476,10 +2550,12 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 				}
 			}
 			double pc_var_value(0);
+			if (g_sfs_veto_trace) g_sfs341_pc_dist = -1.0;	// TICKET 341: cleared per gate call, so a rim-gap refusal reads -1
 			if (!profile.empty()) {
 				profile_matched = ProfileChecking(profile, 7.0, 7.0);	//
 			}
 			if (profile_matched && is_rim) {
+				sfs341_rim_checked = true;	// TICKET 341: a refusal below is the rim gap, not the profile distance
 				int up_count(0), down_count(0);
 				MakeRadiusHeight(R_rim, H_rim, rim_data);
 				MinMaxValue z_total;
@@ -2488,6 +2564,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 				double top_gap = z_total.max_value - H_rim - 10;
 				double bottom_gap = H_rim - z_total.min_value - 10;
 				if ((top_gap > 0) && (bottom_gap > 0)) {
+					sfs341_rim_gap = (top_gap <= 0) ? top_gap : bottom_gap;	// TICKET 341: the gap that failed
 					profile_matched = false;
 				}
 			}
@@ -2496,6 +2573,15 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 
 		if (!profile_matched) {
 			fail_reason = "PC_";
+			// TICKET 341: value_a the largest profile-point distance ProfileChecking saw in the bin that
+			// failed -- the number behind the refusal (-1 when no bin failed: profile empty, or the
+			// profile passed and the rim margin refused), value_b the bar it was compared against (7.0
+			// profile distance / 10 rim-gap margin), value_c the rim gap that failed (-1 when the
+			// profile distance refused and no gap was computed).
+			if (g_sfs_veto_trace) Sfs341Veto(toprank_graph, step_counter, graph_index, fail_reason,
+				g_sfs341_pc_dist,
+				sfs341_rim_checked ? 10.0 : 7.0,
+				sfs341_rim_checked ? sfs341_rim_gap : -1.0);
 			return_value = false;
 		}
 	}
