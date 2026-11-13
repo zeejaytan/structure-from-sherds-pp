@@ -707,6 +707,95 @@ static void Sfs341Veto(const RankingSubgraph& G,
 	}
 }
 
+//############################## TICKET 345 step-0 shape dry run ##############################//
+// SFS_STEP0_TRACE=1 (read in class/feature_matching.cpp). CheckGraphPlausibility skips its whole
+// profile-and-rim block when step_counter == 0, so a join accepted at the first step of a state was
+// never shape-tested. This reproduces that block for every chunk the gate is asked about at step 0 and
+// prints the three numbers it would have produced -- and uses none of them: the values are local, no
+// container is touched, and with the switch off the gate executes exactly the statements it executed
+// before. Print-only by construction: the accept/veto path below is unchanged.
+//   [SFS-345] STEP0 <step> <state> <j> <y> <x> <index_> <score_> <inliner_> <profile_dist> <rim_gap> <overlap>
+// step is step_counter_, state is the state BuildState is building (state.trace_id_), j is the order_index
+// the gate receives as graph_index. y is printed before x (shard_y_ then shard_x_, as [SFS-339],
+// [SFS-340] and [SFS-341] print it). index_, score_ and inliner_ name the sub_graph_ entry exactly as
+// [SFS-340]'s PICK line resolves it (first matching i_edge, then break), so a row can be joined to PICK
+// by the tuple -- score_ is rewritten in place elsewhere and the id alone is not an identity.
+// -1 in any numeric field means the gate computes that number nowhere for this chunk: profile_dist when
+// no bin could be measured, rim_gap when the rim test does not run (no rim material, or the profile
+// failed), overlap when the overlap loop did not run (the score check refused first).
+static int g_sfs345_state = -1;		// state.trace_id_ of the state BuildState is building
+
+// The profile and rim numbers the skipped block would have produced for this chunk. Read-only: the shard
+// positions and the graph are only read; the profile is a local copy, sorted by the peer exactly as the
+// gate's ProfileChecking sorts its own copy in place at step > 0.
+static void Sfs345Shape(const vector<Geom>& shard, const RankingSubgraph& G,
+	double& profile_dist, double& rim_gap)
+{
+	profile_dist = -1.0;
+	rim_gap = -1.0;
+	bool interpolation = false, is_rim = false;
+	vector<Vector3d> rim_data;
+	vector<Vector3d> profile;
+	for (int i = 0; i < (int)shard.size(); i++) {
+		if (!G.node_[i]) continue;
+		ToCylindricalInterpolation(shard[i].edge_line_, profile, interpolation);
+		if (shard[i].edge_line_.is_seg_rim_) {
+			is_rim = true;
+			for (int j = 0; j < shard[i].edge_line_.index_.cols(); j++) {
+				if (shard[i].edge_line_.index_(2, j)) {
+					int start = shard[i].edge_line_.index_(0, j);
+					int end = shard[i].edge_line_.index_(1, j);
+					for (int r_c = start - 1; r_c < end; r_c++)
+						rim_data.push_back(shard[i].edge_line_.point_.col(r_c));
+				}
+			}
+		}
+	}
+	if (profile.empty()) return;
+	sort(profile.begin(), profile.end(), [](Vector3d a, Vector3d b) -> bool {
+		return a(2) < b(2);
+	});
+	profile_dist = ProfileCheckingDistance(profile, 7.0, 7.0);
+	// The rim test runs only when the profile matched, as in the gate; and only when there is rim
+	// material to measure, because MakeRadiusHeight reads radius[0] of an empty vector otherwise.
+	if (profile_dist <= 7.0 && is_rim && !rim_data.empty()) {
+		double H_rim(0), R_rim(0);
+		MakeRadiusHeight(R_rim, H_rim, rim_data);
+		double top_gap = profile.back()(2) - H_rim - 10;
+		double bottom_gap = H_rim - profile.front()(2) - 10;
+		if ((top_gap > 0) && (bottom_gap > 0))
+			rim_gap = (top_gap <= 0) ? top_gap : bottom_gap;	// the expression the gate uses
+	}
+}
+
+static void Sfs345Step0(const RankingSubgraph& G, int step, int j,
+	double profile_dist, double rim_gap, double overlap)
+{
+	vector<pair<int, int> > pairs;
+	const Chunk* ck = Sfs341Chunk(G);
+	if (ck != NULL) Sfs339ChunkPairs(G, *ck, pairs);
+	if (pairs.empty()) return;	// no edge in this chunk: nothing was asked about, print nothing
+	for (size_t p = 0; p < pairs.size(); p++) {
+		int e_index = -1, e_inlier = -1;
+		double e_score = -1;
+		if (ck != NULL) {
+			for (size_t e = 0; e < ck->i_edge.size(); e++) {
+				int ei = ck->i_edge[e];
+				if (ei < 0 || (size_t)ei >= G.sub_graph_.size()) continue;
+				const LCSIndex& L345 = G.sub_graph_[ei];
+				if (L345.shard_y_ != pairs[p].first || L345.shard_x_ != pairs[p].second) continue;
+				e_index = L345.index_;
+				e_score = L345.score_;
+				e_inlier = L345.inliner_;
+				break;
+			}
+		}
+		cout << "[SFS-345] STEP0 " << step << " " << g_sfs345_state << " " << j << " "
+			<< pairs[p].first << " " << pairs[p].second << " " << e_index << " " << e_score
+			<< " " << e_inlier << " " << profile_dist << " " << rim_gap << " " << overlap << endl;
+	}
+}
+
 static const char* Sfs339PcReason(void)
 {
 	if (g_sfs339_pc_reason == 1) return "pc_dist";
@@ -1653,6 +1742,9 @@ bool StateManager::BuildState(State& state,
 
 	// TICKET 341: the state id the veto line inside the gate reports (the id [SFS-339]'s veto line uses).
 	if (g_sfs_veto_trace) g_sfs341_state = state.trace_id_;
+	// TICKET 345: the same id for the step-0 line, captured at the same point and with its own variable
+	// so the two switches never share a value.
+	if (g_sfs_step0_trace) g_sfs345_state = state.trace_id_;
 	return_value = CheckGraphPlausibility(shard_,
 		state.graph_[graph_index],
 		log_path_,
@@ -2489,6 +2581,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 	}
 
 	//################### Second, Check all pair-wise overlap #################// 
+	double sfs345_overlap = -1.0;	// TICKET 345: largest overlap area this call compared with 50
 	if (return_value)
 	{
 		for (int i = 0; i < num_shard; i++) {
@@ -2501,6 +2594,7 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 						size,
 						50);
 					toprank_graph.max_overlap_area_ = std::max(area, toprank_graph.max_overlap_area_);
+					if (g_sfs_step0_trace) sfs345_overlap = std::max(sfs345_overlap, area);
 					if (overlap) {
 						fail_reason = "Overlap_" + to_string(toprank_graph.max_overlap_area_) + "_";
 						// TICKET 341: value_a the overlap area the reason names, value_b the bar (50),
@@ -2584,6 +2678,18 @@ bool CheckGraphPlausibility(vector<Geom>& shard,
 				sfs341_rim_checked ? sfs341_rim_gap : -1.0);
 			return_value = false;
 		}
+	}
+
+	// TICKET 345: print-only step-0 dry run. The block above skipped this chunk's profile and rim because
+	// step_counter == 0; reproduce those numbers here for every edge the gate is asked about at step 0,
+	// print them and discard them. Nothing below reads them, and nothing prints with the switch off.
+	// The shape numbers are computed even when the gate refused this chunk earlier (score or overlap):
+	// the dry run asks what the shape block would have said, and such a row is recognisable by the fact
+	// that the edge was not applied (Part B marks it).
+	if (g_sfs_step0_trace && step_counter == 0) {
+		double sfs345_profile_dist = -1.0, sfs345_rim_gap = -1.0;
+		Sfs345Shape(shard, toprank_graph, sfs345_profile_dist, sfs345_rim_gap);
+		Sfs345Step0(toprank_graph, step_counter, graph_index, sfs345_profile_dist, sfs345_rim_gap, sfs345_overlap);
 	}
 
 	// TICKET 339: the reason the veto line names ("NONE_" when the graph passed).

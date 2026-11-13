@@ -28,6 +28,7 @@ extern bool g_sfs_pick_trace;            // TICKET 340: SFS_PICK_TRACE=1 (candid
 extern bool g_sfs_win_trace;             // TICKET 342: SFS_WIN_TRACE=1 (winning state trace)
 extern bool g_sfs_veto_trace;            // TICKET 341: SFS_VETO_TRACE=1 (plausibility-gate veto trace)
 extern double g_sfs341_pc_dist;          // TICKET 341: failing profile distance for the veto line
+extern bool g_sfs_step0_trace;           // TICKET 345: SFS_STEP0_TRACE=1 (step-0 shape dry run)
 extern int g_sfs339_pc_reason;           // TICKET 339: 0 none, 1 pc_dist, 2 pc_rim (CountPCInlier)
 void InitSfsSwitches();                  // reads both env switches once, prints both banners
 void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
@@ -109,6 +110,11 @@ bool OverlapCheck_3d(BreakLine& L0,
 	MatrixXd& out);
 
 bool ProfileChecking(vector<Vector3d>& profile,
+	double bin_size,
+	double threshold);
+
+// TICKET 345: read-only peer of the call above (copy in, nothing written), for the step-0 dry run.
+double ProfileCheckingDistance(vector<Vector3d> profile,
 	double bin_size,
 	double threshold);
 
