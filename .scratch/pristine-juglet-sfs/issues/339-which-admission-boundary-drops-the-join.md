@@ -1,6 +1,6 @@
 # Ticket 339 — which admission boundary drops the join
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-13)
 **Branch:** 339-which-admission-boundary-drops-the-join, in /c/PR/worktrees/structure-from-sherds-pp/339
 **Answers:** S1
