@@ -1,11 +1,12 @@
 # Ticket 339 — which admission boundary drops the join
 
-**Status:** ready-for-agent
-**Branch:** to be created at start
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-13)
+**Branch:** 339-which-admission-boundary-drops-the-join, in /c/PR/worktrees/structure-from-sherds-pp/339
 **Answers:** S1
 **Depends on:** 338 (the loss is before the fit), 337 (width is not the next lever), 336 (stage trace; leave it)
 **Blocks:** the next fix — which one of the gates below to change. Seam 1-2 is a different loss (it is already inside surviving states and dies at winner selection); that ticket waits until this one names the gate for 7-9 and 1-9. The two do not share a boundary.
-**Worker:** unassigned
+**Worker:** dsh one-shot subagent 2239fe5e, dispatched 2026-11-13 by the lead
 **Budget:** large (8 failed acceptance runs; waiting on Slurm costs none)
 **Hand-over:** DeepSeek: the two print tokens and the switch; the hidden check is the seam-by-boundary table in Part B.
 
