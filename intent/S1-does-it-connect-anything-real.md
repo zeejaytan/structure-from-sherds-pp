@@ -843,3 +843,32 @@ seated the authors' own Pot A fully: **8/8 fragments, 15/15 joins** (job
 33502035), confirmed by eye on the render. The ruler is trusted again:
 controls that fail from here fail on the material or the method, not on
 our copy of the program.
+
+## 2026-11-14 — The gate that refuses joins inside the bar (ticket 341)
+
+What this means first: the gate is not refusing the joins we measured. For the three
+pairs whose best candidate sits inside the 5 deg / 5 mm bar, `CheckGraphPlausibility`
+refuses on its own numbers — a profile distance or an edge-overlap area — and the edge
+it judges carries a score no candidate-stage row has.
+
+- 5-7: eight refusals, profile distance 8.856-8.860 mm against the 7.0 bar (27% over),
+  every one on an edge of score .35974 / inlier 77; the pair's candidate is 160
+  (.322249 / 72, 4.71 deg / 3.69 mm). It was applied once, at step 0.
+- 4-7: six refusals at 7.033-11.271 mm; the only 4-7 join ever applied is 144 —
+  18.69 deg / 14.86 mm, outside the bar — not the in-bar 145 (3.35 deg / 2.68 mm).
+- 6-9: three refusals on overlap 73.70 / 76.06 / 76.06 against the 50 bar; the applied
+  edge is id 66, which has no candidate row at all, not 170 (2.35 deg / 1.72 mm).
+
+The step-0 finding is the structural one: the whole profile-and-rim block sits inside
+`if (step_counter > 0)` (class/ranking_system.cpp:2531), so a step-0 accept is never
+shape-tested; the overlap test does run at step 0. 'Accepted once, refused later' is
+therefore not one edge drifting, it is a join that was never measured at all.
+
+Weight: two trace-on repeats with identical 45-line censuses (31 profile + 14 overlap),
+fidelity arm silent at 2/9 sherds and 1/18 edges, Pot A 8/8 and 15/15, print-only (106
+added lines, 0 deleted). One pot, signed sweep.
+
+Open: whether the judged edge is the table's candidate or a re-scored/regenerated one —
+scores are rewritten in place (`iter->score_ = cycle.score`, and `lcs.score_ = 11.0` at
+six sites), so the tuple mismatch is not proof. What follows: one bounded bar arm for
+5-7, whose margin is 1.9 mm; 4-7's question is the picker that chose 144 over 145.

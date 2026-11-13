@@ -1,6 +1,6 @@
 # Ticket 341 — the plausibility gate refuses joins that are inside the bar
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 341-the-plausibility-gate-refuses-joins-inside-the-bar, in /c/PR/worktrees/structure-from-sherds-pp/341
 **Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
