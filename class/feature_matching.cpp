@@ -78,6 +78,11 @@ bool g_sfs_step0_trace = false;
 // re-sorted or reordered, and every [SFS-346] line is guarded by this flag. Off (the default)
 // the search executes exactly the statements it executed before.
 bool g_sfs_order_trace = false;
+// TICKET 355: pre-correspondence trace (SFS_PRECOR_TRACE=1). Read-only in the same sense as 336-346:
+// the post-iter-0 pose that UsePreCorres + P2PConstraint handed to Ceres is printed once per candidate
+// (PrintPrecorTrace in reconstruction.cpp), and nothing here writes, sorts or reorders a container.
+// Off (the default) the program prints no [SFS-355] line at all.
+bool g_sfs_precor_trace = false;
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -104,6 +109,7 @@ void InitSfsSwitches()
 	bool bad_vt = false;
 	bool bad_s0 = false;
 	bool bad_or = false;
+	bool bad_pc = false;
 	g_sfs_coverage = ReadSfsSwitch("SFS_SCORE_COVERAGE", bad_cov);
 	g_sfs_axis_sign_requested = ReadSfsSwitch("SFS_AXIS_SIGN", bad_sign);
 	g_sfs_stage_trace = ReadSfsSwitch("SFS_STAGE_TRACE", bad_trace);
@@ -115,6 +121,7 @@ void InitSfsSwitches()
 	g_sfs_veto_trace = ReadSfsSwitch("SFS_VETO_TRACE", bad_vt);
 	g_sfs_step0_trace = ReadSfsSwitch("SFS_STEP0_TRACE", bad_s0);
 	g_sfs_order_trace = ReadSfsSwitch("SFS_ORDER_TRACE", bad_or);
+	g_sfs_precor_trace = ReadSfsSwitch("SFS_PRECOR_TRACE", bad_pc);
 	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
 	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
 	(void)bad_at;
@@ -133,6 +140,9 @@ void InitSfsSwitches()
 	// TICKET 346: same reasoning as 339/340/341/342/345 -- with the switch off the run must print
 	// no [SFS-346] line at all, and the banner below says which state it is in.
 	(void)bad_or;
+	// TICKET 355: same reasoning as 339/340/342/341/345/346 -- with the switch off the run must print no
+	// [SFS-355] line at all, and the banner below says which state it is in.
+	(void)bad_pc;
 	if (bad_cov) cout << "[SFS-335] SFS_SCORE_COVERAGE is not 1; using legacy score" << endl;
 	if (bad_sign) cout << "[SFS-335] SFS_AXIS_SIGN is not 1; using legacy folded axis test" << endl;
 	if (bad_trace) cout << "[SFS-336] SFS_STAGE_TRACE is not 1; stage trace off" << endl;
@@ -151,6 +161,7 @@ void InitSfsSwitches()
 	cout << "veto trace: " << (g_sfs_veto_trace ? "on" : "off") << endl;
 	cout << "step0 trace: " << (g_sfs_step0_trace ? "on" : "off") << endl;
 	cout << "order trace: " << (g_sfs_order_trace ? "on" : "off") << endl;
+	cout << "precor trace: " << (g_sfs_precor_trace ? "on" : "off") << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
