@@ -1,9 +1,9 @@
 # Ticket 348 — what the joins are worth once the contact is measured
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 348-what-the-joins-are-worth-once-the-contact-is-measured, in /c/PR/worktrees/structure-from-sherds-pp/348
-**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
+**Worker:** dsh one-shot subagent w348, dispatched 2026-11-14 by the lead
 **Answers:** S1
 **Depends on:** 347 (the mesh-gap and mating measurement), 326 (the gap at the true pose), 342 and 346 (the winners' edge lists), 338 (the candidate table)
 **Waits for:** nothing — 347 landed 2026-11-14
