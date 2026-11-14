@@ -32,6 +32,9 @@ extern bool g_sfs_step0_trace;           // TICKET 345: SFS_STEP0_TRACE=1 (step-
 extern bool g_sfs_order_trace;           // TICKET 346: SFS_ORDER_TRACE=1 (priority-list order trace)
 extern bool g_sfs_precor_trace;          // TICKET 355: SFS_PRECOR_TRACE=1 (post-iter-0 UsePreCorres pose)
 extern int g_sfs339_pc_reason;           // TICKET 339: 0 none, 1 pc_dist, 2 pc_rim (CountPCInlier)
+// TICKET 357: two more default-off switches, both read once by InitSfsSwitches().
+extern bool g_sfs_axis_lock_icp;         // TICKET 357: SFS_AXIS_LOCK_ICP=1 (axis-locked Icp)
+extern bool g_sfs_xy_break_normals;      // TICKET 357: SFS_XY_BREAK_NORMALS=1 (normals in x,y)
 void InitSfsSwitches();                  // reads both env switches once, prints both banners
 void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
 

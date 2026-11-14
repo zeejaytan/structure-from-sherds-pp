@@ -83,6 +83,13 @@ bool g_sfs_order_trace = false;
 // (PrintPrecorTrace in reconstruction.cpp), and nothing here writes, sorts or reorders a container.
 // Off (the default) the program prints no [SFS-355] line at all.
 bool g_sfs_precor_trace = false;
+// TICKET 357: the two pair-stage switches, both default OFF.  SFS_AXIS_LOCK_ICP locks the
+// candidate axis pair through the whole Icp (init at iter 0 + a hard axis residual); it uses the
+// signed sense only when SFS_AXIS_SIGN=1, otherwise it picks the better of the two senses by fit.
+// SFS_XY_BREAK_NORMALS compares breakline normals only in the plane orthogonal to the pot axis.
+// Neither switch moves a shipped constant (w_a, 0.436, 1.5, MINIMUM_NUMBER, TOP_k, BRANCH_b).
+bool g_sfs_axis_lock_icp = false;          // SFS_AXIS_LOCK_ICP=1
+bool g_sfs_xy_break_normals = false;       // SFS_XY_BREAK_NORMALS=1
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -122,6 +129,9 @@ void InitSfsSwitches()
 	g_sfs_step0_trace = ReadSfsSwitch("SFS_STEP0_TRACE", bad_s0);
 	g_sfs_order_trace = ReadSfsSwitch("SFS_ORDER_TRACE", bad_or);
 	g_sfs_precor_trace = ReadSfsSwitch("SFS_PRECOR_TRACE", bad_pc);
+	bool bad_al = false, bad_xy = false;
+	g_sfs_axis_lock_icp = ReadSfsSwitch("SFS_AXIS_LOCK_ICP", bad_al);
+	g_sfs_xy_break_normals = ReadSfsSwitch("SFS_XY_BREAK_NORMALS", bad_xy);
 	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
 	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
 	(void)bad_at;
@@ -162,6 +172,10 @@ void InitSfsSwitches()
 	cout << "step0 trace: " << (g_sfs_step0_trace ? "on" : "off") << endl;
 	cout << "order trace: " << (g_sfs_order_trace ? "on" : "off") << endl;
 	cout << "precor trace: " << (g_sfs_precor_trace ? "on" : "off") << endl;
+	cout << "axis lock icp: " << (g_sfs_axis_lock_icp ? "on" : "off") << endl;
+	cout << "xy break normals: " << (g_sfs_xy_break_normals ? "on" : "off") << endl;
+	if (bad_al) cout << "[SFS-357] SFS_AXIS_LOCK_ICP is not 1; axis lock off" << endl;
+	if (bad_xy) cout << "[SFS-357] SFS_XY_BREAK_NORMALS is not 1; xy normals off" << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a
@@ -1222,7 +1236,7 @@ void MatchingScore(double& score, const vector<Corres>& COR)
 		{
 			for (int j = 0; j < size; j++) {
 				dist += (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-				norm += 1 - COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B);
+				norm += 1 - Sfs357NormDot(COR[i].cor[j].n_A, COR[i].cor[j].n_B);
 			}
 		}
 
@@ -1242,7 +1256,7 @@ void CountInlier(int& inlier, const vector<Corres>& COR, double threshold, doubl
 		int dummy_inlier(0);
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
+			angle = Sfs357NormAngle(COR[i].cor[j].n_A, COR[i].cor[j].n_B);	// TICKET 357: (x,y) under the switch
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
@@ -1272,7 +1286,7 @@ void CountInlier(int& inlier,
 		int s_y = COR[i].index_B - 1;
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
+			angle = Sfs357NormAngle(COR[i].cor[j].n_A, COR[i].cor[j].n_B);	// TICKET 357: (x,y) under the switch
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}
@@ -1310,7 +1324,7 @@ void CountInlier(int& inlier,
 		int s_y = COR[i].index_B - 1;
 		for (int j = 0; j < size; j++) {
 			dist = (COR[i].cor[j].p_A - COR[i].cor[j].p_B).norm();
-			angle = acos(COR[i].cor[j].n_A.dot(COR[i].cor[j].n_B));
+			angle = Sfs357NormAngle(COR[i].cor[j].n_A, COR[i].cor[j].n_B);	// TICKET 357: (x,y) under the switch
 			angle = min(angle, 3.14159 - angle);
 			if (dist < threshold && angle < angle_th) dummy_inlier++;
 		}

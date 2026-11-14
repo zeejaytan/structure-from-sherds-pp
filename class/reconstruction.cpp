@@ -101,6 +101,11 @@ double isClose2Eye(const Matrix3d& R, const Vector3d& t)
 	return (RmI.norm() + t.norm());
 }
 
+// TICKET 357: the pot axis in the frame the breakline data are currently in, or ZERO when
+// SFS_XY_BREAK_NORMALS is off.  Only Icp() sets it (and always clears it before returning), so
+// every other caller of the consumers in feature_matching.cpp sees zero -- the legacy 3D path.
+Vector3d g_sfs357_xy_axis = Vector3d::Zero();
+
 // TICKET 335: see the declaration in reconstruction.h. The released pot axes are LINES,
 // not directions -- the same true join reads 0 deg on one pair and 180 deg on another --
 // so an un-folded gate would reject true joins. There is no GT-free reference for a
@@ -209,7 +214,7 @@ void RejectOutlier(Corres& cor, double dist_TH, double angle_TH)
 	dummy.index_A = cor.index_A;
 	dummy.index_B = cor.index_B;
 	for (int i = 0; i < cor.cor.size(); i++) {
-		Norm[i] = (cor.cor[i].n_A.dot(cor.cor[i].n_B));
+		Norm[i] = Sfs357NormDot(cor.cor[i].n_A, cor.cor[i].n_B);	// TICKET 357: (x,y) under the switch
 		distance[i] = (cor.cor[i].p_A - cor.cor[i].p_B).norm();
 
 		if ((std::abs(distance[i]) < dist_TH) && (Norm[i]) > angle_TH) {
@@ -1222,6 +1227,26 @@ static void PrintPrecorTrace(const LCSIndex& lcs,
 	cout << endl;
 }
 
+// TICKET 357: the rotation that carries u onto v (both unit), Rodrigues form.  File-local so the
+// iter-0 axis lock needs nothing beyond Eigen's Core geometry the project already uses.
+static Matrix3d Sfs357RotFromTo(const Vector3d& u, const Vector3d& v)
+{
+	Vector3d a = u.normalized(), b = v.normalized();
+	Vector3d w = a.cross(b);
+	double s = w.norm(), c = a.dot(b);
+	if (s < 1e-12) {
+		if (c > 0) return Matrix3d::Identity();
+		Vector3d ax = (std::abs(a[0]) < 0.9) ? Vector3d(1, 0, 0) : Vector3d(0, 1, 0);
+		Vector3d k = a.cross(ax).normalized();
+		return 2.0 * (k * k.transpose()) - Matrix3d::Identity();
+	}
+	Vector3d k = w / s;
+	Matrix3d K;
+	K << 0, -k[2], k[1], k[2], 0, -k[0], -k[1], k[0], 0;
+	double th = atan2(s, c);
+	return Matrix3d::Identity() + sin(th) * K + (1 - cos(th)) * (K * K);
+}
+
 void Icp(vector<BreakLine>& L,
 	vector<Matrix3d>& R,
 	vector<Vector3d>& t,
@@ -1248,6 +1273,19 @@ void Icp(vector<BreakLine>& L,
 		cout << "WARNING : num_edge should be one" << endl;
 		return;
 	}
+
+	// TICKET 357 (SFS_AXIS_LOCK_ICP): the axis pair the lock holds, filled at iter 0 and reused by
+	// every iteration's Ceres problem.  valid == false (the default) means the lock adds nothing.
+	struct Sfs357AxisLock {
+		bool valid;
+		double sign;
+		Vector3d o_A, u_A, o_B, u_B;
+	} alock;
+	alock.valid = false; alock.sign = 1.0;
+
+	// TICKET 357: pre_cor is consumed (set false) inside the first iteration; the iter-0 lock has
+	// to rebuild the SAME kind of correspondence the piece pair came in with.
+	const bool have_precor = pre_cor;
 	for (int i = 0; i < num_shard; ++i) {
 		trans[i] = new double[3];
 		s[i] = new double[3];
@@ -1284,6 +1322,16 @@ void Icp(vector<BreakLine>& L,
 		COR.clear();
 		int shard_A = m_LCS[cycle.edges[0]].shard_y_;	// real shard number(i.g. piece 1 is 1)
 		int shard_B = m_LCS[cycle.edges[0]].shard_x_;	// shard_x : mov, shard_y : fix
+
+		// TICKET 357 (SFS_XY_BREAK_NORMALS): the pot axis in the frame the data are in NOW -- the
+		// fixed piece's accumulated pose carries its own axis (axis vectors never move with the
+		// data, see EdgeLineMove) into the shared frame.  Off: the global stays zero.
+		if (g_sfs_xy_break_normals) {
+			int aiy = m_LCS[cycle.edges[0]].axis_index_y_;
+			if (L[shard_A - 1].axis_norm_.size() > aiy && L[shard_A - 1].axis_norm_[aiy].norm() > 1e-9)
+				g_sfs357_xy_axis = (R[shard_A - 1] * L[shard_A - 1].axis_norm_[aiy]).normalized();
+		}
+
 		Corres cor_in;
 		cor_in.index_A = shard_A, cor_in.index_B = shard_B;	// make corres index(index the connected nodes)
 		BreakLine p_A = L[shard_A - 1], p_B = L[shard_B - 1];
@@ -1324,6 +1372,73 @@ void Icp(vector<BreakLine>& L,
 		if (miss_cor)
 			break;
 
+		// TICKET 357 (SFS_AXIS_LOCK_ICP): at iter 0 the pair pose is still the identity, so place the
+		// moving piece on the candidate axis PAIR before Ceres starts: align its axis to the fixed
+		// piece's (both senses unless SFS_AXIS_SIGN pins the sign), spin about the fixed axis until the
+		// two corridors agree in the horizontal plane, then take the vertical offset out.  No grid, no
+		// oracle: the pose comes from the LCS correspondence pairs already in hand.  The pose is applied
+		// to the DATA and to the accumulators, and the correspondence is rebuilt so that the residual at
+		// iter 0 does not double-apply it -- PrintPrecorTrace then reports the locked pose.  Off: no-op.
+		if (g_sfs_axis_lock_icp && iter == 0) {
+			int aiy = m_LCS[cycle.edges[0]].axis_index_y_;
+			int aix = m_LCS[cycle.edges[0]].axis_index_x_;
+			if (L[shard_A - 1].axis_norm_.size() > aiy && L[shard_B - 1].axis_norm_.size() > aix &&
+				L[shard_A - 1].axis_norm_[aiy].norm() > 1e-9 && L[shard_B - 1].axis_norm_[aix].norm() > 1e-9) {
+				Vector3d uy = L[shard_A - 1].axis_norm_[aiy].normalized();
+				Vector3d oy = L[shard_A - 1].axis_point_[aiy];
+				Vector3d ux = L[shard_B - 1].axis_norm_[aix].normalized();
+				Vector3d ox = L[shard_B - 1].axis_point_[aix];
+
+				int ncor = (int)COR[0].cor.size();
+				vector<double> signs;
+				signs.push_back(1.0);
+				if (!g_sfs_axis_sign) signs.push_back(-1.0);
+
+				double best_cost = 1e300, best_sign = 1.0;
+				Matrix3d best_R = Matrix3d::Identity();
+				Vector3d best_t = Vector3d::Zero();
+				for (size_t si = 0; si < signs.size(); si++) {
+					double sg = signs[si];
+					Matrix3d R_al = Sfs357RotFromTo(sg * ux, uy);
+					double num(0), den(0);
+					for (int ii = 0; ii < ncor; ii++) {
+						Vector3d pr = R_al * (COR[0].cor[ii].p_B - ox);
+						Vector3d qa = COR[0].cor[ii].p_A - oy;
+						Vector3d qp = qa - qa.dot(uy) * uy;
+						Vector3d rp = pr - pr.dot(uy) * uy;
+						num += rp.cross(qp).dot(uy);
+						den += rp.dot(qp);
+					}
+					Matrix3d R_cand = AngleAxisd(atan2(num, den), uy).toRotationMatrix() * R_al;
+					double dz = 0;
+					for (int ii = 0; ii < ncor; ii++)
+						dz += (COR[0].cor[ii].p_A - (R_cand * (COR[0].cor[ii].p_B - ox) + oy)).dot(uy);
+					Vector3d t_cand = oy + (dz / (double)ncor) * uy - R_cand * ox;
+					double cost = 0;
+					for (int ii = 0; ii < ncor; ii++)
+						cost += (COR[0].cor[ii].p_A - (R_cand * COR[0].cor[ii].p_B + t_cand)).squaredNorm();
+					if (cost < best_cost) { best_cost = cost; best_sign = sg; best_R = R_cand; best_t = t_cand; }
+				}
+
+				EdgeLineMove(L[shard_B - 1], best_R, best_t);
+				R[shard_B - 1] = best_R * R[shard_B - 1];
+				t[shard_B - 1] = best_t + best_R * t[shard_B - 1];
+				BreakLine q_A = L[shard_A - 1], q_B = L[shard_B - 1];
+				cor_in.cor.clear();
+				if (have_precor) UsePreCorres(cor_in, L, q_A, q_B, m_LCS[cycle.edges[0]]);
+				else {
+					MakeCor(cor_in, q_A, q_B, onetoone);
+					RejectOutlier(cor_in, 20, 0.7);
+				}
+				COR[0] = cor_in;
+
+				alock.valid = true;
+				alock.sign = best_sign;
+				alock.o_A = oy; alock.u_A = uy;
+				alock.o_B = best_R * ox + best_t; alock.u_B = best_R * ux;
+			}
+		}
+
 		//############### Set nonlinear equation ###############// 
 		ceres::Problem problem;
 		ceres::LossFunction* loss_dist = new ceres::CauchyLoss(5.0);
@@ -1336,6 +1451,17 @@ void Icp(vector<BreakLine>& L,
 		}
 		else {
 			P2PConstraint(COR, problem, loss_dist, loss_norm, s, trans, w_d, w_n);
+		}
+
+		// TICKET 357 (SFS_AXIS_LOCK_ICP): the same axis pair, held for this iteration too -- the init
+		// above only sets the starting pose, and without this residual the solver is free to tilt off
+		// the candidate axis again (the iter-0 hinge this ticket is testing).  Off: no-op.
+		if (g_sfs_axis_lock_icp && alock.valid) {
+			ceres::CostFunction* cost_alock =
+				new ceres::AutoDiffCostFunction<CandidateAxisLockFunctor, 6, 3, 3, 3, 3>(
+					new CandidateAxisLockFunctor(alock.o_A, alock.u_A, alock.o_B, alock.u_B, alock.sign));
+			problem.AddResidualBlock(cost_alock, NULL, s[shard_A - 1], s[shard_B - 1],
+				trans[shard_A - 1], trans[shard_B - 1]);
 		}
 
 		//######################### Axis consistency ###########################// 
@@ -1406,6 +1532,13 @@ void Icp(vector<BreakLine>& L,
 		if (isfinish) {
 			int shard_A = m_LCS[cycle.edges[0]].shard_y_;	// real shard number(i.g. piece 1 is 1)
 			int shard_B = m_LCS[cycle.edges[0]].shard_x_;	// shard_x : mov, shard_y : fix
+			// TICKET 357 (SFS_XY_BREAK_NORMALS): the scaled copy of this block scores the FINAL pose, so
+			// the axis is refreshed here with the last accumulated pose.  Off: the global stays zero.
+			if (g_sfs_xy_break_normals) {
+				int aiy = m_LCS[cycle.edges[0]].axis_index_y_;
+				if (L[shard_A - 1].axis_norm_.size() > aiy && L[shard_A - 1].axis_norm_[aiy].norm() > 1e-9)
+					g_sfs357_xy_axis = (R[shard_A - 1] * L[shard_A - 1].axis_norm_[aiy]).normalized();
+			}
 			Corres cor_pair;
 			cor_pair.index_A = shard_A, cor_pair.index_B = shard_B;	// make corres index(index the connected nodes)
 			BreakLine p_A = L[shard_A - 1], p_B = L[shard_B - 1];
@@ -1423,6 +1556,10 @@ void Icp(vector<BreakLine>& L,
 			break;
 		}
 	}
+
+	// TICKET 357: Icp is the only writer of the (x,y) axis; leave it at zero so no caller outside
+	// this function can measure normals in that plane by accident.
+	g_sfs357_xy_axis.setZero();
 
 
 	R_i.clear();
