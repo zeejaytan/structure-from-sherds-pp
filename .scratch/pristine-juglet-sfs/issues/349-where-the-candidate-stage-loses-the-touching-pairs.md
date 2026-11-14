@@ -1,9 +1,9 @@
 # Ticket 349 — where the candidate stage loses the touching pairs
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 349-where-the-candidate-stage-loses-the-touching-pairs, in /c/PR/worktrees/structure-from-sherds-pp/349
-**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
+**Worker:** dsh one-shot subagent w349, dispatched 2026-11-14 by the lead
 **Waits for:** nothing — ticket 348 landed 2026-11-14
 **Answers:** S1
 **Depends on:** 347 (the lines run along the contact), 348 (the measured set), 338 (the candidate table), 326 (the probe at the true pose)
