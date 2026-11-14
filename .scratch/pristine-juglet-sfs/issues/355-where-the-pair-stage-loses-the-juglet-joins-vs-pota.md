@@ -1,6 +1,6 @@
 # Ticket 355 — where the stock pair stage (`LCS -> Icp`) loses the Juglet joins vs Pot A
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 355-where-the-pair-stage-loses-the-juglet-joins-vs-pota, in /c/PR/worktrees/structure-from-sherds-pp/355
 **Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead

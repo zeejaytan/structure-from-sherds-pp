@@ -1118,3 +1118,28 @@ With the piece axis known and one partner held at its key pose, a two-degree-of-
 The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm** (0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps 0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a contradiction.
 
 **Conservator decision (2026-11-14): do NOT build a locked grid search into the assembler.** As the conservator pointed out, the stock SfS++ assembler already solves much more complex multi-sherd sample pots (`Pot_A` at `8/8 sherds, 15/15 edges`) without a 2-DoF grid search and without knowing ground truth: `CalculateFeatureAxisless` (`class/filter.cpp:161-219`) extracts spin- and height-invariant cylindrical derivative features `(dr/ds, dz/ds, r*dtheta/ds, thickness)`, `FeatureComp / LCS` (`class/feature_matching.cpp:386-496`) matches contiguous seam segments `[start_..end_]`, and `Icp` (`class/reconstruction.cpp:1190-1397`) aligns that segment point-to-point at `iter = 0` (`UsePreCorres` + `P2PConstraint`) before switching to whole-breakline point-to-line (`MakeCor` + `P2LConstraint`) at `iter = 1..49`. Ticket 355 traces `iter = 0` vs `final` across both `Juglet` and `Pot_A` to pinpoint where in that stock two-phase pair stage the `Juglet` loses 10 of its 14 measured joins while `Pot_A` keeps 15 of 15.
+
+## 2026-11-14 - The pair stage loses the rotation at the first solve (ticket 355)
+
+Of the ten joins ticket 348 measured that never reach the bar, none is inside it at the first solve. Three lose the
+seam itself in the LCS stage (1-3 overlap fraction 0.000 and 12.98 mm off the seam, 3-5 0.500 / 14.90, 6-7 0.500 /
+27.13); the other seven have the seam right -- fraction 1.000, 0.60-3.92 mm -- and still leave the first solve at
+7-34 deg of rotation error, because the matched run is a short patch of a nearly straight curve and a spin about the
+joining axis is almost free. The remaining forty iterations recover four of the fourteen joins (1-2 14.96 -> 1.93 deg,
+1-8 8.07 -> 0.49, 6-9 14.77 -> 2.35, 5-7 6.64 -> 4.71) and leave 5-6 (7.63 -> 13.00) and 6-7 (153.33 -> 165.69)
+slightly worse. Pot A, the control, starts at 6 of 15 joins inside the bar and ends at 10 of 15, seating 15 of 15;
+Juglet ends at 4 of 14 and seats 2 of 9. The trace changes nothing: 2 of 9 sherds and 1 of 18 edges on every Juglet
+arm, 8 of 8 and 15 of 15 on both Pot A arms, 180/180/0 and 124/0 trace rows against the candidate counts.
+
+Two consequences. First, the failure is not "ICP drifts off a good LCS answer": on this object there is usually no
+good answer to drift from. A short seam fixes the position and not the turn -- the same limitation ticket 353
+measured from the other side (a 5 deg spin moves a breakline dot 1.1-1.5 mm along the surface while moving the
+in-zone RMS by under 0.20 mm on ten of fourteen joins), and the reason ticket 354's two-degree-of-freedom placement
+on a known axis works where the free pair fit does not. Second, the lever is a rotation constraint at the first solve
+-- the axis-locked pair rotation, or a longer seam -- not more iterations. Both are live options; nothing in this
+lane has been tuned.
+
+Caveats recorded with it: only 10 of 15 Pot A joins are inside the bar at their best candidate yet Pot A seats 15 of
+15, so the per-candidate bar is not a seat predictor and the Juglet-versus-Pot A contrast is suggestive only; and the
+printed iter-0 transform is in local frames while the breakline files are in tree coordinates, so the 0.06-0.25 mm
+seating number is the worker's measurement, not the lead's.
