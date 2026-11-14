@@ -1187,6 +1187,41 @@ void FillMatchedPoints(const vector<Corres>& COR,
 	}
 }
 
+// TICKET 355: the ONE formatter for the pre-correspondence trace ([SFS-355] PRECOR). Prints the LCS
+// segment ([start_..end_], 1-based, exactly as LCS stored it) and the relative transform M0 that places
+// shard_x_ (moving) into shard_y_ (fixed) AFTER iter 0 (UsePreCorres + P2PConstraint), in the exact
+// convention PairwisePruning uses at its "update transformation matrix" block in feature_matching.cpp
+// (R_fix_inv = R[index_f].inverse(), t_fix_inv = -R_fix_inv * t[index_f], R_rel = R_fix_inv * R[index_m],
+// t_rel = t_fix_inv + R_fix_inv * t[index_m]).  have_pose == false means COR[0].cor.size() was below
+// MINIMUM_NUMBER at iter 0: no Ceres solve ran, so M0 is the identity and cor0_size says so.
+static void PrintPrecorTrace(const LCSIndex& lcs,
+	const vector<Matrix3d>& R,
+	const vector<Vector3d>& t,
+	int cor0_size,
+	bool have_pose)
+{
+	if (!g_sfs_precor_trace) return;
+	Matrix3d R_rel = Matrix3d::Identity();
+	Vector3d t_rel = Vector3d::Zero();
+	if (have_pose) {
+		int index_f = lcs.shard_y_ - 1;
+		int index_m = lcs.shard_x_ - 1;
+		Matrix3d R_fix_inv = R[index_f].inverse();
+		Vector3d t_fix_inv = -R_fix_inv * t[index_f];
+		R_rel = R_fix_inv * R[index_m];
+		t_rel = t_fix_inv + R_fix_inv * t[index_m];
+	}
+	cout << "[SFS-355]\tPRECOR\t" << lcs.index_ << "\t" << lcs.shard_y_ << "\t" << lcs.shard_x_
+		<< "\t" << lcs.start_.y << "\t" << lcs.end_.y << "\t" << lcs.start_.x << "\t" << lcs.end_.x
+		<< "\t" << lcs.size_ << "\t" << cor0_size;
+	for (int r = 0; r < 3; r++) {
+		for (int c = 0; c < 4; c++) {
+			cout << "\t" << (c == 3 ? t_rel[r] : R_rel(r, c));
+		}
+	}
+	cout << endl;
+}
+
 void Icp(vector<BreakLine>& L,
 	vector<Matrix3d>& R,
 	vector<Vector3d>& t,
@@ -1284,6 +1319,8 @@ void Icp(vector<BreakLine>& L,
 			true_node[s_A] = true;
 			true_node[s_B] = true;
 		}
+		// TICKET 355: UsePreCorres never reached Ceres at iter 0; M0 is the identity.
+		if (iter == 0 && miss_cor) PrintPrecorTrace(m_LCS[cycle.edges[0]], R, t, (int)COR[0].cor.size(), false);
 		if (miss_cor)
 			break;
 
@@ -1342,6 +1379,8 @@ void Icp(vector<BreakLine>& L,
 			int node = cycle.nodes[i] - 1;
 			UpdateTrans(L[node], s[node], trans[node], R, t, R_i, t_i, node);
 		}
+		// TICKET 355: the pose UsePreCorres + P2PConstraint handed to Ceres at iter 0, before iter 1..49.
+		if (iter == 0) PrintPrecorTrace(m_LCS[cycle.edges[0]], R, t, (int)COR[0].cor.size(), true);
 		shard_A = m_LCS[cycle.edges[0]].shard_y_ - 1;
 		shard_B = m_LCS[cycle.edges[0]].shard_x_ - 1;
 		Matrix4d T1 = Matrix4d::Identity(), T2 = Matrix4d::Identity();
