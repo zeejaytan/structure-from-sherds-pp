@@ -1,9 +1,9 @@
 # Ticket 355 - does the surface separate the joins the breakline cannot
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** to be created at dispatch
-**Worker:** unassigned
+**Branch:** 355-does-the-surface-separate-the-joins, in /c/PR/worktrees/structure-from-sherds-pp/355
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Waits for:** nothing - ticket 354 landed 2026-11-14
 **Answers:** S1
 **Depends on:** 354 (the locked placements and their scores), 348 (the measured contact set and its rule), 347 (the mating-face method), 349 (the candidate ceiling)
