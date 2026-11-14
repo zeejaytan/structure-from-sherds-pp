@@ -280,4 +280,9 @@ byte-identical before and after in all three; 49 files for Pot A, identical. Pot
 - 7-9 and 1-9 are never accepted and so have no step-0 accept to measure; 6-9 and 145 have no step-0 row
   (above).
 
+**Correction (2026-11-14).** 5-7 is not a contact pair in the answer key's graph, so the 8.90688 /
+8.84147 mm measured here is the shape distance of a *false* join. The measurement and the
+refutation of the drift hypothesis stand (the 1-8 control at 5.83 mm proves the dry run measures
+the gate's quantity), but they no longer make a bar question out of 5-7: ticket 344 is stopped,
+not re-aimed. See S1, '2026-11-14 - The join the gate refused is not a join'.
 **End state:** ready

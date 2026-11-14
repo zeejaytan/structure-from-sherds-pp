@@ -905,3 +905,49 @@ search applies. A correct candidate that never enters a list cannot be ordered i
 upstream of the ranking key: which candidates reach a graph at all. (342's r1 assembly was reproduced at the
 edge-set level by all five trace arms; 342's r2 assembly, five edges and score 263, was not reproduced by any
 of them -- the winner remains a set-level statement.)
+## 2026-11-14 - The join the gate refused is not a join (the reference, checked)
+
+The conservator asked, after the assembler's last result, whether the answer key's pose is right
+but the edgeline we generate is wrong. The first half of that question has an answer already;
+getting to it also stopped a ticket.
+
+**Tickets 341/344/345 treated 5-7 as a join inside the bar that the gate refused.** It is not a
+join. The answer key's contact graph
+(`SfSpp_preprocessing/artifacts/67/juglet_gt/Juglet_simple_graph.txt`, 18 edges) does not list
+5-7 or 4-7, and the ten pairs ticket 326 measured as touching at the true pose do not include
+them. Their in-bar candidates (5-7 id 160 at 4.71 deg / 3.69 mm; 4-7 id 145 at 3.35 / 2.68) are
+**false positives** - plausible relative poses of sherds that never met - and the gate's eight
+refusals at 8.856-8.860 mm against its 7.0 mm bar were correct. Ticket 344 (one arm with the bar
+at 9.0 for 5-7) is stopped as `wontfix`: run, it would have tuned the gate to admit a false join.
+The third pair in that sentence, 6-9, is a real contact (0.58 mm mesh gap; 7/6 inliers under the
+2 mm / 0.85-normal probe) that the graph does not list at all - a reference disagreement, still
+open.
+
+**On the edgelines themselves the question has been answered once, for gap rather than stretch.**
+Ticket 326 measured, at the true pose on the 1x tree, the interior line of one piece against its
+neighbour: nine of the ten touching pairs come within 0.30-2.91 mm (3-7 is 14.19 mm, the one
+exception), every non-contacting pair sits 3.60-21.38 mm apart, and the strict probe (2.0 mm gap
+plus normal dot >= 0.85) admits 1-8, 2-9, 3-5 and 6-9 with 4-18 inliers and finds zero on every
+non-contact. A line that meets its true neighbour, and meets nothing else, is not a wrong line.
+
+What is short is the **stretch**. Whole-curve medians at the true pose are 2.3-12.7 mm (1-8
+2.33 mm with 19 dots within 2 mm; 1-2 3.71 / 5; 7-9 8.93 / 3; 1-9 and 2-5 zero), against the
+matcher's demand of 7 dots over about 12.6 mm - so on most pairs the two lines coincide only where
+the sherds actually touch, for a few millimetres. At 3x, where 7 of 9 seams do reach that length
+(ticket 333), the assembly still seats 0/9 because the scoring gates are absolute millimetres.
+Denser dots do not buy seats on their own.
+
+**Where the ceiling actually is.** Parsed from the 51 candidates of one signed run: 8 of the 10
+touching pairs get a candidate at all, and only **3** have one inside the 5 deg / 5 mm bar - 1-8
+(0.70 deg / 1.21 mm), 1-2 (2.14 / 2.20) and 6-9 (2.35 / 1.72). 7-9 is just outside at 5.39 / 4.24;
+1-9, 2-9, 2-5 (45.9 deg) and 3-5 (48.3) are far outside; 3-7 and 6-7 have no candidate at all. The
+search cannot seat more than three touching joins whatever it does with the order, the window or
+the gate. So the stage to repair is candidate generation, and what decides which repair route is
+right is how far along the true contact the line runs - ticket 347.
+
+Weight: the graph decoded by the lead from the file; the mesh-contact and stretch numbers are
+ticket 326's run and `SfSpp_preprocessing/artifacts/67/out/A20/T67_gtpairs.tsv`; the candidate
+table recomputed by the lead from `artifacts/t339/logs/binary_juglet_signed_on_r1.log`. One pot,
+one signed sweep. Open at the edges of the reference itself: 6-9 touches but is not in the graph,
+and 1-4 is in the graph but was not among ticket 326's measured ten - so ticket 347 re-measures the
+mesh gap of all 18 graph edges plus 5-7 and 4-7 before using any of them.

@@ -291,4 +291,10 @@ verified: `fig1_refusal_timeline.png` and `fig2_values_vs_bars.png` viewed - dis
 line for 5-7 and 4-7, and the overlap points above 50 for 6-9.
 
 Attribution: `C:/PR/artifacts/t341/attribution.md` (201 lines) matches the logs on every row I re-read.
+**Correction (2026-11-14).** The sentence this ticket rests on - 'three pairs were refused while
+their best candidate is inside the 5 deg / 5 mm bar' - needs the reference check: **5-7 and 4-7
+are not contacts** in the answer key's graph, so their in-bar candidates are false positives and
+the gate's refusals there were correct. 6-9 is a real contact but is absent from the graph (a
+reference disagreement). The refusal numbers above stand; the reading of them as over-strictness
+does not. See S1, '2026-11-14 - The join the gate refused is not a join'.
 **End state:** ready: numbers recorded, the lead lands and closes

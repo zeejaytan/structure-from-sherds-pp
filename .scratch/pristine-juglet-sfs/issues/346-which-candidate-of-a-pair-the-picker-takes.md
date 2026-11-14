@@ -257,4 +257,9 @@ verified: `cmp tree_md5_before_* tree_md5_after_*` -> SAME in all seven arms (55
 - 342's r2 assembly (five edges, score 263) was not reproduced by any trace arm; the winner remains a
   set-level statement, and 344's bar arm still has its premise from 345.
 
+**Correction (2026-11-14).** 4-7 is not a contact in the answer key's graph, so its in-bar
+candidate 145 is a false positive and the pair is not evidence about the order. The finding
+stands for the pairs that do touch - the picker follows the key it has, and 6-9's in-bar candidate
+is listed only at step 0 - but '4-7 shows the in-bar candidate never enters a list' is now read as
+a property of a false join. See S1, '2026-11-14 - The join the gate refused is not a join'.
 **End state:** ready — code and write-back on the branch; the lead lands and closes.
