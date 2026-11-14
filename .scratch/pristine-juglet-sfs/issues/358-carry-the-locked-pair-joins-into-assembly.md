@@ -2,8 +2,10 @@
 
 **What to build:** Fix the two 6-DoF breakline-normal bugs exposed by Ticket 357 — pre-rotation normal leveling with a `0.5` flat-rim guard in `CostFuncNorm`/`CostFuncFixedNorm`/`Sfs357NormDot`, and extending `(x, y)` breakline normals from `Icp` into `StateManager` (`IcpIncGraphAxis` + both `Registration` overloads behind default-off `SFS_XY_STATE_NORMALS=1`) — while dropping all axis locking (`SFS_AXIS_LOCK_ICP=0` everywhere; no `SFS_STATE_LOCK_ICP`) and auditing full pair-to-final attrition on Ticket 357 logs.
 
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-15)
+**Branch:** 358-carry-the-locked-pair-joins-into-assembly, in /c/PR/worktrees/structure-from-sherds-pp/358
+**Worker:** dsh one-shot subagent, dispatched 2026-11-15 by the lead
 **Answers:** S1
 **Needs-eye:** yes
 **Depends on:** 357
