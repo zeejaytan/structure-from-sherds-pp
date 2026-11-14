@@ -1090,3 +1090,20 @@ showed buys two joins.
 **Limits.** One log (r1), translation held throughout: this tests the spin at a fixed placement, not a joint
 pose search, and not run-to-run variation. The two rows with no dots in the zone at any angle (3-5, 4-6) read
 not-determinable for the translation's sake.
+**Correction (2026-11-14).** The conclusion above overreaches, and the sentence "the lever is the data" is
+withdrawn. Three choices in 353 each suppress the signal: the sweep ran at the candidate's own translation
+(up to 24 mm off the axis, where the pieces are not in contact at all), it scored only dots already inside
+3.0 mm so a wrong spin can look good by losing the dots that would show it, and it required the gap to rise
+on **both** sides of the minimum. Re-run at the true pose with the dot set frozen at zero turn (the lead's
+own reproduction, dots `C:/PR/artifacts/t334/edgelines`, poses `C:/PR/artifacts/t350/gt`, axes
+`C:/PR/artifacts/t349/axischeck/key`), **12 of the 14 joins move by 0.20 mm or more when turned 5 deg in at
+least one direction** - 5-6 +1.09, 6-9 +0.85, 2-9 +0.80, 1-3 +0.62, 3-5 +0.59 - against the 4 that the
+both-sides test allowed. The pattern is the seam direction: on an unrolled map most seams run around the pot
+and a turn slides them along themselves, while 5-6, the only near-vertical seam, is the sharpest.
+
+So 353's repaired count of 2 of 14 is a statement about *that* metric, not about the information in the
+curve: the breakline carries a weak but real spin signal, and how weak is not yet pinned. The two anchors the
+new analysis quotes (1-2 0.816, 5-6 0.596 mm) reproduce in the lead's own reading only with a 1.5 mm pool
+(0.813, 0.552), so the metric has to be fixed before any search is trusted with it. Ticket 354 does that and
+then runs the search the pipeline does not do: both pieces on the known axis, only turn and height free, over
+all 36 pairs, scored so that losing dots costs.

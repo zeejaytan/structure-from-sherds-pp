@@ -1,6 +1,6 @@
 # Ticket 352 — the five joins ticket 347 never measured
 
-**Status:** ready-for-agent
+**Status:** wontfix
 **Waits for:** nothing — ticket 349 landed 2026-11-14
 **Branch:** to be created at start
 **Worker:** unassigned
@@ -73,3 +73,7 @@ with `verdict` one of `run-meets-the-demand`, `run-short-of-the-demand` (quote t
   `bash C:/PR/scripts/slurm_poll.sh <JOBID>`, final `sacct` recorded.
 - Report, do not conclude: the table, the verdicts, the one reading slug.
 - If the same failure happens twice, stop and report `incomplete`, naming the blocker.
+
+## Why this stopped (2026-11-14)
+
+Ticket 354 runs the same reader over all 36 pairs in one sweep, so the five runs this ticket wanted (1-3, 2-6, 3-8, 5-6, 5-8) come out of it with the turn and height errors beside them. Running this separately would duplicate that measurement and produce a table with no bar to judge it against.
