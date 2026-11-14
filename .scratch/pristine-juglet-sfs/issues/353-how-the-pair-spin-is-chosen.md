@@ -1,9 +1,9 @@
 # Ticket 353 - how the pair's spin is chosen
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 353-how-the-pair-spin-is-chosen, in /c/PR/worktrees/structure-from-sherds-pp/353
-**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
+**Worker:** dsh one-shot subagent w353, dispatched 2026-11-14 by the lead
 **Waits for:** nothing - ticket 350 landed 2026-11-14 and closed the axis question
 **Answers:** S1
 **Depends on:** 350 (the tilt buys two joins and the residue is a spin), 349 (the candidate ceiling), 348 (the measured contact set), 347 (the contact-curve runs)

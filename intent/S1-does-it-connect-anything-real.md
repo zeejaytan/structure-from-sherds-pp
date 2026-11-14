@@ -1063,3 +1063,30 @@ changes.
 **Two limits stated.** The replay is a counterfactual that keeps each candidate's translation, so it
 does not speak for a constrained search that would also re-fit the translation. And both repeats parse
 one log, so they test the arithmetic, not the run.
+
+## 2026-11-14 - The contact curve cannot see a spin (ticket 353)
+
+The tilt removed, every pair's spin was swept over the full circle at its candidate's translation, and the
+contact curve re-measured at each angle. It does not choose a spin. By the pre-registered rule 0 of the 14
+measured joins are determinable; that is partly my rule's fault (it asked for a single local minimum from an
+objective that is censored at a hard 3.0 mm cutoff and has 79-303 of them), and repaired to a single 0.20 mm
+basin it gives **2 of 14** - **5-7** and **6-9**, the two the fit already places correctly, where the repair
+asks for a 0.50 deg and a 0.25 deg move against errors of 1.55 and 0.24 deg.
+
+**Where the fit is wrong the curve is flat.** Ten of the 14 joins move by less than 0.20 mm within +/-5 deg of
+their own minimum, and the 0.20 mm basin is 2.2-28.0 deg wide. A 5 deg spin slides a breakline dot 1.07-1.54 mm
+along the surface - five to eight times that floor - yet the in-zone RMS barely moves, because it measures the
+*perpendicular* gap and the two arcs run nearly parallel over the short stretch where they meet (348: 0.2-0.7 mm
+median over 11-39 mm). At the best spin the key's rotation error grows on 8 of the 13 measurable joins and
+shrinks on 5, which is what a noise-level argmin looks like.
+
+**So the residue is not a spin the fit failed to optimise.** The pair fit's 3-14 deg of residual spin is real,
+but the contact curve cannot see it, and the 165.65 deg on 6-7 is a genuine back-to-front correspondence (the
+run's own `SIGN-AXIS: accepted, axes are direction-consistent (0% of pairs > 90 deg)` rules out an axis-sign
+artefact). The lever is therefore the data - denser or longer contact, i.e. the scale lane - or an objective
+that registers along the arc rather than across it; not another spin estimator, and not the axis, which 350
+showed buys two joins.
+
+**Limits.** One log (r1), translation held throughout: this tests the spin at a fixed placement, not a joint
+pose search, and not run-to-run variation. The two rows with no dots in the zone at any angle (3-5, 4-6) read
+not-determinable for the translation's sake.
