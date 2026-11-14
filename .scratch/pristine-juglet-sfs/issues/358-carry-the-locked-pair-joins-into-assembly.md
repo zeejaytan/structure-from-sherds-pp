@@ -162,3 +162,112 @@ Before reporting results, separate which claim is being made: **(1) method**, **
 
 - **2026-11-15 (lead — rewritten):** Replaced previous axis-lock Ticket 358 draft following conservator pushback (`"why need to axis lock where assembler proved able to put together much more complex pot"`). Dropped `SFS_AXIS_LOCK_ICP` and `SFS_STATE_LOCK_ICP` completely; grounded rewritten ticket in verified 6-DoF findings (`arm01_xynorm_only` `CAND338` inlier jump, `Step 0 CUT 0` drop of `{1,2}` `69 -> 24` and `{2,6}` `49 -> 28`, pre-rotation leveling `med_tilt0 16.48 -> 4.99 deg`, and `0.5` flat-rim guard). Ready for cold worker pickup.
 - **2026-11-15 (lead, note at dispatch):** two corrections to the evidence wording so the worker does not chase them. (i) The line `STEP 0 4 24 37 1,2|3|8` is `[SFS-337] STEP <step> <trace_id> <state_score> <n_priority> <parts>`: the `24` is that state's score (the sum of inlier counts under `CalculateMatchingScore`), not a raw inlier count; `[SFS-337] CUT 0 KEPT 6:78,9:78,3:68,8:40,7:28 DROPPED 10:28,11:28,4:24` prints the same scores, so the drop of the `{1,2}` state is real (69 inliers at the pair stage, a state score of 24 against 78 for the kept state) but must be described as a score, not as an inlier count. (ii) The Part D comparison rows `stock_3d / t357_post_proj / t358_pre_level_3d` (`in_bar_0 0/14, 0/14, 3/14`; `med_rot0 28.25, 19.42, 13.21`; `med_tilt0 16.48, 12.14, 4.99 deg`) appear in no log under `C:/PR/artifacts/t357/`; treat them as an unverified claim and reproduce them from the two logs in Part A before any of the fixes is credited. Nothing else is changed.
+
+## Comments (worker, 2026-11-15)
+
+**Part A — where the pair joins are shed (`audit_attrition358.py`, `pair_to_final_audit358.tsv`, `stage_funnel358.tsv`).**
+`C:/PR/artifacts/t358/audit_attrition358.py` reads the two 357 logs and writes `pair_to_final_audit358.tsv` (32 data rows = 16 pairs x 2 arms) plus a six-arm funnel. Every PlaceErr is measured on the final poses against ground truth in the *relative* frame (`inv(T_y) T_x` against `inv(GT_y) GT_x`), so it is origin-invariant; the bar is 5 deg / 5 mm with `SCALE = 3.0` tree units per real mm, and `CountResult` is scored separately because its 0.35 rad / 50 tree-unit gate is world-frame (Juglet sherds sit ~1600 tree units from the origin).
+
+| arm | candidates | CAND338 pairs (GT joins) | iter-0 in bar (joins) | Step 0 kept / dropped | Steps 1..5 surviving | pairs in one cluster | PlaceErr-verified | clusters (largest) |
+|---|---|---|---|---|---|---|---|---|
+| t357_stock / juglet_stock | 180 | 15 (13) | 0 (0) | 1 / 0 | 6 | 8 | 2 | 3 (4) |
+| t357_xynorm (post-projection) | 180 | 15 (13) | 2 (1) | 0 / 1 | 4 | 9 | 1 | 3 (4) |
+| juglet_xy_pair | 180 | 14 (12) | 5 (3) | 1 / 0 | 3 | 6 | 3 | 3 (5) |
+| juglet_xy_full_r1 | 180 | 14 (12) | 5 (3) | 1 / 0 | 4 | 11 | 9 | 2 (7) |
+| juglet_xy_full_r2 | 180 | 14 (12) | 5 (3) | 1 / 0 | 4 | 11 | 9 | 2 (7) |
+
+The 357 findings reproduce to the digit: `1-8` 97 inliers at 1.11 deg / 0.48 mm, `5-7` 72 at 4.85 / 1.19, `3-8` 51 at 6.25 / 1.69 with fate `pair_overlap` and the state that holds it (`[SFS-337] STEP 0` trace 4, state score 24) CUT, `1-4` and `2-6` lost downstream, false `1-3` kept at 169.32 deg. One discrepancy worth recording: the ticket text calls `1-2` "cand 1, 69 inliers, 4.72 deg, 0.89 mm", but the stated rule (best by `rotF`, requiring `mmF <= 5`) picks a different `1-2` candidate in the xynorm arm (59 inliers, 2.23 deg / 0.77 mm). Both candidates exist; the table follows the rule.
+
+**The three Part D comparison rows.** They are not in any 357 log, so they were recomputed here from the per-pair best pick over the 14 GT joins:
+
+| row | claimed | recomputed | verdict |
+|---|---|---|---|
+| `stock_3d` | in_bar_0 0/14, med_rot0 28.25, med_tilt0 16.48 | 0/14, **17.14**, **11.84** (in_bar_F 4) | count reproduced, medians refuted |
+| `t357_post_proj` | 0/14, 19.42, 12.14 | **1/14**, **16.76**, **9.55** (in_bar_F 3) | refuted |
+| `t358_pre_level_3d` (`juglet_xy_pair`) | 3/14, 13.21, 4.99 | **3/14**, **9.58**, **5.30** (in_bar_F 4) | iter-0 count reproduced exactly, tilt close, rot median lower |
+
+So the *direction* of every claimed row survives (leveling moves iter-0 into the bar and cuts the tilt), but the printed medians do not reproduce from these logs under the pair-level statistic the tables use; they look like a different summary (for example per-candidate rather than per-pair). The ticket's own note already flagged them unverified. `juglet_xy_full` measured 3/14, 9.58, 4.43 — the state normals change the tilt median (5.30 -> 4.43) without changing the count in bar.
+
+**Part B — the two fixes, both default-OFF.** Four files, +133 / -24 (`class/reconstruction.h`, `class/reconstruction.cpp`, `class/feature_matching.h`, `class/feature_matching.cpp`).
+1. One helper, `Sfs357LevelPair`, in `class/reconstruction.h`, used by `Sfs357NormDot`, `CostFuncNorm` and `CostFuncFixedNorm`: it projects **both** normals onto the plane orthogonal to the pair axis **before** rotation, and only when **both** projections are at least 0.5 long (`squaredNorm() < 0.25` tests the flat-rim case without dividing by a near-zero norm); otherwise **both** keep their raw 3D normal. The residual is then the full 3D one, `(R_A nA) - (R_B nB)` in `CostFuncNorm` and `(R_A nA) - nB` in `CostFuncFixedNorm`. The 357 post-rotation projection is gone, so the residual component along the axis is no longer zeroed — that is the pitch/tilt stiffness the conservator asked for back.
+2. `SFS_XY_STATE_NORMALS` (default off, banner `xy state normals: on/off`, bad-value warning), with `Sfs357AxisScope` RAII publishing `g_sfs357_xy_axis` for the duration of a state solve and zeroing it again on every return path. Wired into both `Registration` overloads (one scope before the loop, since the fixed piece never moves; axis index from `lcs.axis_index_x_` / `axis_index_y_` according to which piece is `set_node`) and into `IcpIncGraphAxis` (one scope per iteration, because `R` grows each iteration). The axis is taken as `R[node] * axis_norm_[idx]`: `EdgeLineMove` (`class/data_structure.cpp:773-779`) moves points and normals but never `axis_point_` / `axis_norm_`, so the stored axis is still in the piece's own frame. `SFS_AXIS_LOCK_ICP` was unset in every arm; no constant or threshold was touched.
+
+**Off-path identity, proved by log diff (against `artifacts/t357/logs/binary_juglet_stock.log`).** `[SFS-336] CAND` (180 lines) and `[SFS-338] CAND338` (51 lines) are byte-identical in all four Juglet 358 arms **and** in a control rebuild of the untouched `db848d2` source: the switch-off path takes exactly the old arithmetic, so the 0.5 guard and the Jet rewrite are provably inert. `OUTSTATE` and `CLUSTER` also match (9 pieces, 3 clusters). What does **not** match bit-for-bit is the state stage's `[SFS-337] KEEP` / `CUT` scores: our stock arm differs from the 357 log at step 3 (213 vs 220) and step 4 (2 states vs 3). Two controls settle the cause: (a) a matched-trace repeat (`submit358_stockrep.sbatch`, the 357 banner set: admit/pick/win/veto traces off) still differs, and (b) a **pristine rebuild of `db848d2` with none of this ticket's edits** rewrites the same scores differently while keeping `CAND`/`CAND338`/`OUTSTATE`/`CLUSTER` identical. So the drift is build/run-level floating-point instability in the state stage, not the new switch logic; the pair stage — the one the audit and the summary tables read — is reproducible to the byte.
+
+**Part C — six arms, one array, all COMPLETED 0:0.** `runs/20261115-0418_db848d2_t358-factorial`, `SOURCE_COMMIT=db848d2`, logs fetched to `C:/PR/artifacts/t358/logs/` (`sacct358.txt`).
+
+| arm | xy break | xy state | sherds | edges | CAND338 | clusters (largest) |
+|---|---|---|---|---|---|---|
+| juglet_stock | 0 | 0 | 2/9 | 1/18 | 51 | 3 (4) |
+| juglet_xy_pair | 1 | 0 | 2/9 | 1/18 | 46 | 3 (5) |
+| juglet_xy_full_r1 | 1 | 1 | **5/9** | **4/18** | 46 | 2 (7) |
+| juglet_xy_full_r2 | 1 | 1 | **5/9** | **4/18** | 46 | 2 (7) |
+| pota_xy_pair | 1 | 0 | 8/8 | 15/15 | 70 | 1 (8) |
+| pota_xy_full | 1 | 1 | 8/8 | 15/15 | 70 | 1 (8) |
+
+Banners checked on every arm; `axis lock icp: off` throughout. The repeat arm reproduces to the digit, so the 358 result is stable.
+
+**Part D — readings.**
+- **Reading A holds.** `juglet_xy_full` commits **two** clusters: `{1,2,3,4,6,8,9}` (7 sherds, score 437) and `{5,7}` (2 sherds). Inside the large cluster 8 of the 13 true joins are PlaceErr-verified (`1-2` 3.7 deg/0.8 mm, `1-8` 1.2/0.5, `1-9` 4.1/1.2, `2-6` 3.3/0.6, `2-9` 4.7/0.7, `3-8` 2.5/0.6, `6-9` 4.1/0.5, plus `5-7` 4.7/1.2 in the small cluster); the ninth verified pair is the known **false** join `1-3` at 1.6 deg/0.7 mm, which is why the figure says "9 of 14, true joins 8 of 13 (includes the false 1-3)" and `CountResult` still reads 5/9 sherds, 4/18 edges — the world-frame gate rejects these sherds for their distance from the origin, not for their fit. `Pot_A` holds 8/8 and 15/15 on both pota arms. So the pot at the lower left of the figure is a real juglet sub-assembly where stock is a heap: the conservator's claim that 6-DoF assembly needs no axis lock is supported, with the state normals carrying pair joins into multi-sherd assembly.
+- **Reading B is not the outcome.** `juglet_xy_pair` does lift iter-0 to 3/14 in bar (and keeps Pot_A 15/15), but `juglet_xy_full` seats 9 pairs rather than stalling at <= 3, so the "Step 0 fixed but FINAL stalls" reading does not describe this run.
+- **Reading C is not observed.** Pot_A stayed 8/8, 15/15 with CAND338 70 on both pota arms; nothing in the flat/low-tilt rims was harmed.
+- **Last gap to 9/9 (Reading A's inspection clause).** The remainder is the merge of `{5,7}` into the main cluster. Its bridges die for three different reasons: `3-5` and `6-7` are pruned at the pair stage as `pair_overlap` (neither reaches CAND338 in this arm), `5-6` passes CAND338 with 36 inliers but its own Icp answer is 13.08 deg / 5.22 mm (outside the bar, so no state forms), and `5-8` forms a Registration (2 steps, score 113) but lands in the other cluster; `1-4` sits *inside* the large cluster yet 11.75 deg off, i.e. seated but mis-posed. That is a Step 6 cluster-merge / pair-stage overlap problem, not a normals problem.
+
+**Figure.** `C:/PR/artifacts/t358/render358_assembly_comparison.png`, 1912x1524, four labelled panels (Stock 6-DoF, T357 xynorm only, T358 xy full, Ground Truth), each sherd drawn as its shaded mesh at the committed `[SFS-336] FINAL` pose, colour and label = sherd number, caption naming the clusters and every in-cluster PlaceErr; inspected. Rendered on Spartan from the run's own meshes (`render358.py`).
+
+**Deliverables.** `audit_attrition358.py`, `pair_to_final_audit358.tsv` (32 rows), `stage_funnel358.tsv` (6 arms), `factorial358_all.tsv` (94 rows), `factorial358_juglet.tsv` (64 rows), `factorial358_summary.tsv` (6 rows), `render358_assembly_comparison.png`, `render358.py`, `submit358_array.sbatch`, `src358.tar.gz`, `logs/` (six binary logs, flags, finals, acc, sacct). Not done here by design: no commit, no push, no merge — the branch is left for the lead to land (Part E items 4-6 stay unchecked). No `SFS_AXIS_LOCK_ICP`, no `SFS_STATE_LOCK_ICP`, no constant changed, `CountResult` and `isSimilarTrans(..., 0.35, 50.0)` untouched.
+
+### Lead - verification (2026-11-15, Thinkbook16)
+
+- verified: COLUMNS=200 python C:/PR/artifacts/dsh-handover/358/accept358.py -> 39 cases; 32 passed as returned, four
+  were the lead's own naming assumptions (helper name Sfs357LevelPair, the arm map called arm358_map.tsv, the write-back
+  form "**Reading A holds**", and a tree md5 that was never taken) and are corrected or recorded below; the check is
+  re-run after this edit.
+- verified: git diff HEAD --stat -- class -> 4 files, 133 insertions, 24 deletions (class/feature_matching.cpp +9/-1,
+  class/feature_matching.h +5/-1, class/reconstruction.cpp +39, class/reconstruction.h +104/-24). Off path byte-identical:
+  grep CAND338 on binary_juglet_stock.log against C:/PR/artifacts/t357/logs/binary_juglet_stock.log -> diff empty (51
+  lines each), and the 180-line [SFS-336] CAND block likewise.
+- verified: banners - "axis lock icp: off" in all seven logged runs; "xy break normals: on" in the four xy arms and off
+  in stock and the pristine rebuild; "xy state normals: on" only in juglet_xy_full_r1/r2 and pota_xy_full.
+- verified: class/data_structure.cpp:769-773 EdgeLineMove moves point_, normal_ and line_normal_ only - axis_norm_ stays
+  unrotated - so publishing R[root] * axis_norm_[...] is the axis in the frame the fit's data are in, which is what the
+  scope assumes.
+- verified: the lead's own recompute (C:/PR/artifacts/t358/lead_placeerr.py, FINAL poses against the tree Ground Truth,
+  rotation angle of inv(T_rel) G_rel) on binary_juglet_xy_full_r1.log -> 1-2 3.71, 1-3 1.61, 1-4 11.75, 1-8 1.21,
+  1-9 4.07, 2-6 3.29, 2-9 4.74, 3-8 2.51, 5-7 4.72, 6-9 4.12 deg: the table's rotF column to 0.01 deg. 1-4 (11.75 deg)
+  is outside the 5 deg bar and the table correctly does not count it as seated.
+- verified: acc358_*.txt - both full repeats SHERD=5/9 EDGE=4/18; juglet_stock and juglet_xy_pair 2/9 and 1/18; both
+  Pot_A arms 8/8 and 15/15.
+- verified: sacct - 35083314_0..5 COMPLETED 0:0 (3:16 to 9:38), plus the diagnostic repeat and pristine rebuild.
+- verified: render358_assembly_comparison.png opened, 1912x1524: stock a heap of three fragments, t357 a rough pot
+  seating one join, t358 a coherent pot with {5,7} held apart, ground truth beside it.
+
+Adjudications.
+
+1. The join 1-3 is a measured join, not a false one. The write-back and the figure call it known-false because the
+   answer key omits it; ticket 348 measured it directly - gap 0.000444 mm, 320 vertex pairs within 0.1 mm, median
+   normal dot -0.984, 95.3 percent back-to-back, patch 14.77 mm (C:/PR/artifacts/t348/contacts348.tsv, row 1-3). The
+   key omits seven measured joins (1-3, 2-6, 3-8, 5-6, 5-7, 5-8, 6-9). So the result is 9 of 14 measured joins inside
+   5 deg and the mm bar, and the claim against the reference is (3) - the key's contact list is incomplete - not (1), a
+   method error. The figure's caption keeps the key's wording and reads 8 of 13; it is conservative by one join.
+2. The Part D replay rows are refuted in their medians, as the note at dispatch warned they would be if unchecked.
+   Recomputed from the two logs: stock_3d 0/14 with med_rot0 17.14 / med_tilt0 11.84 (claimed 28.25 / 16.48);
+   t357_post_proj 1/14, 16.76 / 9.55 (claimed 0/14, 19.42 / 12.14); t358_pre_level_3d 3/14 reproduced, 9.58 / 5.30
+   (claimed 13.21 / 4.99). The direction survives in all three; the absolute numbers do not, and no clause of Reading A
+   depends on them.
+3. CountResult reads 5/9 and 4/18 while PlaceErr finds nine joins inside the bar, because isSimilarTrans compares
+   transforms in the world frame with a 50 tree-unit gate and these sherds sit about 1600 units from the origin (the
+   table's cr_rot_deg column shows the same joins at 28-157 deg in that frame against 1.6-4.7 deg in their own). That
+   is the measurement, not the seating; CountResult is left untouched as instructed and both numbers are reported.
+4. The state stage is not bit-reproducible: KEEP/CUT scores drift between repeats and in a pristine rebuild of the
+   claim commit (step 3: 213 vs 220), so state-level scores may not be compared across arms at the percent level. The
+   committed cluster membership and the PlaceErr table are the comparison, and those repeated exactly (5/9, 4/18 twice;
+   the same two clusters {1,2,3,4,6,8,9} and {5,7} both times).
+5. One latent inconsistency, harmless in this ticket: Sfs357AxisScope publishes the axis whenever SFS_XY_STATE_NORMALS
+   is on, regardless of SFS_XY_BREAK_NORMALS, so a state-on/pair-off arm would level normals only in the state stage. No
+   arm here has that combination (00, 10, 11 on Juglet; 10, 11 on Pot_A); it is recorded for whoever adds the third.
+6. No tree md5 was taken. The off-path proof is instead the byte-identical candidate blocks plus identical OUTSTATE and
+   CLUSTER lines against the pristine rebuild - stronger on the arithmetic, weaker on the per-arm tree copies. Recorded
+   rather than sent back.
+
+**End state:** ready - verified by the lead 2026-11-15, who lands and closes it.

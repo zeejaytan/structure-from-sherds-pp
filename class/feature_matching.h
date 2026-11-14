@@ -35,7 +35,10 @@ extern int g_sfs339_pc_reason;           // TICKET 339: 0 none, 1 pc_dist, 2 pc_
 // TICKET 357: two more default-off switches, both read once by InitSfsSwitches().
 extern bool g_sfs_axis_lock_icp;         // TICKET 357: SFS_AXIS_LOCK_ICP=1 (axis-locked Icp)
 extern bool g_sfs_xy_break_normals;      // TICKET 357: SFS_XY_BREAK_NORMALS=1 (normals in x,y)
-void InitSfsSwitches();                  // reads both env switches once, prints both banners
+// TICKET 358: the state-stage companion of the last one -- carry the same (x, y) measurement into
+// the StateManager fits.  Default OFF and read once, so an off run is bit-identical.
+extern bool g_sfs_xy_state_normals;      // TICKET 358: SFS_XY_STATE_NORMALS=1 (state normals in x,y)
+void InitSfsSwitches();                  // reads the env switches once, prints their banners
 void SfsTraceMat(const Trans& T);         // TICKET 336: 12 tab-separated numbers, no newline
 
 void NoOverrange(vector<Geom>& shard,

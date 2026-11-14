@@ -90,6 +90,10 @@ bool g_sfs_precor_trace = false;
 // Neither switch moves a shipped constant (w_a, 0.436, 1.5, MINIMUM_NUMBER, TOP_k, BRANCH_b).
 bool g_sfs_axis_lock_icp = false;          // SFS_AXIS_LOCK_ICP=1
 bool g_sfs_xy_break_normals = false;       // SFS_XY_BREAK_NORMALS=1
+// TICKET 358: publish the same (x, y) axis inside the StateManager fits (IcpIncGraphAxis and both
+// Registration overloads) instead of only inside Icp.  Default OFF: no fit publishes an axis, so
+// every cost function there takes its shipped 3D path.
+bool g_sfs_xy_state_normals = false;       // SFS_XY_STATE_NORMALS=1
 static bool g_sfs_switches_read = false;
 
 static bool ReadSfsSwitch(const char* name, bool& bad)
@@ -129,9 +133,10 @@ void InitSfsSwitches()
 	g_sfs_step0_trace = ReadSfsSwitch("SFS_STEP0_TRACE", bad_s0);
 	g_sfs_order_trace = ReadSfsSwitch("SFS_ORDER_TRACE", bad_or);
 	g_sfs_precor_trace = ReadSfsSwitch("SFS_PRECOR_TRACE", bad_pc);
-	bool bad_al = false, bad_xy = false;
+	bool bad_al = false, bad_xy = false, bad_xys = false;
 	g_sfs_axis_lock_icp = ReadSfsSwitch("SFS_AXIS_LOCK_ICP", bad_al);
 	g_sfs_xy_break_normals = ReadSfsSwitch("SFS_XY_BREAK_NORMALS", bad_xy);
+	g_sfs_xy_state_normals = ReadSfsSwitch("SFS_XY_STATE_NORMALS", bad_xys);
 	// TICKET 339: no "[SFS-339] ... is not 1" warning on purpose -- with the switch off the run
 	// must print no [SFS-339] line at all, and the banner below already says which state it is in.
 	(void)bad_at;
@@ -174,8 +179,10 @@ void InitSfsSwitches()
 	cout << "precor trace: " << (g_sfs_precor_trace ? "on" : "off") << endl;
 	cout << "axis lock icp: " << (g_sfs_axis_lock_icp ? "on" : "off") << endl;
 	cout << "xy break normals: " << (g_sfs_xy_break_normals ? "on" : "off") << endl;
+	cout << "xy state normals: " << (g_sfs_xy_state_normals ? "on" : "off") << endl;
 	if (bad_al) cout << "[SFS-357] SFS_AXIS_LOCK_ICP is not 1; axis lock off" << endl;
 	if (bad_xy) cout << "[SFS-357] SFS_XY_BREAK_NORMALS is not 1; xy normals off" << endl;
+	if (bad_xys) cout << "[SFS-358] SFS_XY_STATE_NORMALS is not 1; xy state normals off" << endl;
 }
 
 // TICKET 336: the one matrix writer. Twelve 3x4 numbers, tab-separated, no newline, so a

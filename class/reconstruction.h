@@ -43,18 +43,44 @@ extern double SFS_INLIER_MM;
 // before this ticket, so an off run is bit-identical to the shipped binary.
 extern Vector3d g_sfs357_xy_axis;
 
+// TICKET 358 (SFS_XY_STATE_NORMALS): carry that same (x, y) measurement out of Icp and into the
+// StateManager fits, which is where a pair join is actually kept or dropped.  Default OFF: with
+// the switch off no StateManager fit publishes an axis, so its scoring keeps the shipped
+// expression.  SFS_XY_BREAK_NORMALS keeps owning the pair stage; this owns the state stage.
+extern bool g_sfs_xy_state_normals;
+
 inline bool Sfs357XYOn() { return g_sfs357_xy_axis.squaredNorm() > 1e-12; }
+
+// TICKET 358: level a pair of breakline normals onto the plane orthogonal to the pot axis BEFORE
+// any rotation is applied, and require BOTH members to be well conditioned for that plane -- the
+// in-plane part at least half a unit long, i.e. the normal at least 30 deg off the axis, tested as
+// squaredNorm() >= 0.25 so no division is needed for the guard itself.  A flat rim's normal lies
+// nearly along the axis and its projection is noise, so such a pair keeps its raw 3D normals; the
+// same rule is applied to BOTH members, so an all-flat pair still measures the real 3D tilt
+// instead of silently losing a dimension.  Returns false, and raw copies in a_out/b_out, when the
+// switch is off or the pair is not well conditioned.
+inline bool Sfs357LevelPair(const Vector3d& n_A, const Vector3d& n_B,
+	Vector3d& a_out, Vector3d& b_out)
+{
+	a_out = n_A;
+	b_out = n_B;
+	if (!Sfs357XYOn()) return false;
+	Vector3d a = n_A - n_A.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
+	Vector3d b = n_B - n_B.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
+	if (a.squaredNorm() < 0.25 || b.squaredNorm() < 0.25) return false;
+	a_out = a.normalized();
+	b_out = b.normalized();
+	return true;
+}
 
 // cos of the angle between two normals measured in the plane orthogonal to the pot axis.  When
 // either normal is (almost) parallel to the axis the projected direction is noise, so the plain
-// 3D dot is used for that pair.
+// 3D dot is used for that pair (TICKET 358: the same 0.5 guard, and the same rule for both).
 inline double Sfs357NormDot(const Vector3d& n_A, const Vector3d& n_B)
 {
 	if (!Sfs357XYOn()) return n_A.dot(n_B);
-	Vector3d a = n_A - n_A.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
-	Vector3d b = n_B - n_B.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
-	if (a.norm() < 0.1 || b.norm() < 0.1) return n_A.dot(n_B);
-	a.normalize(); b.normalize();
+	Vector3d a, b;
+	if (!Sfs357LevelPair(n_A, n_B, a, b)) return n_A.dot(n_B);
 	double c = a.dot(b);
 	return c > 1.0 ? 1.0 : (c < -1.0 ? -1.0 : c);
 }
@@ -66,6 +92,26 @@ inline double Sfs357NormAngle(const Vector3d& n_A, const Vector3d& n_B)
 	if (!Sfs357XYOn()) return acos(n_A.dot(n_B));
 	return acos(Sfs357NormDot(n_A, n_B));
 }
+
+// TICKET 358 (SFS_XY_STATE_NORMALS): scope the (x, y) axis to one StateManager fit, exactly the way
+// Icp scopes it to one pair iteration.  The constructor publishes `axis` -- already expressed in the
+// frame the fit's data are in, i.e. the stored axis carried by the accumulated pose -- only when the
+// switch is on, and forces zero otherwise so a pair-stage axis can never leak in.  The destructor
+// restores whatever was there, so no fit leaves a stale axis for the next one.
+class Sfs357AxisScope {
+public:
+	explicit Sfs357AxisScope(const Vector3d& axis) : saved_(g_sfs357_xy_axis) {
+		if (g_sfs_xy_state_normals && axis.squaredNorm() > 1e-12)
+			g_sfs357_xy_axis = axis.normalized();
+		else
+			g_sfs357_xy_axis.setZero();
+	}
+	~Sfs357AxisScope() { g_sfs357_xy_axis = saved_; }
+private:
+	Sfs357AxisScope(const Sfs357AxisScope&);
+	Sfs357AxisScope& operator=(const Sfs357AxisScope&);
+	Vector3d saved_;
+};
 
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;
@@ -562,21 +608,30 @@ public:
 		ceres::AngleAxisToRotationMatrix(s_B, dummy);
 		Eigen::Matrix<Type, 3, 3> R_B(dummy);
 
-		Eigen::Matrix<Type, 3, 1> t_A, t_B, tempn;
+		Eigen::Matrix<Type, 3, 1> t_A, t_B, tempn, nA_use, nB_use;
 		t_A << trans_A[0], trans_A[1], trans_A[2];
 		t_B << trans_B[0], trans_B[1], trans_B[2];
 
-		tempn = (R_A * one_pair_.n_A) - (R_B * one_pair_.n_B);
+		nA_use << (Type)one_pair_.n_A(0), (Type)one_pair_.n_A(1), (Type)one_pair_.n_A(2);
+		nB_use << (Type)one_pair_.n_B(0), (Type)one_pair_.n_B(1), (Type)one_pair_.n_B(2);
 
-		// TICKET 357 (SFS_XY_BREAK_NORMALS): keep only the part of both normals that is orthogonal
-		// to the pot axis, seen through the same incremental rotation as the normals themselves.
-		// Off (the default) g_sfs357_xy_axis is zero and this block does not run.
+		// TICKET 358 (SFS_XY_BREAK_NORMALS): level BOTH normals onto the plane orthogonal to the
+		// pot axis BEFORE they are rotated, then measure the plain 3D residual between the rotated
+		// pair.  The 357 form projected the OUTPUT of the rotation, which deleted the residual
+		// along the axis for every tilt and so removed the vertical pitch stiffness altogether;
+		// leveling the inputs instead lets the pair pitch freely and only drops the component of
+		// each normal along the axis.  Off, or a flat-rim pair with no reliable in-plane direction:
+		// raw 3D for BOTH.  The branch reads the stored doubles, so it is constant over each
+		// evaluation and the derivatives below stay exactly the residual's own.
 		if (Sfs357XYOn()) {
-			Eigen::Matrix<Type, 3, 1> u;
-			u << (Type)g_sfs357_xy_axis(0), (Type)g_sfs357_xy_axis(1), (Type)g_sfs357_xy_axis(2);
-			u = R_A * u;
-			tempn = tempn - u * u.dot(tempn);
+			Vector3d a_unit, b_unit;
+			if (Sfs357LevelPair(one_pair_.n_A, one_pair_.n_B, a_unit, b_unit)) {
+				nA_use << (Type)a_unit(0), (Type)a_unit(1), (Type)a_unit(2);
+				nB_use << (Type)b_unit(0), (Type)b_unit(1), (Type)b_unit(2);
+			}
 		}
+
+		tempn = (R_A * nA_use) - (R_B * nB_use);
 
 		for (int j = 0; j < 3; j++) {
 			residual[j] = (Type)weight_n_ * tempn(j);
@@ -603,18 +658,23 @@ public:
 		ceres::AngleAxisToRotationMatrix(s_A, dummy);
 		Eigen::Matrix<Type, 3, 3> R_A(dummy);
 
-		Eigen::Matrix<Type, 3, 1> t_A, tempn;
+		Eigen::Matrix<Type, 3, 1> t_A, tempn, nA_use, nB_use;
 		t_A << trans_A[0], trans_A[1], trans_A[2];
 
-		tempn = (R_A * one_pair_.n_A) - one_pair_.n_B;
+		nA_use << (Type)one_pair_.n_A(0), (Type)one_pair_.n_A(1), (Type)one_pair_.n_A(2);
+		nB_use << (Type)one_pair_.n_B(0), (Type)one_pair_.n_B(1), (Type)one_pair_.n_B(2);
 
-		// TICKET 357 (SFS_XY_BREAK_NORMALS): as in CostFuncNorm, drop the axis component.  Off: no-op.
+		// TICKET 358 (SFS_XY_BREAK_NORMALS): as in CostFuncNorm, level both normals before the
+		// rotation and keep the full 3D residual afterwards.  Off: raw 3D, no-op.
 		if (Sfs357XYOn()) {
-			Eigen::Matrix<Type, 3, 1> u;
-			u << (Type)g_sfs357_xy_axis(0), (Type)g_sfs357_xy_axis(1), (Type)g_sfs357_xy_axis(2);
-			u = R_A * u;
-			tempn = tempn - u * u.dot(tempn);
+			Vector3d a_unit, b_unit;
+			if (Sfs357LevelPair(one_pair_.n_A, one_pair_.n_B, a_unit, b_unit)) {
+				nA_use << (Type)a_unit(0), (Type)a_unit(1), (Type)a_unit(2);
+				nB_use << (Type)b_unit(0), (Type)b_unit(1), (Type)b_unit(2);
+			}
 		}
+
+		tempn = (R_A * nA_use) - nB_use;
 
 		for (int j = 0; j < 3; j++) {
 			residual[j] = (Type)weight_n_ * tempn(j);

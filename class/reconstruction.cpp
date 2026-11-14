@@ -1596,6 +1596,18 @@ void Registration(vector<BreakLine>& L,
 		set_node = lcs.shard_x_;
 	}
 
+	// TICKET 358 (SFS_XY_STATE_NORMALS): the axis this fit measures breakline normals against, in the
+	// frame its data are in.  Axis vectors are never rotated by EdgeLineMove (data_structure.cpp:773),
+	// so the accumulated pose R[set_node-1] is exactly the map from the stored axis to that frame; the
+	// fixed piece does not move here, so one scope covers the whole fit.  Off: the scope publishes zero.
+	int sfs358_axis_set = (set_node == lcs.shard_x_) ? lcs.axis_index_x_ : lcs.axis_index_y_;
+	Vector3d sfs358_axis = Vector3d::Zero();
+	if (g_sfs_xy_state_normals && set_node >= 1 && (size_t)set_node <= L.size() &&
+		sfs358_axis_set >= 0 && (size_t)sfs358_axis_set < L[set_node - 1].axis_norm_.size() &&
+		L[set_node - 1].axis_norm_[sfs358_axis_set].norm() > 1e-9)
+		sfs358_axis = (R[set_node - 1] * L[set_node - 1].axis_norm_[sfs358_axis_set]).normalized();
+	Sfs357AxisScope sfs358_scope(sfs358_axis);
+
 	// Iterate until R_i and t_i are not changed
 	bool point_to_line = false;
 	bool axis = false;
@@ -1780,6 +1792,18 @@ void Registration(vector<BreakLine>& L,
 		c_node = lcs.shard_y_;
 		set_node = lcs.shard_x_;
 	}
+
+	// TICKET 358 (SFS_XY_STATE_NORMALS): the axis this fit measures breakline normals against, in the
+	// frame its data are in.  Axis vectors are never rotated by EdgeLineMove (data_structure.cpp:773),
+	// so the accumulated pose R[set_node-1] is exactly the map from the stored axis to that frame; the
+	// fixed piece does not move here, so one scope covers the whole fit.  Off: the scope publishes zero.
+	int sfs358_axis_set = (set_node == lcs.shard_x_) ? lcs.axis_index_x_ : lcs.axis_index_y_;
+	Vector3d sfs358_axis = Vector3d::Zero();
+	if (g_sfs_xy_state_normals && set_node >= 1 && (size_t)set_node <= L.size() &&
+		sfs358_axis_set >= 0 && (size_t)sfs358_axis_set < L[set_node - 1].axis_norm_.size() &&
+		L[set_node - 1].axis_norm_[sfs358_axis_set].norm() > 1e-9)
+		sfs358_axis = (R[set_node - 1] * L[set_node - 1].axis_norm_[sfs358_axis_set]).normalized();
+	Sfs357AxisScope sfs358_scope(sfs358_axis);
 
 	// Iterate until R_i and t_i are not changed
 	bool point_to_line = false;
@@ -2026,6 +2050,21 @@ void IcpIncGraphAxis(
 				Table(i, k) = 0;
 			}
 		}
+
+		// TICKET 358 (SFS_XY_STATE_NORMALS): the pot axis in the frame THIS iteration's data are in.
+		// Axis vectors never move with the data (EdgeLineMove moves points and normals only, see
+		// data_structure.cpp:773), while every graph node's pose is accumulated into R, so
+		// R[root]*axis_norm_[0] is exactly the stored axis expressed in the shared frame.  The pose
+		// grows every iteration, hence the refresh; the RAII scope restores the global on the way
+		// out -- including the "rim data empty" continue below.  Off: the scope publishes zero.
+		Vector3d sfs358_axis = Vector3d::Zero();
+		if (g_sfs_xy_state_normals && graph.root_node_ >= 1 &&
+			(size_t)graph.root_node_ <= shard.size()) {
+			const vector<Vector3d>& an = shard[graph.root_node_ - 1].edge_line_.axis_norm_;
+			if (!an.empty() && an[0].norm() > 1e-9)
+				sfs358_axis = (R[graph.root_node_ - 1] * an[0]).normalized();
+		}
+		Sfs357AxisScope sfs358_scope(sfs358_axis);
 
 		//############### Make correspondence ###############// 
 		COR.clear();
