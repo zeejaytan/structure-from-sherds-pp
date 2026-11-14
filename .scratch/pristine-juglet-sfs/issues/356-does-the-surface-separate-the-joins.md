@@ -1,9 +1,9 @@
-# Ticket 355 - does the surface separate the joins the breakline cannot
+# Ticket 356 - does the surface separate the joins the breakline cannot
 
-**Status:** in-progress
+**Status:** ready-for-agent
 **Working in:** chat on Thinkbook16 (2026-11-14)
-**Branch:** 355-does-the-surface-separate-the-joins, in /c/PR/worktrees/structure-from-sherds-pp/355
-**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
+**Branch:** to be created at dispatch
+**Worker:** unassigned
 **Waits for:** nothing - ticket 354 landed 2026-11-14
 **Answers:** S1
 **Depends on:** 354 (the locked placements and their scores), 348 (the measured contact set and its rule), 347 (the mating-face method), 349 (the candidate ceiling)
@@ -62,12 +62,12 @@ distances, outward normals calibrated by ray parity, signed distance at the clos
 2. the contact patch: bounding-box diagonal, and each piece's fraction of vertices inside it;
 3. the same at turn 0 / height 0, so the shift from the key is visible.
 
-Write `C:/PR/artifacts/t355/surface355.tsv`, 36 rows, columns:
+Write `C:/PR/artifacts/t356/surface355.tsv`, 36 rows, columns:
 `pair  measured_join  turn_deg  height_mm  bl_score  pool_a  pool_b  n_lt_0.1  dot_med  frac_btb  bbox_mm  verts_frac_a  verts_frac_b  n_lt_0.1_key  frac_btb_key  surf_ok`
 where `surf_ok` is ticket 348's rule applied at the **locked** placement (gap <= 0.05 mm AND
 frac_btb >= 0.40 AND bbox >= 8 mm) and `_key` columns are the same measure at turn 0.
 
-Also write `C:/PR/artifacts/t355/render355.png`: for 1-2, 3-5, 4-7, 7-9 and 2-5, the facing patch at
+Also write `C:/PR/artifacts/t356/render355.png`: for 1-2, 3-5, 4-7, 7-9 and 2-5, the facing patch at
 the locked placement (the two pieces' points within 0.1 mm, coloured by dot sign), so the conservator
 can see whether the surfaces meet or stand side by side. One figure, five panels, axes labelled.
 
@@ -107,7 +107,7 @@ Quote the rows that decide it. Do not add a fifth reading; if none fits, report 
 - [ ] 4-7 and 7-9 are named individually in every rule's outcome;
 - [ ] `render355.png` exists with five labelled panels and is described in one sentence;
 - [ ] exactly one reading from Part D, with the deciding rows quoted;
-- [ ] artefacts under `C:/PR/artifacts/t355/` (`surface355.tsv`, `render355.png`, the script, `logs/`);
+- [ ] artefacts under `C:/PR/artifacts/t356/` (`surface355.tsv`, `render355.png`, the script, `logs/`);
 - [ ] `git diff --stat` shows this ticket and its write-back only - no `class/`, no `hpc/`, no job
       submission change.
 
