@@ -1,7 +1,7 @@
 # Ticket 349 — where the candidate stage loses the touching pairs
 
-**Status:** needs-info
-**Waits for:** ticket 348 (the measured contact set decides which pairs count)
+**Status:** ready-for-agent
+**Waits for:** nothing — ticket 348 landed 2026-11-14
 **Branch:** to be created at start
 **Worker:** unassigned
 **Answers:** S1
@@ -25,16 +25,34 @@ The lane has now ruled out the things that are *not* the ceiling:
 - the **gate** — 341: the gate refuses with a number that is over its bar, not by accident;
 - the **winner** — 342: the winning state does not carry the failing pairs at all.
 
-What is left is the stage that produces the candidates. From one signed run's 51 candidates:
-**8 of the 10 touching pairs get a candidate, and only 3 are inside the 5 deg / 5 mm bar** — 1-8
-(0.70 / 1.21), 1-2 (2.14 / 2.20), 6-9 (2.35 / 1.72). 7-9 is just outside (5.39 / 4.24); 1-9
-(8.82 / 3.48), 2-9 (15.12 / 8.15), 2-5 (45.91 / 32.58) and 3-5 (48.31 / 44.00) are far outside;
-**3-7 and 6-7 have no candidate at all** although 6-7's lines coincide over 39 mm at 0.344 mm.
+What is left is the stage that produces the candidates. Read against ticket 348's measured set (14
+joins), one signed run's 51 candidates give: **13 of the 14 joins have at least one candidate and
+only 4 are inside the 5 deg / 5 mm bar** — 1-8 (0.70 / 1.21), 5-7 (4.71 / 3.69), 1-2 (2.14 / 2.20),
+6-9 (2.35 / 1.72). **6-7 has no candidate at all** although its lines coincide over 39 mm at
+0.344 mm. Just outside the bar: 5-8 (7.00 / 4.97), 1-9 (8.82 / 3.48), 3-8 (11.00 / 4.53), 5-6
+(13.00 / 15.64), 2-9 (15.12 / 8.15), 1-4 (18.57 / 11.79), 2-6 (26.21 / 19.15), 1-3 (46.21 / 39.39),
+3-5 (48.31 / 44.00). So even a perfect search seats at most **4 of the 14** joins from this stage.
+
+## Premise check against ticket 348 (2026-11-14)
+
+Ticket 348 landed the measured contact set, so the population this ticket censuses is fixed: 14
+joins — `1-2 1-3 1-4 1-8 1-9 2-6 2-9 3-5 3-8 5-6 5-7 5-8 6-7 6-9`. Three consequences for the
+census below:
+
+- the earlier framing against ticket 326's ten touching pairs is retired — 2-5 and 7-9 are not
+  joins (they touch without facing), 3-7 stands 13.85 mm away, so their candidate numbers say
+  nothing about the ceiling;
+- **6-7** is the one measured join with no candidate at all, and it is now the sharpest case in the
+  census: the lines coincide over 39 mm at 0.344 mm and the stage produces nothing;
+- two control rows belong in the table: **4-7** (in-bar candidate 3.35 / 2.68 and not a join) and
+  **4-6** (a key edge the meshes put 7.68 mm apart, whose only candidate is 155.17 deg / 88.64 mm,
+  yet which the winning state carries as edge #77 — so the winner's edge did not come from this
+  candidate stage at all).
 
 ## Part A — the census, pair by pair
 
-For each measured join from ticket 348 (and 6-7 in particular), assemble one row from data that
-already exists:
+For each of the 14 measured joins from ticket 348, plus the two controls 4-7 and 4-6, assemble one
+row from data that already exists:
 
 - **what the geometry offers** at the true pose: the run of dots within 2 mm and its length in mm,
   the median gap, and the normal agreement along it (347's `pairs347.tsv`, `mating347.tsv`);
@@ -82,7 +100,8 @@ If Part A does not point at the axis, say so and skip Part B — `axis-not-impli
 
 ## Part D — acceptance
 
-- [ ] every measured join from 348 has a Part A row, with the source of each column named;
+- [ ] all 14 measured joins and the two controls (4-7, 4-6) have a Part A row, with the source of
+  each column named;
 - [ ] the candidate rows are quoted from the logs by pair (not by id) and matched on
   (y, x, score, inliers), since ids are run-local;
 - [ ] the axis comparison is in degrees per piece, from the two files, in the 1x frame;
