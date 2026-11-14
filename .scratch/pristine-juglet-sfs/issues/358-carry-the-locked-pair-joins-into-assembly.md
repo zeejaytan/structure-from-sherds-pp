@@ -5,7 +5,7 @@
 **Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-15)
 **Branch:** 358-carry-the-locked-pair-joins-into-assembly, in /c/PR/worktrees/structure-from-sherds-pp/358
-**Worker:** dsh one-shot subagent, dispatched 2026-11-15 by the lead
+**Worker:** dsh one-shot subagent w358, dispatched 2026-11-15 by the lead
 **Answers:** S1
 **Needs-eye:** yes
 **Depends on:** 357
