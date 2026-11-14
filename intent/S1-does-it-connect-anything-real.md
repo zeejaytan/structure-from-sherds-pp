@@ -1141,3 +1141,31 @@ arm, 8 of 8 and 15 of 15 on both Pot A arms, 180/180/0 and 124/0 trace rows agai
 Next: **ticket 357** (`357-what-causes-the-iter0-hinge-and-inlier-rejection.md`) tests the `2x2` factorial (`SFS_AXIS_LOCK_ICP` at `iter = 0..49` x `SFS_XY_BREAK_NORMALS` in `CostFuncNorm` / `RejectOutlier` / `CountInlier`) across all 180 Juglet candidates and the 124 `Pot_A` control candidates, measuring `in_bar_0`, `in_bar_F`, `CountInlier` survival, `pair_basket <= 1.5` survival, and end-to-end seated sherds and edges.
 
 Caveats recorded with ticket 355: only 10 of 15 Pot A joins are inside the bar at their best candidate yet Pot A seats 15 of 15, so the per-candidate bar is not a seat predictor; `Pot_A`'s `1-5, 1-7, 2-5, 3-5, 4-7, 6-7` carry ~120-180 deg axis-sign flips in stored piece axes; and the printed iter-0 transform is in local frames while the breakline files are in tree coordinates, so the 0.06-0.25 mm seating number is the worker's measurement, not the lead's.
+
+## 2026-11-15 - The hinge is the pair stage's fault; the assembly does not move (ticket 357)
+
+Two default-off switches and a 2x2 factorial on Juglet and Pot A. With the candidate axis held through all fifty ICP
+iterations (SFS_AXIS_LOCK_ICP=1) the first solve stops hinging: joins inside 5 deg / 5 mm go from 0 of 14 to 10 of 14,
+the tilt at iter 0 falls from 1.4-33.2 deg to 0.001-0.012 deg, and 1-2, 1-4, 1-8, 1-9, 2-9, 3-8, 5-6, 5-7, 5-8 and
+6-9 land on the seam at the first solve instead of after forty iterations. Pot A holds 8 of 8 sherds and 15 of 15
+edges under the axis lock alone. The hinge was real, it was the axis, and locking it fixes the pose.
+
+It does not fix the joins that matter. Of the ten in bar, three are still thrown away by the inlier gate on their own
+normals (1-4 with 0 of 19, 1-9 with 4 of 17, 6-9 with 4 of 14 inliers); comparing breakline normals in the plane
+orthogonal to the pot axis (SFS_XY_BREAK_NORMALS=1) lifts those to 32, 14 and 14 and turns the ground-truth audit's
+five Juglet failures into passes, but it adds no bar entries by itself (1 of 14 at iter 0, 3 of 14 at final) and, in
+combination with the axis lock, it breaks the Pot A control: 7 of 8 sherds and 9 of 15 edges, with piece 5 left alone
+in a cluster.
+
+Assembly does not move at all: 2 of 9 sherds and 1 of 18 edges on every Juglet arm, the same as stock. Ten of fourteen
+joins now start in bar, eight survive the state graph, and the winner still seats two pieces. The pair stage is
+therefore no longer what limits this object; the next lever is downstream - the pair_overlap and pair_basket gates
+that still drop in-bar joins, and the winner that never carries them.
+
+Caveats recorded with it: the reading axis-lock-alone-recovers-pair-joins-without-xynorm holds through its
+parenthetical clause - the xy-normals switch adds nothing to the bar and hurts Pot A in combination - not through the
+literal "at least 9 in bar and passing CountInlier" clause, because arm10 has 7 of its 10 in-bar joins passing that
+gate (the xy switch raises it to 10 of 10 but costs Pot A). The two repeats agree exactly on each pair's best
+candidate; the raw candidate blocks differ in 12 of 51 lines in the sixth digit, which is the known twelve-thread
+Ceres drift. Five existing normal comparisons were replaced in place rather than added beside them, each guarded so
+the off path is the legacy expression, and the stock arm's candidate block diffs to zero lines against ticket 355.
