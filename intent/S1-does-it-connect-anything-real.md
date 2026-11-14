@@ -1123,23 +1123,21 @@ The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a 
 
 Of the ten joins ticket 348 measured that never reach the bar, none is inside it at the first solve. Three lose the
 seam itself in the LCS stage (1-3 overlap fraction 0.000 and 12.98 mm off the seam, 3-5 0.500 / 14.90, 6-7 0.500 /
-27.13); the other seven have the seam right -- fraction 1.000, 0.60-3.92 mm -- and still leave the first solve at
-7-34 deg of rotation error, because the matched run is a short patch of a nearly straight curve and a spin about the
-joining axis is almost free. The remaining forty iterations recover four of the fourteen joins (1-2 14.96 -> 1.93 deg,
+27.13); the other seven have the seam right -- fraction 1.000, 0.46-3.92 mm -- and still leave the first solve at
+6.64-33.29 deg of rotation error (`0 of 14` in the 5 deg / 5 mm bar at `iter = 0`). The remaining forty-nine iterations recover four of the fourteen joins (1-2 14.96 -> 1.93 deg,
 1-8 8.07 -> 0.49, 6-9 14.77 -> 2.35, 5-7 6.64 -> 4.71) and leave 5-6 (7.63 -> 13.00) and 6-7 (153.33 -> 165.69)
 slightly worse. Pot A, the control, starts at 6 of 15 joins inside the bar and ends at 10 of 15, seating 15 of 15;
 Juglet ends at 4 of 14 and seats 2 of 9. The trace changes nothing: 2 of 9 sherds and 1 of 18 edges on every Juglet
 arm, 8 of 8 and 15 of 15 on both Pot A arms, 180/180/0 and 124/0 trace rows against the candidate counts.
 
-Two consequences. First, the failure is not "ICP drifts off a good LCS answer": on this object there is usually no
-good answer to drift from. A short seam fixes the position and not the turn -- the same limitation ticket 353
-measured from the other side (a 5 deg spin moves a breakline dot 1.1-1.5 mm along the surface while moving the
-in-zone RMS by under 0.20 mm on ten of fourteen joins), and the reason ticket 354's two-degree-of-freedom placement
-on a known axis works where the free pair fit does not. Second, the lever is a rotation constraint at the first solve
--- the axis-locked pair rotation, or a longer seam -- not more iterations. Both are live options; nothing in this
-lane has been tuned.
+**Lead decomposition (2026-11-14) — the `iter = 0` loss is an off-axis hinge driven by opposing boundary-bevel normals, NOT a free spin along the pot axis:**
 
-Caveats recorded with it: only 10 of 15 Pot A joins are inside the bar at their best candidate yet Pot A seats 15 of
-15, so the per-candidate bar is not a seat predictor and the Juglet-versus-Pot A contrast is suggestive only; and the
-printed iter-0 transform is in local frames while the breakline files are in tree coordinates, so the 0.06-0.25 mm
-seating number is the worker's measurement, not the lead's.
+1. **The `UsePreCorres` LCS segment is NOT spin-free on the pot axis.** Unlike point-to-line `MakeCor` at `iter = 1..49`, `iter = 0` (`UsePreCorres` + `MakeSection`) uses a **1-to-1 point-to-point** pairing `[sy-1..ey-1]` <-> `[nx-sx..nx-ex]`. When those exact stock `LCS` dot pairs (`juglet_signed_on_r1.log`) are fit in **2-DoF (`spin` around the aligned `+z` pot axis passing through `(0, 0)` + `z` shift, zero `x/y` shift and zero axis tilt — no oracle, no grid search)**, **10 of the 14 measured Juglet joins land inside `5 deg / 5 mm` at `iter = 0`** (`1-2` `0.26 deg / 0.76 mm`, `1-9` `0.33 / 0.66`, `1-8` `0.38 / 0.73`, `5-7` `1.08 / 0.43`, `6-9` `2.04 / 0.94`, `3-8` `2.23 / 0.57`, `5-8` `2.36 / 0.64`, `1-4` `2.52 / 0.72`, `5-6` `2.95 / 3.31`, `2-9` `3.19 / 0.97`; median `2.13 deg / 0.72 mm`), spanning **all 9 of 9 sherds**. Allowing free `(dx, dy)` translation around the local patch (4-DoF) drops that to `6–7 of 14` because the radius `R` lever arm to the pot axis vanishes over a 7–14 dot patch.
+2. **Stock `iter = 0` turns the axis off (`axis = false`, `class/reconstruction.cpp:1258`) and weak `w_a = 0.1` vs `w_n = 3.0` (`:1242`):** Solving an unconstrained 6-DoF rigid fit on a short 1D curve lets Ceres **hinge the sherds off the pot axis** (`tilt0 = 33.25 deg` while `spin0 = -1.69 deg` on `1-4`; `tilt0 = 29.84 deg` on `2-6`; `27.65 deg` on `1-9`; `15.55 deg` on `2-9`; `13.47 deg` on `1-2`; `11.59 deg` on `6-9`; `11.40 deg` on `5-8`; `9.16 deg` on `3-8`). Even at `iter = 49`, `1-9` (`spinF = -1.89 deg, tiltF = 8.62 deg`) and `5-8` (`spinF = +1.71 deg, tiltF = 6.79 deg`) miss the `5 deg` bar purely from residual axis tilt.
+3. **Why `CostFuncNorm` (`w_n = 3.0`) hinges the Juglet sherds and why `CountInlier` rejects good poses — opposing `N_z` boundary-bevel bias in `Breakline_0.pcd`:** Evaluated at the **exact ground-truth pose (`0.00 deg, 0.00 mm`)**:
+   - On `Pot_A`, 3D breakline normals across mutual nearest neighbours (`< 1.5 mm` real) agree to **`1.0–8.4 deg` (median `3.3 deg`)** across all 15 joins, and **15 of 15** pass `CountInlier` (`min(ang, 180-ang) < 15.0 deg`, `>= 6` inliers).
+   - On the `Juglet`, the horizontal `(N_x, N_y)` components agree to **`2.1–12.9 deg` folded median `5.1 deg` (`14 of 14` pass `CountInlier`)**, **but the vertical component `N_z` tilts oppositely into the bevelled fracture edge on the upper vs lower sherd** (`1-4`: `N_z = -0.370` vs `+0.222 -> 34.9 deg`; `2-6`: `-0.271` vs `+0.221 -> 30.5 deg`; `1-9`: `-0.106` vs `+0.242 -> 26.9 deg`; `1-3`: `19.8 deg`; `1-2`: `19.2 deg`; `3-5`: `18.5 deg`; `3-8`: `17.9 deg`; `5-8`: `14.1 deg`; `14`-join folded 3D median `16.0 deg`, unfolded `18.2 deg`). Additionally, on `6-7`, Piece 7 shows opposite-sign radial normals (`+0.36` vs `-0.51`, `175.6 deg` unfolded / `4.4 deg` folded). Because of the `18–35 deg` opposing `N_z` bevel bias: (a) `CostFuncNorm` (`w_n = 3.0`) torques the unconstrained `iter = 0` solve into the `9–33 deg` off-axis hinge, and (b) `CountInlier` (`ANGLE_THRESHOLD = 0.262 rad = 15.0 deg`) fails `< 6` inliers (`score = 11.0`) on **5 of the 14 Juglet joins even at exact ground truth** (`1-4` `0/19`, `2-6` `1/26`, `1-9` `5/17`, `1-3` `5/22`, `3-5` `4/10`), while `14 of 14` pass using horizontal `(N_x, N_y)` normals.
+
+Next: **ticket 357** (`357-what-causes-the-iter0-hinge-and-inlier-rejection.md`) tests the `2x2` factorial (`SFS_AXIS_LOCK_ICP` at `iter = 0..49` x `SFS_XY_BREAK_NORMALS` in `CostFuncNorm` / `RejectOutlier` / `CountInlier`) across all 180 Juglet candidates and the 124 `Pot_A` control candidates, measuring `in_bar_0`, `in_bar_F`, `CountInlier` survival, `pair_basket <= 1.5` survival, and end-to-end seated sherds and edges.
+
+Caveats recorded with ticket 355: only 10 of 15 Pot A joins are inside the bar at their best candidate yet Pot A seats 15 of 15, so the per-candidate bar is not a seat predictor; `Pot_A`'s `1-5, 1-7, 2-5, 3-5, 4-7, 6-7` carry ~120-180 deg axis-sign flips in stored piece axes; and the printed iter-0 transform is in local frames while the breakline files are in tree coordinates, so the 0.06-0.25 mm seating number is the worker's measurement, not the lead's.
