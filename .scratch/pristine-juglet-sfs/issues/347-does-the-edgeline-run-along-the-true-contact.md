@@ -1,12 +1,13 @@
 # Ticket 347 — does the edgeline run along the true contact stretch
 
-**Status:** ready-for-agent
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-14)
+**Branch:** 347-does-the-edgeline-run-along-the-true-contact, in /c/PR/worktrees/structure-from-sherds-pp/347
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Answers:** S1
 **Depends on:** 326 (the gap between the lines at the true pose), 333 (the 3x scale test), 341 (the gate's refusals), 344 (stopped: 5-7 is not a join)
 **Waits for:** nothing — the inputs are on disk and the reference check is done
 **Blocks:** the candidate-generation ticket, and any change to the breakline extraction
-**Worker:** unassigned
 **Budget:** small (2 failed checks)
 **Hand-over:** DeepSeek: offline geometry, no assembler run; the hidden check is the table in Part B.
 
