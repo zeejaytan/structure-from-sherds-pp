@@ -36,6 +36,37 @@ class RankingSubgraph;
 #define SFS_INLIER_MM_MAX	100.0
 extern double SFS_INLIER_MM;
 
+// TICKET 357 (SFS_XY_BREAK_NORMALS): compare breakline normals ORTHOGONALLY to the pot axis.
+// g_sfs357_xy_axis is the pot axis expressed in the frame the breakline data are currently in;
+// it is set inside Icp() only (reconstruction.cpp) and is the ZERO vector everywhere else, which
+// every consumer below treats as "switch off" and answers with the exact expression it used
+// before this ticket, so an off run is bit-identical to the shipped binary.
+extern Vector3d g_sfs357_xy_axis;
+
+inline bool Sfs357XYOn() { return g_sfs357_xy_axis.squaredNorm() > 1e-12; }
+
+// cos of the angle between two normals measured in the plane orthogonal to the pot axis.  When
+// either normal is (almost) parallel to the axis the projected direction is noise, so the plain
+// 3D dot is used for that pair.
+inline double Sfs357NormDot(const Vector3d& n_A, const Vector3d& n_B)
+{
+	if (!Sfs357XYOn()) return n_A.dot(n_B);
+	Vector3d a = n_A - n_A.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
+	Vector3d b = n_B - n_B.dot(g_sfs357_xy_axis) * g_sfs357_xy_axis;
+	if (a.norm() < 0.1 || b.norm() < 0.1) return n_A.dot(n_B);
+	a.normalize(); b.normalize();
+	double c = a.dot(b);
+	return c > 1.0 ? 1.0 : (c < -1.0 ? -1.0 : c);
+}
+
+// The folded angle the inlier counters use, i.e. the same acos the legacy code took, except under
+// the switch, where it is taken between the two projected normals.
+inline double Sfs357NormAngle(const Vector3d& n_A, const Vector3d& n_B)
+{
+	if (!Sfs357XYOn()) return acos(n_A.dot(n_B));
+	return acos(Sfs357NormDot(n_A, n_B));
+}
+
 typedef pcl::PointCloud<pcl::PointNormal> pc_cloud;
 typedef pc_cloud::Ptr ptr_cloud;
 
@@ -537,6 +568,16 @@ public:
 
 		tempn = (R_A * one_pair_.n_A) - (R_B * one_pair_.n_B);
 
+		// TICKET 357 (SFS_XY_BREAK_NORMALS): keep only the part of both normals that is orthogonal
+		// to the pot axis, seen through the same incremental rotation as the normals themselves.
+		// Off (the default) g_sfs357_xy_axis is zero and this block does not run.
+		if (Sfs357XYOn()) {
+			Eigen::Matrix<Type, 3, 1> u;
+			u << (Type)g_sfs357_xy_axis(0), (Type)g_sfs357_xy_axis(1), (Type)g_sfs357_xy_axis(2);
+			u = R_A * u;
+			tempn = tempn - u * u.dot(tempn);
+		}
+
 		for (int j = 0; j < 3; j++) {
 			residual[j] = (Type)weight_n_ * tempn(j);
 		}
@@ -567,6 +608,14 @@ public:
 
 		tempn = (R_A * one_pair_.n_A) - one_pair_.n_B;
 
+		// TICKET 357 (SFS_XY_BREAK_NORMALS): as in CostFuncNorm, drop the axis component.  Off: no-op.
+		if (Sfs357XYOn()) {
+			Eigen::Matrix<Type, 3, 1> u;
+			u << (Type)g_sfs357_xy_axis(0), (Type)g_sfs357_xy_axis(1), (Type)g_sfs357_xy_axis(2);
+			u = R_A * u;
+			tempn = tempn - u * u.dot(tempn);
+		}
+
 		for (int j = 0; j < 3; j++) {
 			residual[j] = (Type)weight_n_ * tempn(j);
 		}
@@ -576,6 +625,52 @@ public:
 private:
 	CorPair one_pair_;
 	double weight_n_;
+};
+
+// TICKET 357 (SFS_AXIS_LOCK_ICP): hold the candidate axis pair rigidly for the whole Icp.
+// residual[0..2]: the two axis directions stay aligned (u_A == sign * u_B), weight 1e3;
+// residual[3..5]: the moving axis ORIGIN stays on the fixed axis LINE -- the component of the
+// origin-to-origin offset perpendicular to u_A is driven to zero, weight 10.  No loss function:
+// this is a hard lock, and the data themselves are already placed on it at iter 0 (Icp's init).
+class CandidateAxisLockFunctor {
+public:
+	CandidateAxisLockFunctor(const Vector3d& o_A, const Vector3d& u_A,
+		const Vector3d& o_B, const Vector3d& u_B, double sign)
+		: mo_A_(o_A), mu_A_(u_A.normalized()), mo_B_(o_B), mu_B_(u_B.normalized()), msign_(sign) { }
+
+	template <typename Type>
+	bool operator()(const Type* const s_A, const Type* const s_B, const Type* const trans_A, const Type* const trans_B, Type* residual) const {
+		Type dummy[9];
+
+		ceres::AngleAxisToRotationMatrix(s_A, dummy);
+		Eigen::Matrix<Type, 3, 3> R_A(dummy);
+
+		ceres::AngleAxisToRotationMatrix(s_B, dummy);
+		Eigen::Matrix<Type, 3, 3> R_B(dummy);
+
+		Eigen::Matrix<Type, 3, 1> t_A, t_B, u_A, u_B, o_A, o_B;
+		t_A << trans_A[0], trans_A[1], trans_A[2];
+		t_B << trans_B[0], trans_B[1], trans_B[2];
+		u_A << (Type)mu_A_(0), (Type)mu_A_(1), (Type)mu_A_(2);
+		u_B << (Type)mu_B_(0), (Type)mu_B_(1), (Type)mu_B_(2);
+		o_A << (Type)mo_A_(0), (Type)mo_A_(1), (Type)mo_A_(2);
+		o_B << (Type)mo_B_(0), (Type)mo_B_(1), (Type)mo_B_(2);
+
+		Eigen::Matrix<Type, 3, 1> ax = R_A * u_A;
+		Eigen::Matrix<Type, 3, 1> bx = R_B * u_B;
+		Eigen::Matrix<Type, 3, 1> d = (R_B * o_B + t_B) - (R_A * o_A + t_A);
+		Type along = ax.dot(d);
+
+		for (int j = 0; j < 3; j++) {
+			residual[j] = (Type)1000.0 * (ax(j) - (Type)msign_ * bx(j));
+			residual[j + 3] = (Type)10.0 * (d(j) - along * ax(j));
+		}
+		return true;
+	}
+
+private:
+	Vector3d mo_A_, mu_A_, mo_B_, mu_B_;
+	double msign_;
 };
 
 class CostFuncRim {
