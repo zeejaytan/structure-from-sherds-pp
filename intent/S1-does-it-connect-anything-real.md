@@ -1179,3 +1179,24 @@ the off path is the legacy expression, and the stock arm's candidate block diffs
    - `Icp()` cleared `g_sfs357_xy_axis` on return (`class/reconstruction.cpp:1560`), so `StateManager` (`IcpIncGraphAxis` + `Registration`) reverted to raw bevelled 3D normals at Step 0, slashing `{1, 2}` (`69 -> 24`) and `{2, 6}` (`49 -> 28`) so both were dropped at `CUT 0` (`CUT 0 KEPT 6:78,9:78,3:68,8:40,7:28 DROPPED 10:28,11:28,4:24`) in favour of false join `1-3` (`40`).
 
 Next: **ticket 358** (rewritten 2026-11-15 in `.scratch/pristine-juglet-sfs/issues/358-carry-the-locked-pair-joins-into-assembly.md`) **drops all axis locking (`SFS_AXIS_LOCK_ICP=0`, no `SFS_STATE_LOCK_ICP`)**, audits full pair-to-final attrition on Ticket 357 `arm00_stock` and `arm01_xynorm_only` logs, fixes pre-rotation normal leveling (`0.5` flat-rim guard, full 3D post-rotation residual), extends `(x, y)` normals to `StateManager` (`IcpIncGraphAxis` + both `Registration` overloads behind default-off `SFS_XY_STATE_NORMALS=1`), and runs a 6-arm 6-DoF Slurm test across `Juglet` and `Pot_A` (`8/8 sherds, 15/15 edges` control).
+
+## 2026-11-15 - The 6-DoF normals carry the pair joins into the assembly (ticket 358)
+
+Two default-off switches and no axis lock anywhere. Leveling both breakline normals onto the plane across the pot axis
+before rotation - which restores the vertical pitch stiffness the 357 form deleted by projecting the residual after
+rotation - takes iter-0 in-bar joins from 0 to 4 of 14 on Juglet. Carrying the same plane into the state stage then
+commits two clusters, {1,2,3,4,6,8,9} and {5,7}, seats 9 of the 14 measured joins inside 5 deg and the millimetre bar
+(1-2 3.7 deg / 0.8 mm, 1-3 1.6 / 0.7, 1-8 1.2 / 0.5, 1-9 4.1 / 1.2, 2-6 3.3 / 0.6, 2-9 4.7 / 0.7, 3-8 2.5 / 0.6,
+5-7 4.7 / 1.2, 6-9 4.1 / 0.5; 1-4 sits in the cluster but 11.8 deg off), and lifts the reported result from 2 of 9
+sherds and 1 of 18 edges to 5 of 9 and 4 of 18 on both repeats, while Pot A holds 8 of 8 and 15 of 15 on both of its
+arms. The 4.7 deg on 5-7 is the join the plausibility gate refused in tickets 341 and 345.
+
+Caveats recorded with it. The reported 5/9 and 4/18 is CountResult, whose world-frame gate rejects these sherds for
+their distance from the origin (about 1600 tree units) rather than for their fit - nine joins are inside the bar in
+their own frame and that is the seating number. The join 1-3 is a measured join (ticket 348: 0.0004 mm gap, 320 vertex
+pairs within 0.1 mm, median normal dot -0.984, 95 percent back-to-back) that the answer key omits, so the result is 9
+of 14 measured joins against 8 of the 13 the key lists; the disagreement is with the reference, not the method. The
+state stage's KEEP/CUT scores are not bit-reproducible - a pristine rebuild drifts the same way - so state scores are
+not compared across arms; the committed membership and the PlaceErr table are, and both repeated exactly. The last gap
+to a whole pot is merging {5,7}, whose bridges die at the pair stage (3-5 and 6-7 dropped as pair_overlap, 5-6 at
+13.1 deg after Icp): a merge and overlap problem, not a normals one.
