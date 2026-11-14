@@ -45,8 +45,12 @@ verified):
 - `inside` — the signed inside/outside split, as a sanity column.
 
 **A pair is a measured join iff** `gap <= 0.05 mm` **and** `frac_back_to_back >= 0.40` **and**
-`bbox_mm >= 20 mm`. Apply it mechanically; do not adjust the rule to make a pair fit, and if the
-rule fails a pair 347 called a join (or passes 4-7), say so and stop — that is a finding, not a
+`bbox_mm >= 8 mm` (sherd 9's whole diagonal is 23.2 mm, and 347's full seams span 11.4–39.0 mm
+while grazing 4-7 fails on `frac_back_to_back` at 0.047). Any back-to-back contact with
+`gap <= 0.05 mm`, `frac_back_to_back >= 0.40` and `3 mm <= bbox_mm < 8 mm` (such as 2-5, whose
+347 edgeline run is 3.6 mm) is tagged `short-contact` in the table and quoted alongside the
+`>= 8 mm` set. Apply the rule mechanically; do not adjust it to make a pair fit, and if it
+fails a full seam 347 called a join (or passes 4-7), say so and stop — that is a finding, not a
 number to tune.
 
 ## Part B — the table
