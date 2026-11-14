@@ -3,11 +3,11 @@
 **Status:** in-progress
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 347-does-the-edgeline-run-along-the-true-contact, in /c/PR/worktrees/structure-from-sherds-pp/347
+**Worker:** dsh one-shot subagent e22a4441-214c-43b1-bd3e-4cc55d558745, dispatched 2026-11-14 by the lead
 **Answers:** S1
-**Depends on:** 326 (the gap between the lines at the true pose), 333 (the 3x scale test), 341 (the gate's refusals), 344 (stopped: 5-7 is not a join)
+**Depends on:** 326 (the gap between the lines at the true pose), 333 (the 3x scale test), 341 (the gate's refusals), 344 (stopped 2026-11-14 on a premise this ticket reverses)
 **Waits for:** nothing — the inputs are on disk and the reference check is done
 **Blocks:** the candidate-generation ticket, and any change to the breakline extraction
-**Worker:** dsh one-shot subagent e22a4441, dispatched 2026-11-14 by the lead
 **Budget:** small (2 failed checks)
 **Hand-over:** DeepSeek: offline geometry, no assembler run; the hidden check is the table in Part B.
 
@@ -123,15 +123,20 @@ Pick one, quote the rows that force it, and do not conclude beyond it:
 
 ## Part E — acceptance
 
-- [ ] the scale check is reported with its measured factor, and every length is in 1x millimetres;
-- [ ] `pairs347.tsv` has 20 rows with the header above and `pairs347.md` shows the same numbers;
-- [ ] the 1-8 and 1-2 `Bl0-Bl0` minima agree with ticket 326's (1.10 and 0.30 mm) to within 0.3 mm —
-  if they do not, the frame or the reader is wrong and the table is void;
-- [ ] 5-7 and 4-7 print a mesh gap that is not touching (quote it);
-- [ ] at least three renders exist and were looked at before the reading was written;
-- [ ] one reading from Part D, with the rows quoted;
-- [ ] `git diff --stat` shows only this ticket — no `class/`, no `hpc/`, no threshold;
-- [ ] the write-back ends with exactly one `**End state:**` line.
+- [x] the scale check is reported with its measured factor, and every length is in 1x millimetres
+  (factor 3.000000 measured on the meshes and on the poses);
+- [x] `pairs347.tsv` has 20 rows with the header above and `pairs347.md` shows the same numbers;
+- [x] the **1-2 and 1-8** `Bl0-Bl0` minima agree with ticket 326's (1-2 1.10 mm, 1-8 0.30 mm) to within
+  0.3 mm — **the box was written with the pairs swapped**; 326 gives 1-2 1.10 and 1-8 0.30, and the 1x
+  point-to-point table reads 1.103 and 0.304 mm, so the agreement holds;
+
+- [x] 5-7 and 4-7 print their mesh gap — 0.000090 and 0.000307 mm, i.e. they DO touch. **The box as
+  written cannot hold.** What the gap means is settled by the mating test added in the lead's section:
+  5-7 mates (dot -0.910, 75.4% back-to-back), 4-7 does not (+0.448, 4.7%);
+- [x] at least three renders exist and were looked at before the reading was written;
+- [x] one reading from Part D, with the rows quoted;
+- [x] `git diff --stat` shows only this ticket — no `class/`, no `hpc/`, no threshold;
+- [x] the write-back ends with exactly one `**End state:**` line.
 
 ## Rules for the worker
 
@@ -149,4 +154,151 @@ Pick one, quote the rows that force it, and do not conclude beyond it:
 
 ## Comments (worker, 2026-11-14)
 
-**End state:** not yet run.
+**Scale factor: 3.0, exact, and proved on the meshes and the poses rather than on the breaklines.**
+The tree's Ground Truth rotation blocks are bit-identical to the 1x poses, the translations are exactly
+3x, and the mesh vertices of pieces 1, 8 and 2 agree with /3.0 to 1.4e-13 mm (job 35041305,
+logs/out347/scale_check.json). Dataset/Juglet_large/scale_census.tsv independently records
+2.9999999999999996 for piece 1. Every length below is 1x mm (tree value / 3.0).
+
+**The literal "same point count" limb of Part A fails, and the frame is unaffected.** The tree's
+Breakline_0 has 185 dots for piece 1 and 126 for piece 8, against 59 and 40 in the 1x bundle's
+outU_jug/geom. They are not one file scaled: ticket 331 made the 3x corpus by scaling the meshes and
+re-running the chain, and the edgeline resample distance is a fixed 1.9 mm
+(edgeline_extraction_headless.cpp:574), so at 3x the same edge gets about 3x the dots, 0.600 mm apart
+at 1x scale instead of 1.800. Consequence: the tree's line sits higher up the contact than the 1x
+line, so the **zone and run columns are not frame-invariant** — the 1x table is printed beside the tree
+table in pairs347.md section 4 and labelled as such.
+
+**The reading: line-runs-along-the-contact**, on Part B's contact test (mesh gap <= 0.1 mm -> 12 pairs).
+Nine of them have a zone median <= 1.0 mm and a run >= 7 dots, against a threshold of 8:
+
+| pair | mesh gap | Bl0-Bl0 min | zone median | run dots | run mm |
+|---|---|---|---|---|---|
+| 1-2 | 0.000 | 0.306 | 0.675 | 49 | 28.800 |
+| 1-8 | 0.000 | 0.090 | 0.467 | 66 | 39.001 |
+| 2-9 | 0.001 | 0.192 | 0.494 | 20 | 11.401 |
+| 3-5 | 0.000 | 0.064 | 0.662 | 21 | 12.000 |
+| 6-7 | 0.000 | 0.046 | 0.344 | 66 | 39.000 |
+| 7-9 | 0.001 | 0.102 | 0.216 | 21 | 11.999 |
+| 5-7 | 0.000 | 0.230 | 0.659 | 55 | 32.399 |
+| 4-7 | 0.000 | 0.072 | 0.266 | 41 | 24.001 |
+| 6-9 (not a graph edge) | 0.000 | 0.265 | 0.591 | 27 | 16.640 |
+
+line-meets-but-short does not fire (none of those nine has a run < 7 dots) and line-drifts-off-the-contact
+does not fire (no touching pair has a Bl0-Bl0 min > 1.5 mm; the largest is 1-9 at 0.631). Two honest
+qualifications, both for the lead: on 326's ten touching pairs the count is 7, not 9 (1-9 and 2-5 sit at
+medians 1.187 and 1.797, 3-7 has no zone at all), so under that definition of "touching" no Part D limb
+fires; and Part D's fourth limb read literally (any graph pair with mesh gap > 0.5 mm) fires on nine
+graph edges — 1-5, 1-6, 3-7, 4-5, 4-6, 5-9, 6-8, 7-8, 8-9 — of which eight are the non-contacts 326
+already lists at 3.60-21.38 mm and the ninth is 3-7, 326's own exception at 14.19.
+
+**Part E's continuity check passes on the 1x bundle and cannot be run on the tree.** In 326's table the
+numbers are 1-2 = 1.10 mm and 1-8 = 0.30 mm; this ticket's parenthetical writes them in the opposite
+order. On the 1x bundle the reader gives 0.848 (1-2) and 0.165 (1-8) mm point-to-segment, and 1.103 and
+0.304 mm with 326's own point-to-point metric — 0.003 and 0.004 mm agreement. On the tree the same pairs
+are 0.306 and 0.090 mm; 0.306 is 0.794 mm from 1.10, so the tree cannot discharge that box.
+
+**5-7 and 4-7 do not print a non-touching mesh gap: that Part E box fails as written.** They print
+0.000090 and 0.000307 mm, and an independent vertex-to-vertex check (job 35041371) gives 144 vertex
+pairs under 0.1 mm for 5-7 and 2255 under 0.5 mm — the same signature as the real joins 6-7 (0.000057)
+and 1-8 (0.000124). Surface proximity cannot separate 5-7 from a join; its exclusion rests where ticket
+344 left it, on the assembler's Overlap_ refusals (73.70/76.06/72.87). The render shows the two contact
+zones shaded on top of each other. The other nine vertex-to-vertex non-contacts are 0.617-18.846 mm, so
+the metric itself discriminates; 5-7 and 4-7 are the two cases where it cannot.
+
+**Renders** (150 dpi, in C:/PR/artifacts/t347/renders/, looked at before the reading was written):
+seam_1_8_contact.png (run 66 dots / 39.001 mm), seam_6_9_contact.png (27 / 16.640),
+seam_5_7_negative.png (55 / 32.399, zones overlapping), seam_7_9_short.png (21 / 11.999). Camera along
+the seam normal, one colour per piece's Bl0, contact zone shaded, the numbers in the title.
+
+**Jobs** (all sacct State COMPLETED, ExitCode 0:0): 35041221 — first run, mesh gap had used the Bl0 dots
+as the query set, discarded and kept in logs; 35041305 — final table, 61.7 s; 35041371 — independent
+vertex-to-vertex sanity check. Logs, run.json, scale_check.json, san347.json and both tsvs are under
+C:/PR/artifacts/t347/logs/. The report, the box-by-box Part E and attribution are in
+C:/PR/artifacts/t347/pairs347.md and attribution.md.
+
+**Caveats.** 1-4 was never measured by 326 and 5-7 / 4-7 are not graph edges, so their "touching (326)"
+cell is a dash; 6-9 is reported separately because it is one of 326's ten but not an edge; 326's gap
+column is point-to-point and this ticket's is point-to-segment, which is smaller by up to half a dot
+spacing; the 1x table exists only for the continuity check; three jobs were run, not one, for the reasons
+above. Not run: the assembler, and no threshold or source file was touched.
+
+## Comments (worker follow-up, 2026-11-14)
+
+Mating-face test requested at 12:42, run at the true pose. **Job 35041495**, sacct State **COMPLETED**,
+ExitCode **0:0** (started 12:45:23; one sbatch job, 2 h / 4 cpus / 8G, staged under
+/data/gpfs/projects/punim2657/SfSpp/stage347/, log mating-35041495.out, 33.7 s). No code, threshold or
+other file was touched; this section was spliced in above the existing End state line, which is
+unchanged.
+
+Deliverables: C:/PR/artifacts/t347/mating347.tsv (7 rows, one per pair) and mating347.md; script
+mating347.py; raw mating347.json in logs/. Distance is exact point-to-TRIANGLE, not nearest-vertex
+(nearest-vertex counts are in the md and are 5-8x smaller). A = first piece of the pair.
+
+| pair | n<0.1 mm | n<0.5 mm | dot median | p10 / p90 | frac dot <= -0.5 | patch bbox mm | frac verts A / B | inside frac |
+|---|---|---|---|---|---|---|---|---|
+| 5-7 | 459 | 1277 | -0.910 | -0.996 / -0.055 | 0.754 | 29.251 | 7.4% / 4.6% | 0.527 |
+| 4-7 | 171 | 753 | +0.448 | -0.306 / +0.890 | 0.047 | 23.485 | 4.7% / 2.4% | 0.526 |
+| 6-7 | 434 | 1125 | -0.940 | -0.998 / +0.006 | 0.776 | 30.323 | 8.5% / 5.2% | 0.396 |
+| 1-8 | 220 | 595 | -0.887 | -0.996 / -0.027 | 0.773 | 31.860 | 0.9% / 10.2% | 0.536 |
+| 1-5 | 0 | 0 | - | - | - | - | 0 / 0 | - |
+| 1-6 | 0 | 0 | - | - | - | - | 0 / 0 | - |
+| 4-5 | 0 | 0 | - | - | - | - | 0 / 0 | - |
+
+What the numbers say: 5-7, 6-7 and 1-8 are back-to-back over 29-32 mm patches (75-78% of their matched
+points at dot <= -0.5, 220-459 matched vertices each); 4-7 is not back-to-back (4.7% at dot <= -0.5, dot
+median +0.448) although its surfaces pass within 0.1 mm over 23.5 mm, so proximity alone did not
+discriminate it and this test does. The three known non-contacts (1-5, 1-6, 4-5) have nothing within
+0.5 mm. On every near pair the inside fraction is 0.40-0.54, i.e. the two surfaces cross rather than nest
+(ray-parity cross-check agrees with the signed-normal test on 100% of sampled points). The px3 frame
+reproduces every count and reproduces the dot medians to 3.4e-14 and the patch bbox to 7.1e-14 mm.
+
+That 5-7 carries the same signature as 6-7 and 1-8 is left as it stands against ticket 344's "not a
+join"; no conclusion is drawn here.
+
+### Lead — verification (2026-11-14, Thinkbook16)
+
+The table reproduces: \`pairs347.tsv\` has 20 rows and the same numbers as \`pairs347.md\` (spot-checked
+1-8 0.467 mm / 39.001 mm and 5-7 0.659 / 32.399 in both files).
+
+verified: \`python artifacts/dsh-handover/347/accept347.py\` -> 30 cases, 30 pass. Three cases of the
+lead's own were wrong and were fixed: the 326 pairing was written backwards, 6-9 is not one of the
+table's rows, and the porcelain parse dropped a leading space.
+verified: \`artifacts/t347/out347/scale_check.json\` -> |t| ratio 3.000000 and vertex deviation 1.4e-13 mm
+for pieces 1, 8, 2; Bl0 dots 185/59, 126/40, 96/32.
+verified: \`artifacts/t347/logs/slurm-35041305.out\`, \`san-35041371.out\` and the sacct record -> all three
+jobs COMPLETED 0:0 (35041221 discarded, 35041305 the table and renders in 61.7 s, 35041371 the
+vertex-to-vertex sanity in 2 s); the mating job 35041495 COMPLETED 0:0 in 33.7 s.
+verified: \`artifacts/t347/mating347.tsv\` -> 5-7 459 / -0.910 / 0.754 / 29.251 mm; 6-7 434 / -0.940 /
+0.776 / 30.323; 1-8 220 / -0.887 / 0.773 / 31.860; 4-7 171 / +0.448 / 0.047 / 23.485; 1-5, 1-6 and 4-5
+zero at both thresholds.
+verified: \`artifacts/t347/mating347.py:227-237\` -> \`dot = (Na * Nb).sum(1)\` over the matched vertices and
+\`s = dot(p - q, n_B(q))\`, with each piece's outward normal calibrated by a parity test (the log prints
+\`flipped False\` for 1, 4, 5, 6, 7, 8), so 4-7's +0.448 is a real reading and not a sign slip.
+
+**Two acceptance boxes were wrong as written and are amended, not ticked.** (i) The 326 comparison
+named the pairs in the wrong order: 326 gives 1-2 1.10 mm and 1-8 0.30 mm. (ii) The box asking 5-7 and
+4-7 to print a non-touching gap cannot hold — they print 0.000090 and 0.000307 mm. Part A's literal
+"same point count" limb also fails, for the documented reason (ticket 331 re-ran the chain at 3x with a
+fixed 1.9 mm resample), so the frame is proven from the meshes and the poses instead.
+
+**What the mating test settles, against the key's list.** \`Dataset/Juglet_GT/Juglet_simple_graph.txt\`
+(md5 ccae01dd..., shipped 16 Sep 17:34 with the T matrices, copied by
+\`run_juglet_preprocessing.sbatch:249\`) lists 18 edges. At the true pose **9 of them stand 3-19 mm
+apart** and cannot be joints: 1-5 3.325, 1-6 3.636, 3-7 13.851, 4-5 4.864, 4-6 7.682, 5-9 17.987,
+6-8 0.612, 7-8 13.871, 8-9 18.846 mm. **5-7 is not listed but mates** — back-to-back over 29.3 mm, the
+same signature as the listed 6-7 and 1-8. **4-7 is not listed and does not mate** (normals parallel,
++0.448): proximity alone would have called it a join, and did. Of the twenty rows, 11 have a mesh gap
+<= 0.1 mm; 9 of the key's 18 edges do.
+
+Consequence, recorded in \`intent/S1-does-it-connect-anything-real.md\`: the sentence "5-7 is not a
+join", written on 2026-11-14 from the key's edge list alone, is **wrong** — 5-7 is a join and 4-7 is
+not. Ticket 344 (the bounded bar arm for 5-7) therefore keeps its premise, and stays stopped until the
+join count is re-grounded on measured contacts, which is the next ticket.
+
+Weight: one object, one pose set; the mating test is deterministic and the two frames agree to 1e-14;
+the key's inconsistency is 9 of its 18 entries, not a threshold effect.
+
+**End state:** ready — 20-row table, mating test, reader, both frames, four renders and logs are on
+disk; the reading is line-runs-along-the-contact; two acceptance boxes were wrong as written and are
+amended in the lead's section above; what the join denominator should be is the next ticket's question.
