@@ -1,87 +1,98 @@
-# Ticket 350 — what the stage proposes before it prunes
+# Ticket 350 — what the axis constraint would buy
 
 **Status:** ready-for-agent
 **Waits for:** nothing — ticket 349 landed 2026-11-14
 **Branch:** to be created at start
 **Worker:** unassigned
 **Answers:** S1
-**Depends on:** 349 (the census and its 51-of-180 gap), 348 (the measured contact set), 338 (the pruned candidate table)
-**Blocks:** any change to the feature-matching thresholds or to `PairwisePruning`
-**Budget:** small (4 failed acceptance runs)
-**Hand-over:** DeepSeek: one print-only switch in `hpc/`, four arms on Spartan.
+**Depends on:** 349 (the four-of-fourteen ceiling), 348 (the measured contact set), 336 (the stage trace this reads), 341/345 (where the shape bar bites)
+**Blocks:** any change to how a pair's rotation is formed
+**Budget:** small (2 failed acceptance runs). **No assembler run, no code change.**
+**Hand-over:** DeepSeek: offline arithmetic over a log already on the laptop.
 
-> **In one line.** Ticket 349 could not tell whether 6-7 was never offered or thrown away by the
-> pruning step: print every candidate before pruning, pair it with the pruned list, and say which
-> step loses the joins.
+> **In one line.** The pair stage tilts pieces by 4-19 deg even when the axes it is given are
+> perfect; measure what would happen if every candidate were rotated onto the axis it already knows,
+> before anyone changes the code.
 
-## Why this is the next question
+## Why this replaced the earlier version of this ticket (lead, 2026-11-14)
 
-Ticket 349 censused the 51 **survivors** of `PairwisePruning`. Its own trace shows the count before
-that step: `Total number : 180` (`hpc/tools/main_pristine_batch.cpp:310`) against `Total number
-pruned : 51` (`:316`). Of the 14 measured joins, 13 reach the pruned list and only 4 arrive inside
-the 5 deg / 5 mm bar; **6-7 reaches it not at all**, on the strongest contact in the set (66 dots
-over 39.0 mm, zone median 0.344 mm). Whether that pair is lost in the 129 rows the pruning step
-removes, or was never formed by feature matching, decides which code is the lever — and the two
-answers send the work to different files.
+The first version of 350 asked for a print of the candidates *before* `PairwisePruning`. That print
+already exists: `SFS_336` writes `[SFS-336] CAND` for all 180 candidates with their matrices
+(`class/feature_matching.cpp:1927-1938`), `DROP` with a reason for all 124 removed
+(`:1974-2001`), `SURV` for the 51 survivors (`:2011-2020`), and `RCAND` for the 2752 candidates
+made at later steps (`:2131-2142`). `C:/PR/artifacts/t339/logs/binary_juglet_signed_on_r1.log`
+holds all of them. The question that print was meant to answer is already answered (see below), and
+the question that matters now can be answered from the same log.
 
-## Part A — print the pre-pruning list
+**What the existing trace already says** (lead, from that log): 180 candidates, 124 dropped
+(116 `pair_axis`, 2 `pair_basket`, 6 `pair_overlap`), 51 survivors, 5 merged away. **6-7 was
+formed** — one candidate, index 166, `axis_angle_` 0.1489 rad = 8.53 deg, score 0.548, 16 inliers —
+and **died on the overlap rule** (`DROP pair_overlap 166 6 7 76.898` against the 50.0 limit at
+`class/feature_matching.cpp:1912`). It could not have been inside the 5 deg bar even if kept.
+For 13 of the 14 measured joins, the row with the smallest axis tilt is the one that **survives**
+pruning, so pruning is not what loses the joins.
 
-Add one switch, `SFS_PRE_TRACE` (exact string, default off; print a banner `pre trace: off|on` once,
-near the other banners), and under it, immediately after `cout << "Total number : " << LCS_out.size()`
-and **before** `PairwisePruning(shard, LCS_out)` (`hpc/tools/main_pristine_batch.cpp:310-315`), print
-one line per `LCSIndex` in `LCS_out`:
+## The measurement this ticket makes
 
-```
-[SFS-350] PRE <index_> <y> <x> <score_> <inliner_> <axis_raw_deg> <rot_deg> <mat_mm>
-```
+The candidate's rotation comes from the feature cycle and `Registration(...)`; the piece's own axis
+(`axis_norm_`) is only **read afterwards**, to measure `axis_raw_` / `axis_angle_`
+(`class/feature_matching.cpp:1902-1906`, `:2113-2117`) and to gate at 25 deg (`:1974`, `:2165`).
+It never constrains the rotation. So the tilt that the gate measures is a by-product of a free
+6-DoF fit, not a necessity: with the axes this run has (the key's own — verified in ticket 349,
+identical to 0.000000 deg on all nine pieces), a correct pair is a pure spin about the shared axis.
 
-`rot_deg` and `mat_mm` are the same GT-conjugated placement errors the CAND338 block already
-computes (`:322-356`); reuse that arithmetic in a small helper or duplicate it inside the new block.
-Print `[SFS-350] PRETOTAL <n>` after the loop. Nothing else changes: no threshold, no pruning rule,
-no order, no `TOP_k` / `BRANCH_b`, no line in `class/` at all. The print lives in `hpc/tools/`, where
-reading GT is already the established practice; `class/` stays GT-free.
+**Compute, for every one of the 180 candidates, what the placement error would be if the tilt were
+removed** — i.e. rotate the moved piece by the minimal rotation that brings the two axes into
+coincidence, keep the spin, and re-score the candidate against the true relative placement exactly as
+`[SFS-338] CAND338` does (`hpc/tools/main_pristine_batch.cpp:322-356`: `G_axis =
+T_axis[y].GT[y]^-1.GT[x].T_axis[x]^-1`, rotation angle and breakline RMS of `M.G_axis^-1`).
 
-## Part B — pair the two lists
+Inputs, all already available:
+- the 180 `CAND` lines and the 9 `AXIS` lines in `C:/PR/artifacts/t339/logs/binary_juglet_signed_on_r1.log`
+  (and `_on_r2.log` for a repeat);
+- the true poses `Dataset/Juglet_GT/Juglet_Piece_N_T.txt` (fetch once from Spartan, keep the md5);
+- the measured contact set `C:/PR/artifacts/t348/contacts348.tsv`.
 
-For each of the 14 measured joins and the two controls (4-7, 4-6), report: number of PRE rows, number
-of post-pruning CAND338 rows, the best PRE rotation error, the best post-pruning rotation error,
-whether the best PRE row survived (match on `(y, x, score_, inliner_)`, never on `index_` — it is
-run-local), and its errors. Then, specifically:
+## Part A — frame and units, before any number is quoted
 
-- **6-7** — how many PRE rows, and does any survive?
-- **5-8 (7.00 deg / 4.97 mm), 1-9 (8.82 / 3.48), 3-8 (11.00 / 4.53)** — the near misses: did a
-  better-rotation hypothesis exist before pruning and not survive? Quote the row.
-- the whole-run totals: PRE count, post count, how many pairs appear in PRE at all, and how many PRE
-  rows are inside the bar.
+Say which tree the run used and what one unit is worth. The `mm` column of `CAND338` is the breakline
+RMS **in the run's own frame**; if that frame is the 3x bundle built by ticket 333, divide by 3 to get
+millimetres and say so. Quote the evidence (a breakline coordinate magnitude, or the tree path in the
+run's submit script). Rotation angles are scale-free and unaffected; every millimetre printed must be
+labelled with its frame.
 
-A per-pair table, numbers only, is the deliverable; put it in `C:/PR/artifacts/t350/prepost.tsv`
-with the header `pair\tn_pre\tn_post\tbest_pre_rot\tbest_pre_mm\tbest_post_rot\tbest_post_mm\tbest_survived\tnote`.
+## Part B — the table
+
+One row per measured join (14) plus 4-7 and 4-6 as controls, per log:
+
+`pair`, `best_index`, `tilt_deg`, `spin_deg` (total after removing the tilt), `total_deg_before`,
+`total_deg_after`, `mm_before`, `mm_after`, `in_bar_before`, `in_bar_after`, `note`.
+
+Take `best` = the candidate with the smallest **after** error, and also print the candidate with the
+smallest **before** error so the two are comparable. Deliver
+`C:/PR/artifacts/t350/replay350.tsv` (header exactly as above) and a short `replay350.md` that quotes
+the rows the reading rests on.
 
 ## Part C — the reading, exactly one
 
-- `pruning-throws-away-the-join` — for 6-7 or for a near miss, a PRE row inside the bar (or clearly
-  better than the survivor) does not survive: the pruning criterion is the lever, quote it.
-- `the-join-is-never-formed` — 6-7 has no PRE row at all: feature matching never forms the pair; the
-  lever is upstream, and the ticket quotes the pair's contact against the matcher's demand.
-- `pruning-is-not-the-cause` — PRE and post agree on the best row for every pair and all PRE rows for
-  the failing pairs are equally wrong: pruning changes the count, not the answer.
-- `pre-trace-inconclusive` — the two lists cannot be paired (duplicate or rewritten keys), or the
-  print cannot see the pre-pruning list; say what would have to be printed instead.
+- `axis-constraint-recovers-the-joins` — after removing the tilt, at least three joins that are
+  outside the 5 deg bar come inside it: the pair alignment is the lever, and the next ticket builds
+  the constrained candidate.
+- `axis-constraint-buys-only-the-tilt` — the tilt disappears but the joins still miss the bar (the
+  spin dominates): the lever is how the spin hypothesis is chosen, not the tilt.
+- `projection-not-well-defined` — the axes cannot be used this way (flip ambiguity, `axis_norm_`
+  sign, or the two axes are not parallel even at the true placement); say which, with the numbers.
+- `replay-inconclusive` — a needed input is missing or the log cannot be paired to the GT poses.
 
-## Part D — arms and acceptance
+## Part D — acceptance
 
-- [ ] arms: `pre_on_r1`, `pre_on_r2` (signed 5/3, everything else unset: no `SFS_EDGE_TRACE`, no
-  `SFS_STAGE_TRACE`, no `SFS_PICK_TRACE`, no `SFS_WIN_TRACE`, no `SFS_ADMIT_TRACE`), `pre_unset` (all
-  switches unset, must print no `[SFS-350]` line), and `pre_pota` (the Pot A control);
-- [ ] `tree_md5` before and after on every arm, and the signed accuracy quoted per arm (sherds and
-  edges) without being the decision;
-- [ ] `sacct` State/ExitCode/Elapsed for every job id, recorded in the ticket;
-- [ ] the PRE count on each trace-on arm equals the `Total number :` line of the same log, and
-  `PRETOTAL` equals it;
-- [ ] `git diff --stat` shows `hpc/tools/main_pristine_batch.cpp` and this ticket only — nothing in
-  `class/`, no threshold, no gate, no order, no `SFS_TOPK` / `SFS_BRANCH` / `SFS_STATE_TRACE`;
-- [ ] no `[SFS-336]` … `[SFS-349]` token is re-implemented or re-printed by the new switch;
-- [ ] one reading from Part C, with the rows quoted;
+- [ ] frame and unit stated with evidence before any millimetre figure;
+- [ ] all 180 candidates replayed, not just the 51 survivors; the script is committed under `artifacts/t350/`;
+- [ ] the replay reproduces the two `CAND338` numbers it must (1-8 index 70 at 0.70 deg, 1-2 index 1 at 2.14 deg) to within 0.05 deg — otherwise the replay is wrong, not the log;
+- [ ] the table has 16 rows and the columns above;
+- [ ] both repeats used, and the reading the same in both;
+- [ ] one reading, quoted rows named;
+- [ ] `git diff --stat` shows this ticket only — **no `class/`, no `hpc/`, no threshold**;
 - [ ] the write-back ends with exactly one `**End state:**` line.
 
 ## Rules for the worker
@@ -89,8 +100,7 @@ with the header `pair\tn_pre\tn_post\tbest_pre_rot\tbest_pre_mm\tbest_post_rot\t
 - `cd` into the worktree this ticket opens and work only there. Never edit the main clone, another
   worktree, or anything under `SfSpp_preprocessing/` except reading it.
 - Never `git commit`, `git push`, `git worktree`, `git reset`. The lead commits.
-- Stage from `/data/gpfs/projects/punim2657/SfSpp/stage345/` (the current templates), export
-  `SOURCE_COMMIT=<this ticket's claim commit>`, private tree per arm with md5 before and after,
-  `sbatch` only, poll with `bash C:/PR/scripts/slurm_poll.sh <JOBID>`, final `sacct` recorded.
-- Report, do not conclude: the table, the totals, the one reading slug.
+- The only Spartan work is fetching the nine GT pose files (small, read-only) and their md5; keep
+  them under `artifacts/t350/gt/`.
+- Report, do not conclude: the table, the numbers, the one reading slug.
 - If the same failure happens twice, stop and report `incomplete`, naming the blocker.
