@@ -1,7 +1,7 @@
 # Ticket 352 — the five joins ticket 347 never measured
 
 **Status:** wontfix
-**Waits for:** nothing — ticket 349 landed 2026-11-14
+**Waits for:** nothing — folded into ticket 354 (2026-11-14)
 **Branch:** to be created at start
 **Worker:** unassigned
 **Answers:** S1
