@@ -1,6 +1,6 @@
 # Ticket 354 - what an axis-locked pair search would find
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 354-what-an-axis-locked-pair-search-would-find, in /c/PR/worktrees/structure-from-sherds-pp/354
 **Worker:** dsh one-shot subagent w354, dispatched 2026-11-14 by the lead
@@ -321,7 +321,7 @@ pair's true relative pose, so that number cannot discriminate and it is not the 
 
 Acceptance script `C:/PR/artifacts/dsh-handover/354/accept354.py` run from the worktree.
 
-### Lead ¡ª verification (2026-11-14, Thinkbook16)
+### Lead â€” verification (2026-11-14, Thinkbook16)
 
 verified: \`cd C:/PR/worktrees/structure-from-sherds-pp/354 && COLUMNS=200 python C:/PR/artifacts/dsh-handover/354/accept354.py\` -> 28 cases, 28 pass (the COLUMNS note is real: at 80 columns git truncates the ticket path).
 
@@ -331,7 +331,7 @@ verified: the metric is the one the ticket's own table was made with. At theta =
 
 **Adjudication of Part A.** The anchors are not a defect and the ticket does not stop. The quoted pair (0.816 / 0.596) is the **dense 3x dot set at a pool radius of about 1.85-1.9 mm** (0.8134 / 0.5923 there, within 0.004), which is the dot set and pool the anchors were taken on; on the 1x ladder 5-6 steps 0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so 0.596 is not a threshold value of the 1x dots at all. Two metres of the same breakline measured on different dot sets are two instruments, not a contradiction: the ticket's own 14-row table is the one a stated metric reproduces, so the metric was fixed by it, and the anchors are recorded as belonging to the dense arm. The lead's own attempt to re-derive the dense ladder from \`C:/PR/artifacts/t334/edgelines3x\` returned no dots inside 2 mm, i.e. the lead's dense inputs were the wrong copy; the worker's dense arm is taken as its evidence, and it is the arm whose pool reproduces the quoted anchors, so the identification is self-consistent.
 
-**Adjudication of Part B's first bullet.** "No more than 2 non-joins score inside that band" is met **as a placement** (4-7 and 7-9) and fails **as a score** (7 of 22). Both are true and the reading rests on the score, because a non-join's key is by construction that pair's true relative pose, so a placement count cannot discriminate. The ticket's own second bullet ¡ª "a non-join scores as well as a join" ¡ª is the criterion, and it fires.
+**Adjudication of Part B's first bullet.** "No more than 2 non-joins score inside that band" is met **as a placement** (4-7 and 7-9) and fails **as a score** (7 of 22). Both are true and the reading rests on the score, because a non-join's key is by construction that pair's true relative pose, so a placement count cannot discriminate. The ticket's own second bullet â€” "a non-join scores as well as a join" â€” is the criterion, and it fires.
 
 **Adjudication of what this does and does not say.** Piece a is held at its key pose and both pieces are placed on the key's own axis line, so turn 0 is the truth and the well at turn 0 is found from a landscape centred on the answer: this is an upper bound for a pipeline whose own axis estimate is 1.5-87.8 deg off (ticket 349). It does not say the assembler's search is adequate; it says that once the axis is known and one partner is held, **placement is nearly solved (13 of 14) and the score is what fails** - and that the two non-joins with a join-sized pool (4-7 at 12+14 dots, 7-9 at 7+7) are exactly the two pairs ticket 348 measured as passing within 0.1 mm without mating (frac_back_to_back 0.047 and 0.141). The breakline ties position but not which face is presented; a surface term is what would separate them.
 

@@ -1107,3 +1107,53 @@ new analysis quotes (1-2 0.816, 5-6 0.596 mm) reproduce in the lead's own readin
 (0.813, 0.552), so the metric has to be fixed before any search is trusted with it. Ticket 354 does that and
 then runs the search the pipeline does not do: both pieces on the known axis, only turn and height free, over
 all 36 pairs, scored so that losing dots costs.
+
+## 2026-11-14 - The placement is nearly solved; the score cannot choose (ticket 354)
+
+With the piece axis known and one partner held at its key pose, a two-degree-of-freedom search (turn about the pot
+axis, slide along it; 22,006 placements per pair at 0.1 deg and 0.1 mm) puts **13 of the 14 measured joins inside the
+5 deg / 1.67 mm bar** - the miss is 6-9 at 5.50 deg - and every join shows a single clean well at the key. The
+end-for-end family is weaker: 6 of 14.
+
+What fails is the choice. Seven of the 22 non-joins hold dots within 3.0 mm of the other breakline at the key; all
+seven score at or below the worst join (1.8839 mm) and three beat the best join (2-5 0.3010, 2-8 0.5650, 6-8 0.4038
+against 3-5 at 0.6738). Those three rest on 2-4 dots per side, so the score is normalised by a sliver; the worse news
+is the two non-joins with a join-sized pool - 4-7 (12+14 dots, 0.8218) and 7-9 (7+7, 0.8202) sit mid-distribution,
+better than five joins. Those are exactly the two pairs ticket 348 measured as passing within 0.1 mm **without mating**
+(frac_back_to_back 0.047 and 0.141). The breakline ties the position but not which face is presented; the surface is
+what separates them.
+
+The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm**
+(0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps
+0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a
+contradiction. The ticket's own 14-row spin table is what a stated metric reproduces (to 0.0004), so the metric was
+fixed by it.
+
+Caveat: the axes are the key's and piece a is held at its key pose, so this is an upper bound for a pipeline whose own
+axis estimate is 1.5-87.8 degrees off (ticket 349). The next lever named here is therefore a **surface term in the pair
+score**, not a better search.
+
+## 2026-11-14 - The placement is nearly solved; the score cannot choose (ticket 354)
+
+With the piece axis known and one partner held at its key pose, a two-degree-of-freedom search (turn about the pot
+axis, slide along it; 22,006 placements per pair at 0.1 deg and 0.1 mm) puts **13 of the 14 measured joins inside the
+5 deg / 1.67 mm bar** - the miss is 6-9 at 5.50 deg - and every join shows a single clean well at the key. The
+end-for-end family is weaker: 6 of 14.
+
+What fails is the choice. Seven of the 22 non-joins hold dots within 3.0 mm of the other breakline at the key; all
+seven score at or below the worst join (1.8839 mm) and three beat the best join (2-5 0.3010, 2-8 0.5650, 6-8 0.4038
+against 3-5 at 0.6738). Those three rest on 2-4 dots per side, so the score is normalised by a sliver; the worse news
+is the two non-joins with a join-sized pool - 4-7 (12+14 dots, 0.8218) and 7-9 (7+7, 0.8202) sit mid-distribution,
+better than five joins. Those are exactly the two pairs ticket 348 measured as passing within 0.1 mm **without mating**
+(frac_back_to_back 0.047 and 0.141). The breakline ties the position but not which face is presented; the surface is
+what separates them.
+
+The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm**
+(0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps
+0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a
+contradiction. The ticket's own 14-row spin table is what a stated metric reproduces (to 0.0004), so the metric was
+fixed by it.
+
+Caveat: the axes are the key's and piece a is held at its key pose, so this is an upper bound for a pipeline whose own
+axis estimate is 1.5-87.8 degrees off (ticket 349). The next lever named here is therefore a **surface term in the pair
+score**, not a better search.
