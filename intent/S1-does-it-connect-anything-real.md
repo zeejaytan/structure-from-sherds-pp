@@ -921,9 +921,10 @@ distances and each piece's outward normals calibrated by a parity test: **5-7 is
 (median **+0.448**, 4.7% opposed) over 23.5 mm - two surfaces passing alongside each other, which
 proximity alone would have called a join. Controls 1-5, 1-6 and 4-5 have no vertex within 0.5 mm.
 
-**The key's list itself does not survive the test.** Of its 18 edges, **nine stand 3-19 mm apart at
-the true pose** - 1-5 3.325, 1-6 3.636, 3-7 13.851, 4-5 4.864, 4-6 7.682, 5-9 17.987, 6-8 0.612,
-7-8 13.871, 8-9 18.846 mm - and cannot be joints at all. It also omits 5-7 (which mates) and 6-9
+**The key's list itself does not survive the test.** Of its 18 edges, **eight stand 3.3-18.8 mm apart at
+the true pose** - 1-5 3.325, 1-6 3.636, 3-7 13.851, 4-5 4.864, 4-6 7.682, 5-9 17.987,
+7-8 13.871, 8-9 18.846 mm - and 6-8 stands 0.612 mm off with no contact patch at all; none of the
+nine can be joints. It also omits 5-7 (which mates) and 6-9
 (0.000003 mm gap, 7/6 inliers under the 2 mm / 0.85-normal probe). So `Juglet_simple_graph.txt`
 is a reference answer for something other than "these surfaces meet"; it ships with the key
 (`Dataset/Juglet_GT/`, md5 `ccae01dd9c897e92beb0d507baa45cea`, copied by
@@ -967,3 +968,33 @@ table recomputed by the lead from `artifacts/t339/logs/binary_juglet_signed_on_r
 one signed sweep. Open at the edges of the reference itself: 6-9 touches but is not in the graph,
 and 1-4 is in the graph but was not among ticket 326's measured ten - so ticket 347 re-measures the
 mesh gap of all 18 graph edges plus 5-7 and 4-7 before using any of them.
+
+## 2026-11-14 - The contact set, measured; the edge count retired (ticket 348)
+
+Ticket 348 measured all 36 pairs the same way and applied the rule it was given (gap <= 0.05 mm,
+back-to-back fraction >= 0.40 over a patch at least 8 mm across). **14 pairs are joins:**
+
+`1-2  1-3  1-4  1-8  1-9  2-6  2-9  3-5  3-8  5-6  5-7  5-8  6-7  6-9`
+
+with one short contact quoted beside it, 2-8 (4.4 mm patch, 95.5% opposed). Of the key's 18 edges
+**7 are joins** (1-2, 1-4, 1-8, 1-9, 2-9, 3-5, 6-7) and **11 are not**: eight stand 3.3-18.8 mm
+apart, 6-8 stands 0.612 mm off with no contact patch, and 2-5 (0.0017 mm) and 7-9 (0.0009 mm) touch
+without facing each other (0.0% and 14.1% opposed). **7 measured joins are unlisted:** 1-3, 2-6,
+3-8, 5-6, 5-7, 5-8, 6-9.
+
+So the denominator is **14 joinable pairs**, not 10 and not 18. Of the 51 candidates, **5 pairs have
+an in-bar candidate and 4 of those 5 are real joins** (4-7 meets the pose tolerance and is not a
+join at all); the winning assemblies carry **3 of 4** (342 r1), **4 of 5** (342 r2) and **3 of 4**
+(346's five arms); the seated-sherd number stays **2 of 9**, unchanged and list-independent.
+
+Retired as scoring bases: "1 of 18 edges" and "3 of 10 touching pairs". The key's list is not a
+contact list; `C:/PR/artifacts/t348/contacts348.tsv` replaces it.
+
+Two things to carry forward. **2-9 is the rule's fragile verdict** (patch 8.050 mm, 0.6% above the
+floor): a slightly stricter area floor would drop a real key join, so the 14 is quoted with that
+stated. **4-6 is the other way round**: the key lists it, the meshes put the pieces 7.68 mm apart,
+and both 342's r1 winner and 346's five arms carry it - the assembly joins a pair that does not
+touch, so a key-only edge in a winner is evidence about the matcher as much as about the key.
+
+Weight: one pot, one true pose, exact point-to-triangle distances, reproducing ticket 347's numbers
+to within 0.0003 mm across the five pairs both measured; 14 of 36 pairs are joins.
