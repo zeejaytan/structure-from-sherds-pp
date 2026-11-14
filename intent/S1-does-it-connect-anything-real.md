@@ -998,3 +998,38 @@ touch, so a key-only edge in a winner is evidence about the matcher as much as a
 
 Weight: one pot, one true pose, exact point-to-triangle distances, reproducing ticket 347's numbers
 to within 0.0003 mm across the five pairs both measured; 14 of 36 pairs are joins.
+
+## 2026-11-14 - The candidate stage caps the joins at four of fourteen, with the key's own axes (ticket 349)
+
+Ticket 349 censused all 14 measured joins against the 51 candidate rows of one signed sweep
+(`artifacts/t339/logs/binary_juglet_signed_on_r1.log`, job 35016164). **13 of the 14 joins reach the
+candidate list; only 4 arrive inside the 5 deg / 5 mm bar** - 1-2 (2.14 / 2.20), 1-8 (0.70 / 1.21),
+5-7 (4.71 / 3.69), 6-9 (2.35 / 1.72). **6-7 never appears at all**, on the strongest contact in the
+set (66 dots over 39.0 mm, zone median 0.344 mm, 869 vertices within 0.1 mm). Near misses miss on the
+spin alone: 5-8 7.00 / 4.97, 1-9 8.82 / 3.48, 3-8 11.00 / 4.53. The rest are wrong outright (1-4
+18.6 / 11.8, 2-9 15.1 / 8.2, 5-6 13.0 / 15.6, 2-6 26.2 / 19.2, 1-3 46.2 / 39.4, 3-5 48.3 / 44.0).
+
+**The axis explanation is dead, and this is the sharper form of the ceiling.** The ticket expected our
+own axis estimate to be one of the wrong numbers. It is not even in play: the run compiles with
+`-DJUGLET_ORIG`, whose `axis_path` is `JUGLET_ORIG_BASE "Axes/..."` with
+`JUGLET_ORIG_BASE "/Dataset/SfS_pp/"` (`class/data_path.h:1719`, `:1746-1754`), and the mounted 3x
+tree's `Axes/` was copied from `Dataset/Juglet_large`, documented in `stage333.py:9-10` as "GT axes,
+already 3x". Measured independently by the lead: tree-vs-key **0.000000 deg on all nine pieces**,
+while `Dataset/Axes/Juglet` (our 2026-09-29 PotSAC estimate) is **1.53, 87.83, 31.82, 10.72, 44.50,
+13.26, 24.13, 12.81, 73.32** deg away from the key by piece. So the 4-of-14 ceiling is measured with
+the key's own axes: it is an upper bound for this candidate stage, not a number our estimate
+degraded. Ticket 349's Part B (substituting the key's axes) was void and was not run; the informative
+inverse - writing our estimate into the pinned tree and re-running - has never been done in this lane.
+
+Two controls keep the census honest. **4-7** carries an in-bar candidate (3.35 / 2.68) on a pair that
+is not a join and whose faces point the same way, so an in-bar candidate is not evidence of a join.
+**4-6** carries only 155.2 deg / 88.6 mm in the candidate table, yet the winning state carries it as
+edge #77 (ticket 342): the winner's edges do not all come from this candidate stage.
+
+Two gaps are stated, not papered over. Ticket 347 measured line runs for only 20 pairs, so 1-3, 2-6,
+3-8, 5-6 and 5-8 have no run column. And the trace prints the 51 survivors of 180 candidates, so 6-7's
+absence cannot be split into "never proposed" and "pruned" without a print at the proposal stage.
+
+Weight: one pot, one signed sweep, 14 joins; the candidate rows re-read by the lead from the raw log
+and the per-pair bests reproduced exactly. The reading is `two-causes`: 6-7 dies before the list, the
+other nine reach it with a wrong pose, and the axes are not the reason.
