@@ -1,9 +1,10 @@
 # Ticket 354 - what an axis-locked pair search would find
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-14)
+**Branch:** 354-what-an-axis-locked-pair-search-would-find, in /c/PR/worktrees/structure-from-sherds-pp/354
+**Worker:** dsh one-shot subagent w354, dispatched 2026-11-14 by the lead
 **Waits for:** nothing - ticket 353 landed 2026-11-14 (its reading is corrected below)
-**Branch:** to be created at start
-**Worker:** unassigned
 **Answers:** S1
 **Depends on:** 350 (the residue is a spin), 353 (the spin sweep), 348 (the measured contact set), 349 (the candidate ceiling)
 **Blocks:** any change to how a pair rotation is formed, and any claim that the breakline carries no spin signal
