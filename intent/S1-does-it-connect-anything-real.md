@@ -99,9 +99,8 @@ the term that is off is the point-to-point one. Nothing was tuned.
 The second test pot (Tray 000) is still unmeasured, and it is the
 one that can show the method works at all.
 
-Weight: one pot measured, at zero; the capability half rests on Tray 000.
-Next: tickets 12 and 02-Eq.6 measured out, Cauchy restored (1-4 seats
-again) — next Tray 000, the pot that can show the method works at all.
+Weight: one pot measured on Juglet (2/9 sherds, 1/18 edges under signed 5/3; 4/14 measured joins have an in-bar candidate; `Pot_A` control solves 8/8 sherds, 15/15 edges).
+Next: Ticket 354's locked 2-DoF grid search proved confounded by an oracle dot pool frozen at the ground-truth pose (`locked354.py:103-105`), failed to separate joins from non-joins even with that oracle, and is rejected in favour of diagnosing where the stock assembler's own `CalculateFeatureAxisless` -> `LCS` -> `Icp` pair stage loses Juglet joins compared to `Pot_A` (**Ticket 355**).
 Viewer: `juglet_sfs29`
 
 Tickets 336-338 (2026-11-13) moved the question from accuracy to *where* a join is
@@ -1108,52 +1107,14 @@ new analysis quotes (1-2 0.816, 5-6 0.596 mm) reproduce in the lead's own readin
 then runs the search the pipeline does not do: both pieces on the known axis, only turn and height free, over
 all 36 pairs, scored so that losing dots costs.
 
-## 2026-11-14 - The placement is nearly solved; the score cannot choose (ticket 354)
+## 2026-11-14 - The placement is nearly solved under an oracle pool; the score cannot choose — and locked grid search is not the solution (ticket 354)
 
-With the piece axis known and one partner held at its key pose, a two-degree-of-freedom search (turn about the pot
-axis, slide along it; 22,006 placements per pair at 0.1 deg and 0.1 mm) puts **13 of the 14 measured joins inside the
-5 deg / 1.67 mm bar** - the miss is 6-9 at 5.50 deg - and every join shows a single clean well at the key. The
-end-for-end family is weaker: 6 of 14.
+With the piece axis known and one partner held at its key pose, a two-degree-of-freedom search (turn about the pot axis, slide along it; 22,006 placements per pair at 0.1 deg and 0.1 mm) puts **13 of the 14 measured joins inside the 5 deg / 1.67 mm bar** - the miss is 6-9 at 5.50 deg - and every join shows a single clean well at the key. The end-for-end family is weaker: 6 of 14.
 
-What fails is the choice. Seven of the 22 non-joins hold dots within 3.0 mm of the other breakline at the key; all
-seven score at or below the worst join (1.8839 mm) and three beat the best join (2-5 0.3010, 2-8 0.5650, 6-8 0.4038
-against 3-5 at 0.6738). Those three rest on 2-4 dots per side, so the score is normalised by a sliver; the worse news
-is the two non-joins with a join-sized pool - 4-7 (12+14 dots, 0.8218) and 7-9 (7+7, 0.8202) sit mid-distribution,
-better than five joins. Those are exactly the two pairs ticket 348 measured as passing within 0.1 mm **without mating**
-(frac_back_to_back 0.047 and 0.141). The breakline ties the position but not which face is presented; the surface is
-what separates them.
+**Claim 2 (oracle dot-pool confound in `locked354.py`).** `locked354.py:103-105` and `:115-130` select the dot subset `self.ia, self.ib` (`d <= 3.0 mm`) **at the ground-truth pose (`theta = 0, h = 0`)** and freeze that ground-truth patch across the entire `360 deg x 30 mm` sweep. That makes the 13-of-14 placement rate an **oracle-contact upper bound**, not a blind search: moving away from `(0, 0)` pulls those ground-truth contact dots apart into the `3.0 mm` cap, and 15 non-joins with `0+0` dots at ground truth sit flat at `3.0000 mm` everywhere without ever testing whether they touch at another `(theta, h)`. Without a ground-truth contact mask (`t354probe/sweep_true.py` `capped(0)` vs `capped(5)` over all breakline dots), a 5 deg turn around the axis moves pair `1-2` by only `+0.008 mm` (`2.517 -> 2.525 mm`) and lowers the capped score on `1-9` (`2.794 -> 2.791`), `2-6` (`2.459 -> 2.458`), and `5-8` (`2.794 -> 2.784`).
 
-The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm**
-(0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps
-0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a
-contradiction. The ticket's own 14-row spin table is what a stated metric reproduces (to 0.0004), so the metric was
-fixed by it.
+**Claim 1 (ranking failure even with the oracle pool).** Seven of the 22 non-joins hold dots within 3.0 mm of the other breakline at the key; all seven score at or below the worst join (1.8839 mm on `1-9`) and three beat the best join (`2-5` 0.3010, `6-8` 0.4038, `2-8` 0.5650 mm against `3-5` at 0.6738 mm). Those three rest on 2-4 dots per side, so the score is normalised by a sliver; the worse news is the two non-joins with a join-sized pool — `4-7` (12+14 dots, 0.8218 mm) and `7-9` (7+7 dots, 0.8202 mm) sit mid-distribution, better than five joins (`0.5147 mm` vs `0.5542 mm` join median on dense 3x at 1.8 mm). Those are the two pairs ticket 348 measured as passing within 0.1 mm **without mating** (`frac_back_to_back` 0.047 and 0.141).
 
-Caveat: the axes are the key's and piece a is held at its key pose, so this is an upper bound for a pipeline whose own
-axis estimate is 1.5-87.8 degrees off (ticket 349). The next lever named here is therefore a **surface term in the pair
-score**, not a better search.
+The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm** (0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps 0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a contradiction.
 
-## 2026-11-14 - The placement is nearly solved; the score cannot choose (ticket 354)
-
-With the piece axis known and one partner held at its key pose, a two-degree-of-freedom search (turn about the pot
-axis, slide along it; 22,006 placements per pair at 0.1 deg and 0.1 mm) puts **13 of the 14 measured joins inside the
-5 deg / 1.67 mm bar** - the miss is 6-9 at 5.50 deg - and every join shows a single clean well at the key. The
-end-for-end family is weaker: 6 of 14.
-
-What fails is the choice. Seven of the 22 non-joins hold dots within 3.0 mm of the other breakline at the key; all
-seven score at or below the worst join (1.8839 mm) and three beat the best join (2-5 0.3010, 2-8 0.5650, 6-8 0.4038
-against 3-5 at 0.6738). Those three rest on 2-4 dots per side, so the score is normalised by a sliver; the worse news
-is the two non-joins with a join-sized pool - 4-7 (12+14 dots, 0.8218) and 7-9 (7+7, 0.8202) sit mid-distribution,
-better than five joins. Those are exactly the two pairs ticket 348 measured as passing within 0.1 mm **without mating**
-(frac_back_to_back 0.047 and 0.141). The breakline ties the position but not which face is presented; the surface is
-what separates them.
-
-The conservator's anchor pair (0.816 / 0.596 mm) is the **dense 3x dot set at a pool radius of 1.85-1.9 mm**
-(0.8134 / 0.5923 there); on the 1x dots the same measurement at a 1.5 mm pool is 0.8133 / 0.5524, and 5-6 steps
-0.5524 -> 0.6629 -> 0.7724 between pool 1.5 and 1.85, so the two anchor numbers are two instruments rather than a
-contradiction. The ticket's own 14-row spin table is what a stated metric reproduces (to 0.0004), so the metric was
-fixed by it.
-
-Caveat: the axes are the key's and piece a is held at its key pose, so this is an upper bound for a pipeline whose own
-axis estimate is 1.5-87.8 degrees off (ticket 349). The next lever named here is therefore a **surface term in the pair
-score**, not a better search.
+**Conservator decision (2026-11-14): do NOT build a locked grid search into the assembler.** As the conservator pointed out, the stock SfS++ assembler already solves much more complex multi-sherd sample pots (`Pot_A` at `8/8 sherds, 15/15 edges`) without a 2-DoF grid search and without knowing ground truth: `CalculateFeatureAxisless` (`class/filter.cpp:161-219`) extracts spin- and height-invariant cylindrical derivative features `(dr/ds, dz/ds, r*dtheta/ds, thickness)`, `FeatureComp / LCS` (`class/feature_matching.cpp:386-496`) matches contiguous seam segments `[start_..end_]`, and `Icp` (`class/reconstruction.cpp:1190-1397`) aligns that segment point-to-point at `iter = 0` (`UsePreCorres` + `P2PConstraint`) before switching to whole-breakline point-to-line (`MakeCor` + `P2LConstraint`) at `iter = 1..49`. Ticket 355 traces `iter = 0` vs `final` across both `Juglet` and `Pot_A` to pinpoint where in that stock two-phase pair stage the `Juglet` loses 10 of its 14 measured joins while `Pot_A` keeps 15 of 15.
