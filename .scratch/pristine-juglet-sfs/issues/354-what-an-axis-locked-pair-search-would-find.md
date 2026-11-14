@@ -79,6 +79,18 @@ known pot axis:
 - turn: 0 to 360 deg, 0.5 deg step;
 - height: -15 to +15 mm real, 0.5 mm step (one tree unit = 3 mm - ticket 350);
 - plus the end-to-end placement (turn + 180 deg, height mirrored about the piece's own mid-height),
+
+
+
+> **Search budget.** 36 pairs x 720 turns x 61 heights is 1.6 million placements and will not run in
+
+> Python on a laptop. Search coarse to fine: turn at 1 deg, then 0.5 deg around the best, then 0.1 deg;
+
+> take the height from the two dot sets projected on the axis, then sweep +/-15 mm at 0.5 mm around it;
+
+> re-check the turn at the chosen height. Report the resolution actually reached (0.5 deg and 0.5 mm at
+
+> minimum) and the number of placements evaluated per pair.
   reported separately.
 
 Per pair report: best (turn, height), its score, the score of the next-best **distinct** minimum (the
