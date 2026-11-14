@@ -33,6 +33,11 @@ unlocks both the `Juglet` pair-stage yield AND end-to-end assembly without regre
 
 ---
 
+> **Dispatch note (lead, 2026-11-15).** The signed-axis switch is \`SFS_AXIS_SIGN=1\` (read at
+> \`class/feature_matching.cpp:114\`); \`SFS_SIGNED_K2\` does not exist in this tree and was a slip in the draft.
+> \`bool axis = false;\` is \`class/reconstruction.cpp:1258\` and \`w_a = 0.1\`, \`w_n = 3.0\` are the \`Icp\` locals at
+> \`:1242\`. Everything else in this ticket is as written.
+
 ## Part A — Ground-Truth Seam Normal Audit & Stock Anchor Reproduction
 
 1. **Deterministic script `C:/PR/artifacts/t357/audit_normals357.py`:**
@@ -42,7 +47,7 @@ unlocks both the `Juglet` pair-stage yield AND end-to-end assembly without regre
    - **Mandatory check:** confirm `Pot_A` passes `15/15` in 3D (`med_ang3d_folded` median `~3.3 deg`) and `15/15` in `(x, y)`, while Juglet passes `9/14` in 3D (failing `1-4`, `2-6`, `1-9`, `1-3`, `3-5`) and `14/14` in `(x, y)`.
 
 2. **Stock baseline anchors:**
-   Re-run stock `arm00_stock` (`SFS_AXIS_LOCK_ICP=0 SFS_XY_BREAK_NORMALS=0`, with `SFS_SIGNED_K2=1` on Juglet and default on `Pot_A`, plus `SFS_PRECOR_TRACE=1 SFS_STAGE_TRACE=1 SFS_EDGE_TRACE=1 SFS_STATE_TRACE=1`) to anchor the exact baseline in this binary (`Juglet`: `180` candidates, `0/14` at `iter = 0`, `4/14` measured joins at `final`, `2/9 sherds, 1/18 edges`; `Pot_A`: `124` candidates, `6/15` at `iter = 0`, `10/15` at `final`, `8/8 sherds, 15/15 edges`).
+   Re-run stock `arm00_stock` (`SFS_AXIS_LOCK_ICP=0 SFS_XY_BREAK_NORMALS=0`, with `SFS_AXIS_SIGN=1` on Juglet and default on `Pot_A`, plus `SFS_PRECOR_TRACE=1 SFS_STAGE_TRACE=1 SFS_EDGE_TRACE=1 SFS_STATE_TRACE=1`) to anchor the exact baseline in this binary (`Juglet`: `180` candidates, `0/14` at `iter = 0`, `4/14` measured joins at `final`, `2/9 sherds, 1/18 edges`; `Pot_A`: `124` candidates, `6/15` at `iter = 0`, `10/15` at `final`, `8/8 sherds, 15/15 edges`).
 
 ---
 
@@ -88,10 +93,10 @@ Verify `SOURCE_COMMIT`, build on Spartan compute (`sbatch`), verify tree md5 unc
 
 | Arm | `SFS_AXIS_LOCK_ICP` | `SFS_XY_BREAK_NORMALS` | Datasets & Repeats | Notes |
 |---|---:|---:|---|---|
-| `arm00_stock` | `0` | `0` | `Juglet` (`SFS_SIGNED_K2=1`), `Pot_A` | Baseline anchor (must match Ticket 355: `2/9, 1/18` & `8/8, 15/15`) |
-| `arm10_axis_only` | `1` | `0` | `Juglet` (`SFS_SIGNED_K2=1`), `Pot_A` | Isolates `iter=0..49` candidate-axis lock alone |
-| `arm01_xynorm_only` | `0` | `1` | `Juglet` (`SFS_SIGNED_K2=1`), `Pot_A` | Isolates horizontal-normal comparison alone |
-| `arm11_both` | `1` | `1` | `Juglet` (`SFS_SIGNED_K2=1`, **`r1` + `r2`**), `Pot_A` | Tests both fixes together + bit-exact determinism |
+| `arm00_stock` | `0` | `0` | `Juglet` (`SFS_AXIS_SIGN=1`), `Pot_A` | Baseline anchor (must match Ticket 355: `2/9, 1/18` & `8/8, 15/15`) |
+| `arm10_axis_only` | `1` | `0` | `Juglet` (`SFS_AXIS_SIGN=1`), `Pot_A` | Isolates `iter=0..49` candidate-axis lock alone |
+| `arm01_xynorm_only` | `0` | `1` | `Juglet` (`SFS_AXIS_SIGN=1`), `Pot_A` | Isolates horizontal-normal comparison alone |
+| `arm11_both` | `1` | `1` | `Juglet` (`SFS_AXIS_SIGN=1`, **`r1` + `r2`**), `Pot_A` | Tests both fixes together + bit-exact determinism |
 
 All runs include `SFS_PRECOR_TRACE=1 SFS_STAGE_TRACE=1 SFS_EDGE_TRACE=1 SFS_STATE_TRACE=1` (plus one unset smoke verification or zero-diff check on `arm00_stock` vs EE55CE2).
 
