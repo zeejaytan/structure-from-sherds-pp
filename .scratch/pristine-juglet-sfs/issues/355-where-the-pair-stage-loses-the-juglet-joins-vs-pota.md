@@ -1,7 +1,9 @@
 # Ticket 355 — where the stock pair stage (`LCS -> Icp`) loses the Juglet joins vs Pot A
 
-**Status:** ready-for-agent
-**Branch:** to be created at start by `scripts/ticket_dispatch.sh`; work only in the worktree it names
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-14)
+**Branch:** 355-where-the-pair-stage-loses-the-juglet-joins-vs-pota, in /c/PR/worktrees/structure-from-sherds-pp/355
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Answers:** S1
 **Depends on:** 349 (180 candidates, only 4/14 measured joins in bar), 350 (after removing tilt the remaining error is a pure spin `5.7–165.7 deg` + translation), 353 (breakline carries spin signal along steep seams), 354 (oracle-pool caveat and conservator decision not to replace `LCS` with a 2-DoF grid search)
 **Blocks:** any pair-stage change (`FeatureComp`/`LCS`, `Icp` iter=0 `UsePreCorres`, or `Icp` iter>=1 `MakeCor`/`P2L`)
