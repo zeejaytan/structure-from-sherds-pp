@@ -1,9 +1,10 @@
 # Ticket 350 — what the axis constraint would buy
 
-**Status:** ready-for-agent
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-14)
+**Branch:** 350-what-the-axis-constraint-would-buy, in /c/PR/worktrees/structure-from-sherds-pp/350
+**Worker:** dsh one-shot subagent, dispatched 2026-11-14 by the lead
 **Waits for:** nothing — ticket 349 landed 2026-11-14
-**Branch:** to be created at start
-**Worker:** unassigned
 **Answers:** S1
 **Depends on:** 349 (the four-of-fourteen ceiling), 348 (the measured contact set), 336 (the stage trace this reads), 341/345 (where the shape bar bites)
 **Blocks:** any change to how a pair's rotation is formed
