@@ -1033,3 +1033,33 @@ absence cannot be split into "never proposed" and "pruned" without a print at th
 Weight: one pot, one signed sweep, 14 joins; the candidate rows re-read by the lead from the raw log
 and the per-pair bests reproduced exactly. The reading is `two-causes`: 6-7 dies before the list, the
 other nine reach it with a wrong pose, and the axes are not the reason.
+
+## 2026-11-14 - The tilt is removable and buys two joins; the frame was overstated by three (ticket 350)
+
+**The frame first, because it changes every millimetre this lane has written down.** The signed runs
+bind the 3x bundle ticket 333 built, not the 1x corpus: one tree unit is 3 mm. Verified against the
+key's own poses - rotation difference 0.0007-0.0027 deg and `|t|` ratio exactly 3.000000 on all nine
+pieces. So the profile number the gate refuses with is 2.95 mm real (8.86 / 3) against a bar of
+2.33 mm real (7.0 / 3), not 8.86 against 7.0; the step-0 join measured 2.97 / 2.95 mm real; the 1-8
+control 1.94 mm; and the pose bar `MM_TOL 5.0` is 1.67 mm real, not 5 mm. **No verdict changes**:
+every number divides by the same 3, so every ratio stands - but the absolute millimetres in tickets
+338, 341, 345 and 349 were three times too big and this is the correction.
+
+**What the tilt is worth.** Ticket 350 replayed all 180 first-stage candidates with the rotation
+component about the shared piece axis removed (spin and translation kept). Of the sixteen pairs, five
+were inside the bar before and seven after: only **1-9** (8.82 -> 1.89 deg, 1.16 -> 0.78 mm) and
+**5-8** (7.00 -> 1.71 deg, 1.66 -> 1.36 mm) cross in, nothing crosses out. Nine measured joins stay
+outside with 5.7-165.7 deg of *spin* left over (2-9 5.7, 3-8 6.6, 3-5 7.1, 1-4 8.5, 5-6 9.9, 1-3
+11.3, 2-6 14.3, 6-7 165.7, and 4-6 3.4 deg but 11.0 mm real).
+
+**So the axis is not the lever the frame invited.** The pipeline reads a piece's axis only after the
+pair rotation is fitted - it uses it to measure `axis_raw_` and to gate at 25 deg, never to constrain
+the fit - and this replay shows that constraining it would buy at most two joins. The rotation error
+is mostly a spin about the shared axis, i.e. the fit knows where the axis is (the axes are exact here)
+and is free along it. The next question is therefore how the spin hypothesis is chosen, and whether
+the contact curve determines it at all at this resolution: ticket 353 asks it offline before any code
+changes.
+
+**Two limits stated.** The replay is a counterfactual that keeps each candidate's translation, so it
+does not speak for a constrained search that would also re-fit the translation. And both repeats parse
+one log, so they test the arithmetic, not the run.
