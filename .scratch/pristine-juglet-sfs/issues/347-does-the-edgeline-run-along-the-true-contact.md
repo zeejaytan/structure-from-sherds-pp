@@ -1,6 +1,6 @@
 # Ticket 347 — does the edgeline run along the true contact stretch
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-14)
 **Branch:** 347-does-the-edgeline-run-along-the-true-contact, in /c/PR/worktrees/structure-from-sherds-pp/347
 **Worker:** dsh one-shot subagent e22a4441-214c-43b1-bd3e-4cc55d558745, dispatched 2026-11-14 by the lead

@@ -905,23 +905,39 @@ search applies. A correct candidate that never enters a list cannot be ordered i
 upstream of the ranking key: which candidates reach a graph at all. (342's r1 assembly was reproduced at the
 edge-set level by all five trace arms; 342's r2 assembly, five edges and score 263, was not reproduced by any
 of them -- the winner remains a set-level statement.)
-## 2026-11-14 - The join the gate refused is not a join (the reference, checked)
+## 2026-11-14 - The join the gate refused is a join; the reference is not a contact list
 
 The conservator asked, after the assembler's last result, whether the answer key's pose is right
 but the edgeline we generate is wrong. The first half of that question has an answer already;
 getting to it also stopped a ticket.
 
-**Tickets 341/344/345 treated 5-7 as a join inside the bar that the gate refused.** It is not a
-join. The answer key's contact graph
-(`SfSpp_preprocessing/artifacts/67/juglet_gt/Juglet_simple_graph.txt`, 18 edges) does not list
-5-7 or 4-7, and the ten pairs ticket 326 measured as touching at the true pose do not include
-them. Their in-bar candidates (5-7 id 160 at 4.71 deg / 3.69 mm; 4-7 id 145 at 3.35 / 2.68) are
-**false positives** - plausible relative poses of sherds that never met - and the gate's eight
-refusals at 8.856-8.860 mm against its 7.0 mm bar were correct. Ticket 344 (one arm with the bar
-at 9.0 for 5-7) is stopped as `wontfix`: run, it would have tuned the gate to admit a false join.
-The third pair in that sentence, 6-9, is a real contact (0.58 mm mesh gap; 7/6 inliers under the
-2 mm / 0.85-normal probe) that the graph does not list at all - a reference disagreement, still
-open.
+**Tickets 341/344/345 treated 5-7 as a join inside the bar that the gate refused, and this
+section first answered that it is not a join - on the answer key's list alone. That answer was
+wrong.** Ticket 347 measured the mating directly, at the true pose, with exact point-to-triangle
+distances and each piece's outward normals calibrated by a parity test: **5-7 is back-to-back** -
+459 vertices of one piece lie within 0.1 mm of the other's surface, median normal dot **-0.910**,
+75.4% opposed, spread over 29.3 mm - the same signature as the two listed joins 6-7 (-0.940,
+77.6%, 30.3 mm) and 1-8 (-0.887, 77.3%, 31.9 mm). **4-7 is not**: its normals run the same way
+(median **+0.448**, 4.7% opposed) over 23.5 mm - two surfaces passing alongside each other, which
+proximity alone would have called a join. Controls 1-5, 1-6 and 4-5 have no vertex within 0.5 mm.
+
+**The key's list itself does not survive the test.** Of its 18 edges, **nine stand 3-19 mm apart at
+the true pose** - 1-5 3.325, 1-6 3.636, 3-7 13.851, 4-5 4.864, 4-6 7.682, 5-9 17.987, 6-8 0.612,
+7-8 13.871, 8-9 18.846 mm - and cannot be joints at all. It also omits 5-7 (which mates) and 6-9
+(0.000003 mm gap, 7/6 inliers under the 2 mm / 0.85-normal probe). So `Juglet_simple_graph.txt`
+is a reference answer for something other than "these surfaces meet"; it ships with the key
+(`Dataset/Juglet_GT/`, md5 `ccae01dd9c897e92beb0d507baa45cea`, copied by
+`run_juglet_preprocessing.sbatch:249`), it is not our derivation, and the lane's "1 of 18 joins"
+is measured against a list half of whose entries cannot be joined.
+
+**What that changes and what it does not.** The gate's refusal of 5-7 was not a mistake about
+geometry: its group profile reads 8.86 mm against the 7.0 mm bar (341) and 8.91 / 8.84 mm at the
+moment of the join (345) - a real join whose assembled shape is that far off, which makes the
+shape number, not the join, the thing to question. Ticket 344's premise returns for 5-7, but it
+stays stopped until the join count is re-grounded on measured contacts rather than the key's
+list: that re-scoring is the next ticket. The seated-sherd number (2 of 9) does not depend on the
+list and is unchanged; the "1 of 18 edges" number does, and should not be quoted until it is
+recomputed.
 
 **On the edgelines themselves the question has been answered once, for gap rather than stretch.**
 Ticket 326 measured, at the true pose on the 1x tree, the interior line of one piece against its
