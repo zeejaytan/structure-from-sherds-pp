@@ -69,6 +69,13 @@ One row per measured join (14) plus 4-7 and 4-6 as controls, per log:
 `pair`, `best_index`, `tilt_deg`, `spin_deg` (total after removing the tilt), `total_deg_before`,
 `total_deg_after`, `mm_before`, `mm_after`, `in_bar_before`, `in_bar_after`, `note`.
 
+**Which millimetres, and which bar.** The logged `CAND338` mm is a breakline RMS in the
+run's 3x tree units; every `mm_before` / `mm_after` in the table is that number divided by 3, i.e.
+real millimetres. The code's own bar is `MM_TOL 5.0` on the *tree-unit* number, which is 1.67 real
+mm (and the profile bar `7.0` tree units = 2.33 real mm), so `in_bar_*` below is the *looser* reading
+of the bar; the lead re-checked every row at 1.67 mm and no verdict changes (see the lead's
+verification note).
+
 Take `best` = the candidate with the smallest **after** error, and also print the candidate with the
 smallest **before** error so the two are comparable. Deliver
 `C:/PR/artifacts/t350/replay350.tsv` (header exactly as above) and a short `replay350.md` that quotes
@@ -87,14 +94,14 @@ the rows the reading rests on.
 
 ## Part D — acceptance
 
-- [ ] frame and unit stated with evidence before any millimetre figure;
-- [ ] all 180 candidates replayed, not just the 51 survivors; the script is committed under `artifacts/t350/`;
-- [ ] the replay reproduces the two `CAND338` numbers it must (1-8 index 70 at 0.70 deg, 1-2 index 1 at 2.14 deg) to within 0.05 deg — otherwise the replay is wrong, not the log;
-- [ ] the table has 16 rows and the columns above;
-- [ ] both repeats used, and the reading the same in both;
-- [ ] one reading, quoted rows named;
-- [ ] `git diff --stat` shows this ticket only — **no `class/`, no `hpc/`, no threshold**;
-- [ ] the write-back ends with exactly one `**End state:**` line.
+- [x] frame and unit stated with evidence before any millimetre figure;
+- [x] all 180 candidates replayed, not just the 51 survivors; the script is committed under `artifacts/t350/`;
+- [x] the replay reproduces the two `CAND338` numbers it must (1-8 index 70 at 0.70 deg, 1-2 index 1 at 2.14 deg) to within 0.05 deg — otherwise the replay is wrong, not the log;
+- [x] the table has 16 rows and the columns above;
+- [x] both repeats used, and the reading the same in both;
+- [x] one reading, quoted rows named;
+- [x] `git diff --stat` shows this ticket only — **no `class/`, no `hpc/`, no threshold**;
+- [x] the write-back ends with exactly one `**End state:**` line.
 
 ## Rules for the worker
 
@@ -105,3 +112,97 @@ the rows the reading rests on.
   them under `artifacts/t350/gt/`.
 - Report, do not conclude: the table, the numbers, the one reading slug.
 - If the same failure happens twice, stop and report `incomplete`, naming the blocker.
+
+## Comments (worker, 2026-11-14)
+
+Offline replay, Parts A-C. No assembler run, no new geometry, nothing under `class/` or `hpc/`
+touched, no threshold, gate, priority or switch changed. Deliverables under `C:/PR/artifacts/t350/`:
+`replay350.py`, `replay350.tsv` (16 rows, repeat r1), `replay350_r2.tsv` (repeat r2),
+`replay350_all180.tsv` (all 180 candidates), `replay350.md`, `summary350.json`, `gt/` (the nine
+key poses with their md5) and `tree/` (the tree the run actually binds: Ground Truth, Breaklines,
+Axes).
+
+**Frame before any number.** The run binds `20261112-1238_55473e9_t333-juglet-large`,
+`work/trees/px3/juglet` at `/Dataset/SfS_pp` (`submit_juglet339_array.sbatch:83`, `:91`), not
+`Dataset/Juglet`. Measured against the key poses `gt/` fetched for this ticket: rotation difference
+0.000000 deg on all nine pieces, translation ratio exactly 3.000000 — so **one tree unit is 3 mm**.
+Angles are unit-free (`axis_raw_`/`rot` need no conversion); the `CAND338` `mm` is a breakline RMS
+in tree units and every millimetre in the deliverables is that number /3 (1-8's logged 1.210 is
+0.403 mm). The 5 mm bar is applied to the divided column. md5 of the nine files:
+`0d936379b768cdfb19a9906fa3e36a02`, `f0f6e47f8bce271f8390d357e3464772`,
+`818c23a55c65fbdcdb276abc81207663`, `03df795afd83c7868b3061e6d5b9569c`,
+`752521135dcd9465eeb5d49ed4e81a97`, `61d6ddd0d30687b2803fcfff2b16c3c3`,
+`373a22af34d3434764c1c63d55044010`, `d0f4ec81a244d1540bfa0f67ad3f55c4`,
+`d816f3f9d2e28495d8da298584a06768`.
+
+**Replay checked against the log.** All 180 `CAND` rows replayed; the 51 survivors reproduce
+`CAND338` to max 0.001445 deg and 0.002132 mm, and the tilt reproduces the logged `axis_raw_` to
+7.1e-05 deg. Both anchors hold: 1-2 **index 1** 2.1391 deg vs 2.13831 logged, 1-8 **index 70**
+0.7012 vs 0.70. After the tilt is removed the residual rotation's axis is the piece axis to
+0.0076 deg on every row, so the delivered `spin_deg` and `total_deg_after` agree to 0.0146 deg by
+construction of the frame, not by assumption. Both repeats agree to <= 0.001 deg and give the same
+reading.
+
+**Result.** 5 of the 16 rows are inside the bar before the correction (the four joins 1-2 1.930 /
+0.636, 1-8 0.487 / 0.426, 5-7 4.708 / 1.230, 6-9 2.353 / 0.573, and the control 4-7 3.353 /
+0.894), 7 after: **1-9** 8.816 / 1.159 -> 1.887 / 0.777 and **5-8** 6.998 / 1.656 -> 1.710 /
+1.360 cross in; nothing crosses out. Nine joins stay outside, and their residual is the spin:
+2-9 15.124 -> 5.713, 3-8 11.004 -> 6.612, 1-4 15.775 -> 8.545, 1-3 179.197 -> 11.300, 3-5
+140.263 -> 7.106, 2-6 26.206 -> 14.323, 5-6 13.001 -> 9.905, 6-7 165.692 -> 165.652 (spins
+-165.65) and 4-6 153.455 -> 3.430 deg with 23.092 -> 11.017 mm. Two joins recovered, not the three
+`axis-constraint-recovers-the-joins` requires.
+
+**Reading: `axis-constraint-buys-only-the-tilt`.** The tilt is removable and the bar is 5 deg, yet
+removing it brings in only the two joins whose spin was already small (1-9, 5-8). Every other join
+keeps a spin of 5.7-165.7 deg, so the lever is how the spin hypothesis is chosen, not the tilt.
+Three of the 16 rows are candidates `MergeSimPair` folded away (1-2 #3, 1-4 #37, 1-8 #67); the 51
+survivors alone give every pair the same verdict, so the reading does not depend on them.
+
+**Limits.** The replay is a counterfactual about the pose (tilt removed exactly, spin kept), so it
+does not say what a constrained candidate search would register — that is the next ticket's
+question. The spin is a property of the candidate's existing rotation, not an independent estimate;
+both repeats parse one log, so they test the arithmetic, not the run. The full 16-row table and the
+per-pair arguments are in `replay350.md` (quoted there verbatim from `replay350.tsv`).
+
+### Lead — verification (2026-11-14, Thinkbook16)
+
+verified: `cd C:/PR/worktrees/structure-from-sherds-pp/350 && COLUMNS=200 python
+C:/PR/artifacts/dsh-handover/350/accept350.py` -> 29 cases, 29 pass. Two of those cases were mine and
+wrong, fixed in the check and not in the worker's files: `nothing-but-the-ticket-in-status` sliced
+porcelain lines at `l[3:]` and so dropped the leading dot of `.scratch/...`; the anchor case demanded
+the literal strings `0.70` and `2.14` while the write-up quotes the more precise `0.7012` and
+`2.1391`.
+
+verified: the frame, independently of the worker — `gt/Juglet_Piece_N_T.txt` against
+`tree/Ground Truth/Juglet_Piece_N_T.txt`: rotation difference 0.0007-0.0027 deg on all nine (exact
+equality up to float noise; the arccos is `nan` on four pieces because the trace rounds past 3),
+`|t|` ratio exactly 3.000000 on all nine (piece 1 -129.18 / 264.67 / 436.67 -> -387.55 / 794.01 /
+1310.00). **One tree unit is 3 mm.**
+
+verified: the anchors, from `replay350_all180.tsv` — index 1 (1-2) `total_deg_before` 2.139 vs
+`rot_deg_c338` 2.138 and `mm_before` 0.734 vs `mm_c338_mm` 0.734; index 70 (1-8) 0.701 vs 0.701,
+0.402 vs 0.403.
+
+verified: four table rows against the log — 6-9 2.353 (logged 2.353), 5-7 4.708 (4.70843), 4-7 3.353
+(3.353), 1-8 0.487 (0.487) — and every mm column equals the logged value / 3.
+
+verified: `git diff --stat HEAD` = this ticket only (61 insertions, 8 deletions); nothing under
+`class/` or `hpc/`; nothing committed by the worker (`HEAD` is the dispatch claim).
+
+**Adjudication — which bar the in-bar columns use.** The table's mm columns are real millimetres
+(logged / 3) and `in_bar` applies 5 deg and 5 real mm. The code's own bar is `MM_TOL 5.0` against the
+*tree-unit* RMS, i.e. 1.67 real mm. I re-checked all 16 rows at 1.67 mm: no verdict changes — the two
+rows that cross in are 1-9 (0.777 mm = 2.3 units) and 5-8 (1.360 mm = 4.1 units), both inside 5
+units, and every row that stays out is out on the rotation anyway (4-6's 11.017 mm = 33 units is the
+one that is out on both). **The reading therefore holds under either reading of the bar**, and the
+1.67 mm figure is recorded in S1 as the bar the pipeline actually applies.
+
+**Adjudication — what the reading does not say.** (a) The correction removes only the component of
+the rotation about the shared piece axis; a candidate wrong by a spin cannot be rescued by it, so the
+5-to-7 movement is the whole of what the tilt can buy and the `recovers-the-joins` limb (three joins)
+is genuinely not met. (b) Translation is kept, so this says nothing about a constrained search that
+would also re-fit the translation. (c) 6-7's -165.65 deg 'spin' shows the projection is a
+decomposition, not a repair: it split a 165.69 deg error into 8.53 deg of tilt and 165.65 deg of
+spin, which is a statement about that candidate's rotation and nothing about the join.
+
+**End state:** ready
