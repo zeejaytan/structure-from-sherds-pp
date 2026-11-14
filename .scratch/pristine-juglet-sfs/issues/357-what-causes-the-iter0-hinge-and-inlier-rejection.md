@@ -1,8 +1,9 @@
 # Ticket 357 — Does locking the candidate axis at `iter = 0` and removing vertical breakline-normal bevel bias recover the Juglet pair stage?
 
-**Status:** ready-for-agent
-**Branch:** to be created at dispatch
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-15)
+**Branch:** 357-what-causes-the-iter0-hinge-and-inlier-rejection, in /c/PR/worktrees/structure-from-sherds-pp/357
+**Worker:** dsh one-shot subagent w357, dispatched 2026-11-15 by the lead
 **Answers:** S1
 **Needs-eye:** yes
 **Depends on:** 355 (11/14 `LCS` seams on target `frac = 1.000`, yet `0/14` in bar at `iter = 0` and `4/14` at `final`), 348 (`14` measured joins + `4-7, 4-6` controls), 350 (`G_axis` frame & `rot / tilt / spin / mm` decomposition)
