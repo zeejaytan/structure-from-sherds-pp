@@ -1200,3 +1200,13 @@ state stage's KEEP/CUT scores are not bit-reproducible - a pristine rebuild drif
 not compared across arms; the committed membership and the PlaceErr table are, and both repeated exactly. The last gap
 to a whole pot is merging {5,7}, whose bridges die at the pair stage (3-5 and 6-7 dropped as pair_overlap, 5-6 at
 13.1 deg after Icp): a merge and overlap problem, not a normals one.
+
+## 2026-11-15 - Correction to the 358 record: which joins the pair stage had in bar (review)
+
+Two sentences in the 358 section over-claim, found in a read-only review of the landed run. (1) 3-5 does reach
+CAND338: candidate 118 is in binary_juglet_xy_full_r1.log at 48.26 deg / 44.19 tree units (14.7 mm real) with 24
+inliers, and the row the table stores is candidate 120, whose fit failed (0 inliers, score 11), because the picker
+keeps the smaller rotation. Only 6-7 never reaches CAND338. (2) Of the nine seated joins only four were inside the
+bar at the end of the pair fit - 1-2, 1-8, 5-7, 6-9; 1-3, 1-9, 2-6 and 2-9 came inside during assembly, so the group
+stage improves relative poses as well as grouping them. The reported 5 of 9 sherds and 4 of 18 edges is unchanged, and
+the world-frame explanation of that count stands.
