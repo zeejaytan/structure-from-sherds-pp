@@ -2,10 +2,10 @@
 
 **What to build:** an offline trace, from the two winning-arm logs of ticket 358, of the moment the join 1-4 entered the assembly - which edge carried it, what its relative pose was at three moments (after that edge's own pair fit, after the group step that placed it, and at the end), and whether the 11.75 deg now measured was already there when the edge was chosen.
 
-**Status:** in-progress
+**Status:** landed
 **Working in:** chat on Thinkbook16 (2026-11-15)
 **Branch:** 360-which-step-put-sherd-1-eleven-degrees-out-of-pose, in /c/PR/worktrees/structure-from-sherds-pp/360
-**Worker:** dsh one-shot subagent, dispatched 2026-11-15 by the lead
+**Worker:** dsh one-shot subagent w360, dispatched 2026-11-15 by the lead
 **Answers:** S1
 **Needs-eye:** no
 **Depends on:** 358, 342, 346

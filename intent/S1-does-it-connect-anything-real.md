@@ -1211,6 +1211,25 @@ bar at the end of the pair fit - 1-2, 1-8, 5-7, 6-9; 1-3, 1-9, 2-6 and 2-9 came 
 stage improves relative poses as well as grouping them. The reported 5 of 9 sherds and 4 of 18 edges is unchanged, and
 the world-frame explanation of that count stands.
 
+## 2026-11-15 - The 1-4 mis-pose came in with the edge (ticket 360)
+
+Ticket 360 traced sherd 1's 11.75 deg error to its three moments in both repeats of the winning arm. Piece 1 enters
+the largest cluster {1,2,4,6,8,9} at step 5 (build ext 1 / order 2 / graph 2, root 4, 52 inliers) on edge index_ 4
+(y 1, x 4, score 0.486727) - not pair-stage candidate 37, which the step discarded when it regenerated its own
+candidate list and took the row with more chunk inliers (52 against 49). Its relative pose was already 8.0324 deg /
+2.0854 mm out at the phase where the edge was applied, before any ICP; the join step's own IcpIncGraphAxis +
+GraphAxisRefinement added 2.40 deg (10.4373 / 2.6290), and the step-6 1-3 merge's ICP added 1.32 (11.7539 /
+2.8302), which the final answer keeps. The control 1-8 sits at 1.1250 -> 1.0998 -> 1.2145 deg at the same three
+moments, so the instrument is not manufacturing the number. Reading: both-contribute - 69 % of the final error is
+the edge's own answer.
+
+The import is where the loss is made: the step had a 5.76 deg 1-4 candidate from the pair stage and took an 8.03 deg
+one because its own regenerated list offered more inliers. The refinement contributes the smaller part and is a
+separate question. All twelve rotation values were recomputed from the log's own [SFS-336] AXIS matrices and the GT
+files (0 mismatches above 0.01 deg); the mm column is the breakline-RMS placement metric and does not carry any
+verdict here, because 1-4 is out on rotation at every moment.
+
+
 ## 2026-11-15 - The four bridges: one gate, three fits, and the gate's second number (ticket 359)
 
 Ticket 359 replayed the pair stage's three refusal measures offline - the overlap area against its 50.0 limit, the
