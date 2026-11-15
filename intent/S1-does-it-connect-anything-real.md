@@ -1210,3 +1210,23 @@ keeps the smaller rotation. Only 6-7 never reaches CAND338. (2) Of the nine seat
 bar at the end of the pair fit - 1-2, 1-8, 5-7, 6-9; 1-3, 1-9, 2-6 and 2-9 came inside during assembly, so the group
 stage improves relative poses as well as grouping them. The reported 5 of 9 sherds and 4 of 18 edges is unchanged, and
 the world-frame explanation of that count stands.
+
+## 2026-11-15 - The four bridges: one gate, three fits, and the gate's second number (ticket 359)
+
+Ticket 359 replayed the pair stage's three refusal measures offline - the overlap area against its 50.0 limit, the
+axis angle against 0.436 rad, and the pair's own inlier count - at the true relative pose and at the pose the search
+found, anchored first on six logged candidate rows (worst area error 0.040 percent, worst axis error 0.000003 rad).
+At the true pose 6-7 is the only bridge the gate refuses, on its own measure: overlap area 191.17 against 50.0
+(77.39 at the found pose). 3-5, 5-6 and 5-8 pass all three measures and are lost in the fit - 48.26 deg / 44.19 tree
+units (14.7 mm), 13.08 deg / 15.67 units (5.22 mm), 8.32 deg / 5.78 units (1.93 mm). Controls behave: 1-8 and 5-7
+pass at both poses, and 4-7 - a measured non-join - passes all three too, so "the true pose passes the gates" is a
+necessary condition for a join, not a sufficient one. Reading: mixed.
+
+The gate's refusal is real but is not the whole loss, and the second number is what says so: at the true pose 6-7
+yields 6 inliers (the pairs the search accepts give 20-99) with its two breaklines a median 21.0 tree units (7.0 mm)
+apart, and 3-5 gives 12 at 12.7 mm. Removing the 50.0 limit would therefore not carry 6-7 by itself, and 3-5's 48 deg
+answer was made on thin correspondence; the measurement question for those two is how well the pair's curves agree,
+not only the threshold. 5-6 (26 inliers) and 5-8 (30) are the two bridges where "the fit is the gap" is unambiguous.
+Frame: one tree unit is 3 mm, so every length in units divides by three; the ticket's earlier 76.898 for 6-7 is the
+stock arm's row for that candidate index and 77.3877 is the arm under test.
+
