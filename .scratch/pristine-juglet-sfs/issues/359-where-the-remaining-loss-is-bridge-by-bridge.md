@@ -2,8 +2,10 @@
 
 **What to build:** an offline classification of the four missing bridges between the two clusters of ticket 358 - 6-7, 3-5, 5-6, 5-8 - by measuring, at the true relative pose and at the pose the search found, the three quantities that can refuse a pair: the overlap area (limit 50.0), the axis gate (0.436 rad) and the pair's own inlier count, with the gate replay anchored on the logged candidate rows before it is trusted.
 
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-15)
+**Branch:** 359-where-the-remaining-loss-is-bridge-by-bridge, in /c/PR/worktrees/structure-from-sherds-pp/359
+**Worker:** dsh one-shot subagent, dispatched 2026-11-15 by the lead
 **Answers:** S1
 **Needs-eye:** no
 **Depends on:** 358, 348, 347
