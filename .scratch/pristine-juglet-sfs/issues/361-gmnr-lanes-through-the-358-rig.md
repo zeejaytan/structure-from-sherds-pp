@@ -4,8 +4,10 @@
 
 **Answers:** S1
 **Blocked by:** none
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-17)
+**Branch:** 361-gmnr-lanes-through-the-358-rig, in /c/PR/worktrees/structure-from-sherds-pp/361
+**Worker:** dsh one-shot subagent w361
 **Budget:** medium (one 4–5 arm Spartan array on the GMnr 3× lanes, one Pot A control arm, join-level scoring read out of the arm traces, one comparison render; no source edits)
 **Hand-over:** DeepSeek: read this ticket in full first, then tickets 358 (the rig and its switches), 359 (the bridge numbers), 333 (the 0 of 9 baseline) and 78 in `SfSpp_preprocessing` (the lanes). Stage the lanes, run the arms, score at join level, write `C:/PR/artifacts/t361/gate361.tsv` and `render361_assembly.png`, then append your Comments section with one Reading line per Part.
 
