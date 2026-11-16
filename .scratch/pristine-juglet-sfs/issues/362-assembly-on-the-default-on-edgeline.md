@@ -3,7 +3,7 @@
 **What to build:** Run the **new** edgeline — ticket 79's wall-pair rule, on by default after ticket 80 — through the assembler rig that measured the GMnr lanes (ticket 361), and answer two questions in one run: does the fixed line change the join set, and **does the 6–7 pair that now fits at 3.98° / 1.17 mm still get dropped at pruning?** If it still drops, diagnose from the arm's own trace which stage killed it and whether the fit or the test is wrong. No code change.
 
 **Answers:** S1
-**Blocked by:** ticket 80 (`SfSpp_preprocessing/.scratch/juglet-breaklines/issues/80-default-on-and-the-edgeline-for-the-eye.md`) — it must be landed, and **the conservator's eye check in visual-qa must have passed** (recorded in that ticket's Comments). Do not start before both.
+**Blocked by:** **nothing for Part D0 and Part A** — the conservator waived the eye-check ordering on 2026-11-17 and asked for the assembly work and the investigation to run while he verifies visual-qa. **Part B/C's arms need ticket 80's `def_3x` lanes and its default-on binary** (`SfSpp_preprocessing/.scratch/juglet-breaklines/issues/80-default-on-and-the-edgeline-for-the-eye.md`); they do not exist yet. Do not fabricate lanes: do D0 and A, then end `waiting: ticket 80 lanes`, and the lead will message you to continue.
 **Status:** ready-for-agent
 **Worker:** unassigned
 **Budget:** medium (one lane bundle, three arms, one control, one gate table, one render; the diagnosis is read-only)
@@ -46,16 +46,33 @@ Per ordered pair of the 16 GT-adjacent pairs: `inl_icp`, `joins_inl_ge6`, `joins
 
 Deliverable `C:/PR/artifacts/t362/gate362.tsv`: columns `group arm pair metric value reference verdict note`; every verdict cell must **match its own number** (ticket 78's `pass` on `4/36` was a tagging bug).
 
-## Part D — the diagnosis, only if 6–7 is still dropped
+## Part D — the diagnosis
 
-Read-only, from this run's own trace. Answer, in `C:/PR/artifacts/t362/diag362.md` with the numbers that settle it:
+Two halves. **D0 runs now**, on ticket 361's own traces, because the drop is already recorded and the question "why" does not need the new lanes. **D1 runs after Part B**, only if 6–7 is still dropped on the fixed edgeline.
+
+### D0 — why 6–7 was dropped at pruning on the GMnr lanes (ticket 361's run)
+
+Ticket 361's run directory holds every arm's binary log: `/data/gpfs/projects/punim2657/SfSpp/runs/20261117-0129_d2fb631_t361-gmnr-lanes/logs/binary_*.log`, and arm `juglet_gmnr_xy` carries `[SFS-339] FATE 7 64 -1 6 7 drop pc_overlap 16` together with `[SFS-339] OFFER` lines and `[SFS-336]` lines where the switch was on. Reconstruct, read-only:
+
+1. **The whole life of the 6–7 candidate in that arm** — its fit (3.978°, 1.174 mm, 16 inliers), every `OFFER` step it appears at and at what priority, the `FATE` line when it dies, and whether it was re-offered later. Quote the lines verbatim, with step numbers.
+2. **Why `pc_overlap` fired** — the code path is `PrepareNextStep`'s merge branch (`class/ranking_system.cpp:2218`) and its single branch (`:2260`): both call an overlap test *after moving one shard into the group's frame*, and both erase before `CountPCInlier` ever runs. Read those two test functions and say, in plain words, what they test (how much of one shard's points sit inside the other's surface, at what tolerance), then compute it yourself for 6–7 at the pose that was offered: **how much overlap did the test actually see, against its own threshold**, and the same number for the pair at the **GT pose**.
+3. **The one number that settles it** — if 6–7 passes the same test at the GT pose and fails at the fitted pose, the verdict is a **fit** verdict; if it fails at both, it is a **test/threshold** verdict. Give both numbers and say which.
+4. **Whether 4–7 explains anything** — 4 and 7 are not adjacent in the ground truth, yet `C1{4,7}` held after the drop. Check whether the 4–7 candidate was offered at a step that made 6–7's overlap test worse (the group frame 7 was already sitting in), and say what the trace shows. If the trace cannot settle it, say that rather than guessing.
+
+### D1 — the same, on the fixed-edgeline arm, only if Part B still drops it
+
+Repeat D0 on this run's own log for `juglet_def_xy`, with the same four items. The point of D0 was to know the mechanism before the new lanes; D1 is whether anything about it changed.
+
+Then make the claim call, once, plainly: (1) the method failed, (2) the measurement is wrong, (3) the reference answer is wrong — with the numbers that force it. **Name what would fix it as a candidate, never build it**: which switch or threshold would have to move, and what would have to be re-measured to prove the fix. No code change in this ticket.
+
+Write `C:/PR/artifacts/t362/diag362.md` with the numbers that settle it, and keep the D0 and D1 sections separate.
 
 1. **Which stage** — refused at the fit, erased in `PrepareNextStep` by `MergeOverlapTest` (`class/ranking_system.cpp:2218`, reason `pc_overlap`) or by `SingleOverlapTest` (`:2260`), erased by `CountPCInlier` (`:2238` / `:2278`, thresholds `7.0` / `1.5`), or never offered because its step came later. Name the line.
 2. **How wrong the pose is at the moment of the drop** — take the offered transform, move both shards, and measure: the interpenetration the test saw (number of overlapping points and its own threshold), and the same against the **GT pose** for the same pair. A pair that passes at the GT pose and fails at the fitted pose is a **fit** verdict; a pair that fails at both is a **test/threshold** verdict.
 3. **Which of the three claims it is** — (1) the method failed, (2) the measurement is wrong, (3) the reference answer is wrong — stated once, plainly, then the numbers.
 4. **What would fix it**, named as a candidate, not built: which switch or threshold would have to move, and what would have to be re-measured to prove it. No code change in this ticket.
 
-If 6–7 is kept and committed, skip Part D and say so in one line; still record its committed error.
+If Part B keeps and commits 6–7, skip D1 and say so in one line; still record its committed error, and still file D0 — the mechanism of the 361 drop is worth having either way.
 
 ## Part E — render and readings
 
