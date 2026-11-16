@@ -4,8 +4,10 @@
 
 **Answers:** S1
 **Blocked by:** **nothing for Part D0 and Part A** — the conservator waived the eye-check ordering on 2026-11-17 and asked for the assembly work and the investigation to run while he verifies visual-qa. **Part B/C's arms need ticket 80's `def_3x` lanes and its default-on binary** (`SfSpp_preprocessing/.scratch/juglet-breaklines/issues/80-default-on-and-the-edgeline-for-the-eye.md`); they do not exist yet. Do not fabricate lanes: do D0 and A, then end `waiting: ticket 80 lanes`, and the lead will message you to continue.
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-17)
+**Branch:** 362-assembly-on-the-default-on-edgeline, in /c/PR/worktrees/structure-from-sherds-pp/362
+**Worker:** dsh one-shot subagent w362
 **Budget:** medium (one lane bundle, three arms, one control, one gate table, one render; the diagnosis is read-only)
 **Hand-over:** DeepSeek: read ticket 361 in full (the rig, the arms, the bridge numbers, the funnel) and tickets 358/359 for what the switches do; read ticket 80's record for the lanes. Stage the nine default-on 3× lanes, run the arms, score joins before seating, and read the 6–7 fate out of the traces. Look at the render before the Reading line. Do not change any pruning code.
 
