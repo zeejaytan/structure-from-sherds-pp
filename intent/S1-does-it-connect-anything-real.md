@@ -1249,3 +1249,21 @@ not only the threshold. 5-6 (26 inliers) and 5-8 (30) are the two bridges where 
 Frame: one tree unit is 3 mm, so every length in units divides by three; the ticket's earlier 76.898 for 6-7 is the
 stock arm's row for that candidate index and 77.3877 is the arm under test.
 
+## 2026-11-17 - The breaklines close the 6-7 fit; the search still drops it (ticket 361)
+
+Six-DoF assemble on the GMnr 3x breakline lanes (1.5 mm / 25 deg chord growth, 0.887 merge), with ticket 358's
+switches (`SFS_AXIS_LOCK_ICP=0`, `SFS_XY_BREAK_NORMALS=1`, `SFS_XY_STATE_NORMALS=1`): **12 of the 14 measured joins
+survive pruning** against 358's 9, and 10 of 14 are in bar at the final pose (5 deg / 5 mm). 6-7, refused by the gate
+at 359's true pose, now fits at **3.98 deg / 1.17 mm with 16 inliers** and survives pruning, but the search drops it
+(`FATE 7 64 -1 6 7 drop pc_overlap 16`); 5-6 (4.86 deg / 1.43 mm) and 5-8 (3.28 deg / 0.79 mm) commit. Clusters
+C0{1,2,3,5,6,8,9} + C1{4,7}: 6 of 9 sherds and 5 of 18 edges, against 2 of 9 and 0 of 18 for the stock 6-DoF arm on
+the same lanes. **Nothing seats - 0 of 9, largest cluster 7, Sherd 7 out - and the residue cluster is held by 4-7, a
+measured non-join.**
+
+The part that changes the question: on these lanes the *stock* arm already survives 11 and fits 6-7 at 3.12 deg /
+1.08 mm, so **the GMnr breaklines fix 6-7's fit, and 359's 166.9 deg refusal was a property of the older lanes**, not
+of the pair. What the 358 switches add is the commitment of 5-6 and 5-8 and the jump from 2 of 9 to 6 of 9 sherds.
+The open loss is now matching: a join the fit places correctly is discarded at pruning while a false pair holds a
+cluster. Pot A holds 8 of 8 and 15 of 15. Frame: the 3x seat bar is 13.788 mm (4.596 mm at 1x); the measured chamfers
+are 172.6 mm (xy) and 537-646 mm (stock), so the renders are pictures, not seatings.
+
