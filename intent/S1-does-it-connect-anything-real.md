@@ -1267,3 +1267,28 @@ The open loss is now matching: a join the fit places correctly is discarded at p
 cluster. Pot A holds 8 of 8 and 15 of 15. Frame: the 3x seat bar is 13.788 mm (4.596 mm at 1x); the measured chamfers
 are 172.6 mm (xy) and 537-646 mm (stock), so the renders are pictures, not seatings.
 
+## 2026-11-17 - On the wall-paired edgeline the Juglet seats: 9 of 9 (ticket 362)
+
+Ticket 80's default-on edgeline (ticket 79's wall-pair rule) run through the same 358 rig, on lanes built from
+its own cells: **one cluster of nine, all 14 adjacent joins inside 5 deg / 5 mm at their committed poses, and
+`juglet_def_xy` seats 9 of 9** at the 3x own-place bar (13.788 tree units = 4.596 mm), worst piece **11.093
+tree units = 3.70 mm**. Sherd accuracy 9 of 9 and edge accuracy 13 of 18, against 8 of 9 / 8 of 18 for the stock
+6-DoF arm on the same lanes (which seats 5 of 9, 17.748 tree units worst). Pot A holds 8 of 8 and 15 of 15, so
+the arm is not void. This is the first seated Juglet in the project: ticket 67's best was 0 of 9 at 458-475 mm.
+
+**6-7 is kept and committed** (`FATE 7 87 0 6 7 keep accept 852`, 32 inliers, 1.656 deg / 0.291 mm). Nothing in
+the search was changed. The reason nothing had to be is measurable: at the GT pose 6-7's pair-stage overlap is
+**14.35** on these lanes against **52.28** on ticket 361's GMnr bundle and **191.17** on ticket 355's - same
+engine, same 50 bar, three segmentations, and only the older two refuse the true placement. The overlap test was
+counting the spurious off-lip flap; the flap is gone, so the test passes the pair it should pass.
+
+Two things to carry forward. `score58.py`'s 4.596 bar is a 1x bar and reports 0 of 9 on a 3x bundle; the bar has
+to be derived from `SFS_TREE_UNITS_PER_MM`, not typed. And the non-adjacent pair 4-6 (62.9 deg / 14.3 mm at its
+fit) still rides inside the single correct cluster: a wrong join inside a right assembly is invisible to
+chamfer, so the join table is what certifies an assembly, not the picture.
+
+Reading: `fixed-edgeline-keeps-6-7`. What it means for S1: with the breakline fixed, an assembly the search can
+certify exists - the open problem is no longer whether the pipeline can put the juglet back together, but which
+joins it puts in besides the true ones.
+
+
