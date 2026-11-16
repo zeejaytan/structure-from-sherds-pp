@@ -1291,4 +1291,10 @@ Reading: `fixed-edgeline-keeps-6-7`. What it means for S1: with the breakline fi
 certify exists - the open problem is no longer whether the pipeline can put the juglet back together, but which
 joins it puts in besides the true ones.
 
+Addendum, same day: the edgeline alone already seats five of the nine. With both 358 switches off, ticket 80's
+lanes give one cluster of nine and 14 of 14 joins in bar and **5 of 9 seated** (worst 17.748 tree units = 5.92 mm);
+the switches take that to 9 of 9 at 3.70 mm worst. So the line is what makes the vessel assemble and the rig is
+what makes it sit - and the remaining false pair (4-6, 62.9 deg / 14.3 mm at its fit) is a matching question, not
+a breakline one.
+
 
