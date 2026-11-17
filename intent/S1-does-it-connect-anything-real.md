@@ -1287,6 +1287,10 @@ to be derived from `SFS_TREE_UNITS_PER_MM`, not typed. And the non-adjacent pair
 fit) still rides inside the single correct cluster: a wrong join inside a right assembly is invisible to
 chamfer, so the join table is what certifies an assembly, not the picture.
 
+**Amended by the lead, same day:** the 9 of 9 is a seating only when its bar is said out loud. The staged mesh is
+the 3x file, so the own-place bar is 13.788 tree units, not score58's hard-coded 4.596; and the join table, not
+the chamfer, is what certifies the assembly while a false 4-6 join can ride inside the correct cluster.
+
 Reading: `fixed-edgeline-keeps-6-7`. What it means for S1: with the breakline fixed, an assembly the search can
 certify exists - the open problem is no longer whether the pipeline can put the juglet back together, but which
 joins it puts in besides the true ones.
