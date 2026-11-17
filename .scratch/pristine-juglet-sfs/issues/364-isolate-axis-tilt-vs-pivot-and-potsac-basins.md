@@ -12,9 +12,10 @@
 
 **Answers:** S1
 **Blocked by:** None (Ticket 363 resolved `2026-11-18` at `0/9` seated on `axes_def3x` vs `9/9` on `juglet_oracle_xy`).
-**Status:** ready-for-agent
-**Branch:** unassigned
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-18)
+**Branch:** 364-isolate-axis-tilt-vs-pivot-and-potsac-basins, in /c/PR/worktrees/structure-from-sherds-pp/364
+**Worker:** dsh one-shot subagent w364
 **Budget:** medium 5
 **Hand-over:** DeepSeek — Spartan compute node (read-only over `class/`, `sfs_axes/`, frozen `Dataset/`, and existing `runs/`). Check path: the lead re-reads `C:/PR/artifacts/t364/gate364.tsv`, verifies `sacct -X`, checks hybrid axis file construction (`deg` and `d_perp` properties), verifies `score/*.json` and `[SFS-338]` Piece 7 candidates in the hybrid arms, and looks at `C:/PR/artifacts/t364/render364_ablation.png` before recording any verdict.
 
