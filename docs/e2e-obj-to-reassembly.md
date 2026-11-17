@@ -98,9 +98,9 @@ optimization proposes per-piece poses.
 This is the first setting on which the pipeline seats a Juglet piece. Nine pieces, one cluster, all
 14 adjacent joins inside 5° / 5 mm at their committed poses, **9 of 9 seated** at the own-place bar,
 worst 11.093 tree units = **3.70 mm**; Pot A control 8/8 and 15/15 in the same job set
-(`structure-from-sherds-pp` tickets 362, source `4012ca1`, run
+(`structure-from-sherds-pp` ticket 362, source `4012ca1`, run
 `runs/20261117-0512_4012ca1_t362-def-lanes`). Quote the whole chain, not one line of it: every
-element below is load-bearing, and three of them are defaults rather than env.
+element below is load-bearing, and the breakline switch is a default rather than an env line.
 
 **Step 3 — surfaces** (`MeshPreprocessingHeadless`, 3× tree, `SFS_TREE_UNITS_PER_MM=3.0`):
 ```
