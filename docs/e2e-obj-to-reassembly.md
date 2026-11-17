@@ -93,6 +93,64 @@ optimization proposes per-piece poses.
   written by a person or the coordinating session, never the job), every `sbatch` polled with its
   final `sacct` State/ExitCode recorded.
 
+## 7. The setting that assembles the Juglet (2026-11-17, tickets 79/80/362)
+
+This is the first setting on which the pipeline seats a Juglet piece. Nine pieces, one cluster, all
+14 adjacent joins inside 5° / 5 mm at their committed poses, **9 of 9 seated** at the own-place bar,
+worst 11.093 tree units = **3.70 mm**; Pot A control 8/8 and 15/15 in the same job set
+(`structure-from-sherds-pp` tickets 362, source `4012ca1`, run
+`runs/20261117-0512_4012ca1_t362-def-lanes`). Quote the whole chain, not one line of it: every
+element below is load-bearing, and three of them are defaults rather than env.
+
+**Step 3 — surfaces** (`MeshPreprocessingHeadless`, 3× tree, `SFS_TREE_UNITS_PER_MM=3.0`):
+```
+SFS_NORMAL_MODE=radius SFS_NORMAL_RADIUS_MM=1.0
+SFS_MERGE_CLUSTER_DOT=0.887
+SFS_GROW_BASE_MM=1.5 SFS_GROW_BASE_THETA_DEG=25
+MESH_ENV="" on 1× and Pot A lanes
+```
+The Gnr/Mnr chord growth is what cures eight of the nine sherds; merge dot 0.887 holds them together.
+No `SFS_REFINE_ADD_GATE` and no `SFS_REFINE_WALL_GATE` — both hurt the Pot A control.
+
+**Step 4 — breaklines** (`EdgeLineExtraction`, POT_NAME only):
+```
+SFS_WALL_PAIR_FILTER=pair      # DEFAULT ON since ticket 80; "off" reverts, nothing else changes
+```
+`SFS_WALL_PAIR_MM=0.80`, `_ED=-0.70` (the ray march exits at dot ≤ −0.70), `_RADIAL_MIN=0.20`,
+`_AXISFIT_MIN=0.80`, `_MEDRAD_MIN=0.40`, `_MAXDROP=0.35` are the overrides and stay at their defaults
+unless a lane says otherwise. The rule is deliberately narrow: a point is dropped only when it is
+**both** off the interior wall (beyond 0.80 mm of a wall-oriented core) **and** unpaired (no partner
+along −n between 1.5 and 10 units within 0.45 units), which is why a Pot A base floor — a real
+two-walled shell — survives (P05 refuses 62 of 15,460 = 0.401 %). This step is the one that moved the
+Juglet: sherd 7's off-lip boundary went 30 dots / 12.6 mm → **2 dots / 0.60 mm**. The assembler reads
+only `Bl0` (§4), so this is the line that matters.
+
+**Step 5 — assembly** (the `358` rig on the `335–338` branch fork, floor-10 shim):
+```
+SFS_AXIS_LOCK_ICP=0 SFS_XY_BREAK_NORMALS=1 SFS_XY_STATE_NORMALS=1
+```
+`FLOOR=50` → `10` is the only shim change for the Juglet (Pot A keeps the shipped 50 and must come
+back 15/15 or the batch is void). With both `XY` switches off the same lanes already seat **5 of 9**
+(5.92 mm worst): the breaklines make the vessel assemble, the switches make it sit.
+
+**Why the setting works, in one number.** At the true 6–7 pose the pair-stage overlap test reads
+**14.35** on these lanes against **52.28** on the GMnr lanes and **191.17** on the 355 lanes — same
+engine, same 50 bar, three tracings of the same break. The test was counting the off-lip flap that
+step 4 removes; nothing in the search had to change.
+
+**The bar has a scale, and it is the trap.** Every seating number must be quoted with its bar.
+`score58.py` hard-codes 4.596 mm — a 1× bar — and reports 0 of 9 on a 3× bundle whose real bar is
+3 × 4.596 = **13.788 tree units** (proved from the staged mesh: `Juglet_Piece_2_Mesh.obj` is 84.93
+tree units across against 28.31 mm for the 1× file, same 2,565 vertices, ratio 3.0006). Until the
+scorer derives the bar from `SFS_TREE_UNITS_PER_MM`, read `tables.seating` in tree units beside the mm
+bar, and ignore its `seated` boolean.
+
+**What this setting does not do.** It leaves one wrong join inside the right group (4–6, 62.9° /
+14.3 mm at its fit; 4–7 on the stock arm) — invisible to chamfer, so read the join table. And the
+overlap test's structural defect stands unpatched: a 100-bar sweep over cross pairs under a pose
+fitted to one pair, which prints nothing naming the pair. On these lanes it never fires; on others it
+still would.
+
 ## Corpus caveats that bind scoring
 
 Pot C 01 and Pot J 01 interior edgelines measure the input, not the method; Pot J 09 and Pot C 03 Bl1
