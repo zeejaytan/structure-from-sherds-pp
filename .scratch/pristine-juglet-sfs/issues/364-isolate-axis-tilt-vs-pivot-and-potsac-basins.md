@@ -13,7 +13,6 @@
 **Answers:** S1
 **Blocked by:** None (Ticket 363 resolved `2026-11-18` at `0/9` seated on `axes_def3x` vs `9/9` on `juglet_oracle_xy`).
 **Status:** ready-for-agent
-**Working in:** unassigned
 **Branch:** unassigned
 **Worker:** unassigned
 **Budget:** medium 5

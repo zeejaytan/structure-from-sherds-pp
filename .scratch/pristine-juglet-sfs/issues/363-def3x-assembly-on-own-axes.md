@@ -5,7 +5,6 @@
 **Answers:** S1
 **Blocked by:** None (ticket 362 resolved 2026-11-17 at `9/9` seated on `Dataset/Juglet_large` oracle axes; `SfSpp_preprocessing` `main` unchanged at `78082af` / `4a3b400`).
 **Status:** resolved
-**Working in:** chat on Thinkbook16 (2026-11-18)
 **Branch:** 363-def3x-assembly-on-own-axes, in /c/PR/worktrees/structure-from-sherds-pp/363
 **Worker:** dsh one-shot subagent w363
 **Budget:** medium 5
