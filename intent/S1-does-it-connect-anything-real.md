@@ -1302,3 +1302,7 @@ what makes it sit - and the remaining false pair (4-6, 62.9 deg / 14.3 mm at its
 a breakline one.
 
 
+
+## 2026-11-18 - On our own shipped axes (axes323), def_3x seats 0 of 9 (ticket 363)
+
+Ticket 80's clean `def_3x` `(S0, S1)` walls run through shipped `axes323` (`sfs_axes` tree `6a67364b` from `d272313`, Pot A control `8/8` byte-identical by `cmp`) produce `8/9` rank-0 directions within `10 deg` (`0.95–9.60 deg`, only Piece 2 at `15.73 deg`; `cand0 = best` for all 9) — **yet large axis-line pivot offsets (`d_perp = 22.9–134.6 mm` real / `68.7–403.9` tree units on Pieces 2–8, vs `1.8–7.2 mm` on Pot A P01–P03)**. Fed into ticket 362's unmodified rig (`runs/20261118-0247_4beb57f_t363-own-axes`, jobs `35293174`, `35294194_0..5` all `COMPLETED 0:0`), both `juglet_own_stock` and `juglet_own_xy` repeats collapse to **0/9 seated** (`574.7–653.9` tree = `191.6–218.0 mm` real on `own_xy`; `1649–1846` tree = `549.8–615.3 mm` on stock) and **1/18** true joins (`1-8`, `1.60 deg`), while `juglet_oracle_xy` seats `9/9` (`2.06–3.70 mm`) and `pota_def_xy` seats `8/8, 15/15` (`1.80 mm`). Piece 7 gets `0/14` upright (`< 20 deg`) pairwise hypotheses across all partners (`(6,7)` enters upside-down at `174.7 deg`), and even inside the `{1,2,3,5,6,8}` cluster only `1-8` is right while `3-5` sits at `52.4 deg` and `1-2` at `127.2 deg`. **Reading: `own-axes-seat-zero-on-def3x`.** What it means for S1: the blocker is our axis line (`d_perp` + tilt on small-arc/curved Juglet sherds), not the assembler or `def_3x` breaklines.
