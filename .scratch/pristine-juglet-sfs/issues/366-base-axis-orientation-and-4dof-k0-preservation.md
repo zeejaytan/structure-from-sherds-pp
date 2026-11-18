@@ -17,8 +17,10 @@
 
 **Answers:** S1
 **Blocked by:** None (Tickets 363, 364, and 365 resolved 2026-11-18).
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-19)
+**Branch:** 366-base-axis-orientation-and-4dof-k0-preservation, in /c/PR/worktrees/structure-from-sherds-pp/366
+**Worker:** dsh one-shot subagent w366
 **Budget:** medium 5
 **Hand-over:** DeepSeek — Spartan compute node (read-only over `class/`, `sfs_axes/`, `Dataset/`, and existing `runs/`). Check path: `C:/PR/artifacts/dsh-handover/366/accept.py` + lead verification of `C:/PR/artifacts/t366/axes366_summary.json`, `C:/PR/artifacts/t366/gate366.tsv`, `sacct -X`, recomputed 9-piece & largest-cluster Kabsch, and visual inspection of `C:/PR/artifacts/t366/render366_ablation.png`.
 
