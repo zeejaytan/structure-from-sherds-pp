@@ -15,9 +15,10 @@
 
 **Answers:** S1
 **Blocked by:** None (Tickets 363 and 364 resolved 2026-11-18).
-**Status:** ready-for-agent
-**Branch:** unassigned
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-18)
+**Branch:** 365-sfs-axes-k0-preservation-and-postjoin-loop, in /c/PR/worktrees/structure-from-sherds-pp/365
+**Worker:** dsh one-shot subagent w365
 **Budget:** medium 5
 **Hand-over:** DeepSeek — Spartan compute node (read-only over `class/`, `sfs_axes/`, `Dataset/`, and existing `runs/`). Check path: the lead re-reads `C:/PR/artifacts/t365/axes365_summary.json` and `C:/PR/artifacts/t365/gate365.tsv`, verifies `sacct -X`, checks `pota_a1_k0` (`8/8, 15/15`), verifies `score/*.json` (and cluster-only Kabsch if stray pieces skew 9-piece Kabsch), and looks at `C:/PR/artifacts/t365/render365_ablation.png` before closing.
 
