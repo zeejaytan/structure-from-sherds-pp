@@ -18,7 +18,6 @@
 **Answers:** S1
 **Blocked by:** None (Tickets 363, 364, and 365 resolved 2026-11-18).
 **Status:** resolved
-**Working in:** chat on Thinkbook16 (2026-11-19)
 **Branch:** 366-base-axis-orientation-and-4dof-k0-preservation, in /c/PR/worktrees/structure-from-sherds-pp/366
 **Worker:** dsh one-shot subagent w366
 **Budget:** medium 5
