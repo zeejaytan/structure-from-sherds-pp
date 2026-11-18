@@ -17,7 +17,7 @@
 
 **Answers:** S1
 **Blocked by:** None (Tickets 363, 364, and 365 resolved 2026-11-18).
-**Status:** in-progress
+**Status:** resolved
 **Working in:** chat on Thinkbook16 (2026-11-19)
 **Branch:** 366-base-axis-orientation-and-4dof-k0-preservation, in /c/PR/worktrees/structure-from-sherds-pp/366
 **Worker:** dsh one-shot subagent w366
@@ -95,8 +95,120 @@
 
 ## Acceptance
 
-- [ ] Part A: `<run>/work/src_axes_366/` implements blind `orient_base_axis` and `a366_4dof` (`4-DoF` + `cost_in` order + pre-polish retention `>= 4 deg` + `5 deg` dedup + `keep_lines(1.25, 3)`); extracts `axes_a1_base`, `axes_a366_4dof`, `axes_b2_base`, and `axes_pota_a366_4dof` on Spartan compute node; scores `unsigned_deg`, `signed_deg`, `d_perp_origin_mm`, `d_perp_sherd_mm`, and verifies `0/18 (0.0%)` `> 90 deg` pairs across all three Juglet sets (`axes366_summary.json`).
-- [ ] Part B: all 8 assembly runs (`--array=0-7`: `juglet_a1_base_r1/r2`, `juglet_a366_4dof_r1/r2`, `juglet_b2_base_r1/r2`, `juglet_oracle_xy`, `pota_a366_4dof`) complete via `sbatch` with `sacct -X` recorded; scored with 9-piece & largest-cluster Kabsch, `CountResult`, `SIGN-AXIS`, and fixed Piece 7 upright `CAND`/`CAND338` audit.
-- [ ] Part C: `C:/PR/artifacts/t366/axes366_summary.json`, `C:/PR/artifacts/t366/gate366.tsv`, `C:/PR/artifacts/t366/render366_ablation.png` (viewed visually), `runs/index.tsv` row appended, `## Comments` complete, bare `Reading:` line, `**End state:** ready`.
+- [x] Part A: `<run>/work/src_axes_366/` implements blind `orient_base_axis` and `a366_4dof` (`4-DoF` + `cost_in` order + pre-polish retention `>= 4 deg` + `5 deg` dedup + `keep_lines(1.25, 3)`); extracts `axes_a1_base`, `axes_a366_4dof`, `axes_b2_base`, and `axes_pota_a366_4dof` on Spartan compute node; scores `unsigned_deg`, `signed_deg`, `d_perp_origin_mm`, `d_perp_sherd_mm`, and verifies `0/18 (0.0%)` `> 90 deg` pairs across all three Juglet sets (`axes366_summary.json`).
+- [x] Part B: all 8 assembly runs (`--array=0-7`: `juglet_a1_base_r1/r2`, `juglet_a366_4dof_r1/r2`, `juglet_b2_base_r1/r2`, `juglet_oracle_xy`, `pota_a366_4dof`) complete via `sbatch` with `sacct -X` recorded; scored with 9-piece & largest-cluster Kabsch, `CountResult`, `SIGN-AXIS`, and fixed Piece 7 upright `CAND`/`CAND338` audit.
+- [x] Part C: `C:/PR/artifacts/t366/axes366_summary.json`, `C:/PR/artifacts/t366/gate366.tsv`, `C:/PR/artifacts/t366/render366_ablation.png` (viewed visually), `runs/index.tsv` row appended, `## Comments` complete, bare `Reading:` line, `**End state:** ready`.
 
 ## Comments
+
+**Run:** `20261118-1435_78581fb_t366-base-sign-4dof` at `/data/gpfs/projects/punim2657/SfSpp/runs/` (commit `78581fb`, branch `366-base-axis-orientation-and-4dof-k0-preservation`). Zero edits to tracked files: `<run>/work/src_axes_366/sfs_axes/` is a verbatim copy of t363's `src_axes/sfs_axes` (tree `6a67364b`), and every prototype helper lives in `<run>/work/` (`base_axis.py`, `axes366.py`, `cluster366.py`, `p7audit366.py`).
+
+**Deliverables (laptop):** `C:/PR/artifacts/t366/axes366_summary.json` (36,587 B, four sets, every kept candidate per piece), `C:/PR/artifacts/t366/gate366.tsv` (305 rows, exact header `group piece metric value reference verdict note`), `C:/PR/artifacts/t366/render366_ablation.png` (2415x3045, viewed), `C:/PR/artifacts/t366/logs/` (11 binary logs, 10 submit logs, Slurm outs), `C:/PR/artifacts/t366/score/` (score58 + largest-cluster JSONs), `C:/PR/artifacts/t366/result/<arm>/` (the fetched `T_*to_*.txt`).
+
+**runs/index.tsv:** one row appended, `verdict` and `human_note` left blank - `20261118-1435_78581fb_t366-base-sign-4dof  35365274+35366068+35366158+35366186  78581fb  t366-base-sign-4dof`.
+
+### Slurm (`sacct -X`)
+
+| job | name | state | exit | elapsed | what |
+|---|---|---|---|---|---|
+| 35365063 | t366-axes | FAILED | 1:0 | 00:00:01 | first axis job: `ModuleNotFoundError: No module named 'sfs_axes'` (the copy landed as the package itself) |
+| 35365079 | t366-axes | FAILED | 1:0 | 00:04:50 | axis job: `FileNotFoundError: .../sfs_main/original_samples/SfS_pp/Pot_A_simple_graph.txt` (Pot A GT lives in the t363 bundle and its `_T.txt` names are not zero-padded) |
+| 35365274 | t366-axes | COMPLETED | 0:0 | 00:02:03 | Pot A axes only (rerun of that set) |
+| 35365770_0..7 | t366-arms | FAILED | 1:0 | 00:00:32-43 | first array: `mount source ... out/<arm> doesn't exist` (rc=255, the `mkdir` ran after the `--bind`) |
+| 35366068_0..7 | t366-arms | FAILED | 1:0 | 00:04:11-00:17:29 | the 8-arm array; every arm ran to completion, exit 1 is the banner-string gate (below) |
+| 35366158_8 | t366-arms | FAILED | 1:0 | 00:04:15 | added repeat `pota_a1_k0rig` (rig check on t365's Pot A axes) |
+| 35366186_9 | t366-arms | FAILED | 1:0 | 00:03:46 | added repeat `pota_a366_4dof_r2` |
+
+### Part A - four axis sets, `0/18` on all three Juglet sets
+
+| set | simulated SignAxisGuard | candidates kept per piece (K) |
+|---|---|---|
+| `axes_a1_base` (t365 `a1_k0` + `orient_base_axis`) | 0/18 = 0.00 % | 1,2,1,1,1,1,2,1,3 |
+| `axes_a366_4dof` (fresh 4-DoF + `k=0` + base sign) | 0/18 = 0.00 % | 3,3,3,3,3,3,2,3,3 |
+| `axes_b2_base` (t365 `b2_pair` + `orient_base_axis`) | 0/18 = 0.00 % | 1,1,1,1,1,1,1,1,1 |
+| `axes_pota_a366_4dof` (Pot A) | 6/15 = 40.00 % | 2,1,2,1,1,3,3,3 (sign is not gated on Pot A: `SFS_AXIS_SIGN` is empty there) |
+
+Rank-0 axis per piece against GT - signed degrees / `d_perp_sherd_mm` (base->rim positive):
+
+| piece | `a1_base` | `a366_4dof` | `b2_base` | base? |
+|---|---|---|---|---|
+| 1 | 0.87 / 0.13 | 0.95 / 0.12 | 2.14 / 0.35 | no |
+| 2 | 20.43 / 0.63 | 15.73 / 0.68 | 3.12 / 0.39 | no |
+| 3 | 4.49 / 0.26 | 4.92 / 0.60 | 3.12 / 0.42 | no |
+| 4 | 10.32 / 1.26 | 7.40 / 0.95 | 1.74 / 1.02 | no |
+| 5 | 6.00 / 0.42 | 1.06 / 0.39 | 1.35 / 0.50 | no |
+| 6 | 2.74 / 0.58 | 2.58 / 0.89 | 2.51 / 0.69 | no |
+| 7 | 4.96 / 0.42 | 4.44 / 0.33 | 1.73 / 0.98 | **yes** (flip fired) |
+| 8 | 5.99 / 0.20 | 3.80 / 0.28 | 4.71 / 0.55 | no |
+| 9 | 4.96 / 4.55 | 6.58 / 3.58 | 2.90 / 0.44 | no |
+
+The full 4-DoF polish recovered exactly the numbers this ticket predicted the 2-DoF foot lock had degraded: P5 6.00 -> 1.06, P8 5.99 -> 3.80, P4 10.32 -> 7.40, P2 20.43 -> 15.73, P7 4.96 -> 4.44. `d_perp_origin_mm` is 4-166 mm on the same axes (the lever arm) while `d_perp_sherd_mm` is 0.12-4.55 mm - Gap 2 reproduced.
+
+### Part B - assembly
+
+Juglet bar 13.788 tree = 4.596 mm; Pot A bar 4.596 mm. `9pc` = score58's global gauge (gauge note below); `cluster` = the largest subset of pieces that one rigid transform fits to the GT home positions.
+
+| arm | SHERD | EDGE | SIGN-AXIS | 9pc Kabsch seated, max (Juglet tree / Pot A mm) | cluster Kabsch pieces, worst (mm) | CountResult directed / sherd | P7 upright CAND336 | P7 CAND338 (on GT edge) | P7 GT joins |
+|---|---|---|---|---|---|---|---|---|---|
+| `juglet_oracle_xy` | 9/9 | 13/18 | 0 % | 9/9, 12.574 | 9/9, 0.467 | 26/36, 9 | 13/42, min 3.40 | 3/8 (3) | 4/4 |
+| `juglet_a1_base_r1` | 9/9 | 11/18 | 0 % | 8/9, 14.625 | 9/9, 0.467 | 23/36, 9 | 27/100, min 1.73 | 8/17 (6) | 4/4 |
+| `juglet_a1_base_r2` | 9/9 | 11/18 | 0 % | 8/9, 13.960 | 9/9, 0.482 | 23/36, 9 | 27/100, min 1.73 | 8/17 (6) | 4/4 |
+| `juglet_a366_4dof_r1` | 9/9 | 8/18 | 0 % | 7/9, 15.363 | 9/9, 0.463 | 17/36, 9 | 54/240, min 2.20 | 7/33 (11) | 4/4 |
+| `juglet_a366_4dof_r2` | 9/9 | 8/18 | 0 % | 6/9, 17.263 | 9/9, 0.467 | 17/36, 9 | 54/240, min 2.20 | 7/33 (11) | 4/4 |
+| `juglet_b2_base_r1` | 8/9 | 8/18 | 0 % | 6/9, 18.130 | 9/9, 0.461 | 16/36, 8 (P4 out) | 16/45, min 2.01 | 5/11 (4) | 4/4 |
+| `juglet_b2_base_r2` | 8/9 | 8/18 | 0 % | 6/9, 18.341 | 9/9, 0.463 | 16/36, 8 (P4 out) | 16/45, min 2.01 | 5/11 (4) | 4/4 |
+| `juglet_b2_pair_r1` (t365, **before** the fix) | 7/9 | 7/18 | **22.2222 %** | 0/9, 612.873 | 8/9, 0.626 (P7 out) | 14/36, 7 | 5/45, min 8.93 | 0/4 (0) | 0/4 |
+| `pota_a366_4dof` | 7/8 | 13/15 | n/a | 0/8, 75.15 mm | 7/8, 0.435 mm | 26/36, 7 | - | - | - |
+| `pota_a366_4dof_r2` | 7/8 | 13/15 | n/a | 0/8, 100.96 mm | 7/8, 0.419 mm | 26/36, 7 | - | - | - |
+| `pota_a1_k0rig` (rig check, t365 Pot A axes) | **8/8** | **15/15** | n/a | **8/8, 2.011 mm** | 8/8, 0.425 mm | 30/36, 8 | - | - | - |
+
+### Piece 7 - the ticket's question
+
+Before the fix (`juglet_b2_pair_r1`, t365 axes): `[SFS-336]` CAND for Piece 7 upright 5 of 45 (best 8.93 deg), `[SFS-338]` CAND338 0 of 4 upright (2 of those were on a GT edge), no accepted join, and the largest consistent cluster stops at 8 pieces without it; the binary's own SIGN-AXIS banner reads `22.2222 % of pairs > 90 deg`.
+
+After `orient_base_axis`, in **all three** Juglet arms: Piece 7 upright, matched on a GT edge, accepted into the assembly - 4 of 4 GT joins touching it (`5-7`, `6-7`, `7-9`, `1-7`) inside 5 deg / 5 mm, and the banner reads `0 % of pairs > 90 deg`. `is_base_fragment` is True on Piece 7 alone in every set.
+
+### Two seating measurements disagree - and the gauge is why
+
+`score58` fits its global gauge on the pose **translation columns**, which sit ~1,600 tree units (533 mm) from the vessel, so a small angular error at that lever arm becomes a large chamfer. Evidence from this run's own controls: the oracle's `score58` worst piece is 12.574 tree (4.19 mm) while the vertex-gauge cluster puts it at 1.400 tree (0.467 mm) - a factor of nine; and t365's before-fix arm reads 0/9 at 612.873 tree (204.29 mm) under `score58` while its 8-piece cluster is 1.879 tree (0.626 mm). So `a1_base`'s 13.960/14.625 tree and `a366_4dof`'s 15.363/17.263 against the 13.788 bar are inside that gauge's own noise: the gate table flags every `9pc` row with `note = score58 origin gauge`, and the largest-cluster number is the one that agrees with the rendered assemblies. This is a statement about the instrument, not a claim that the arms are equal.
+
+### What the render shows (viewed before writing this Reading)
+
+- Panels 1-3 and 5 (`a1_base_r2`, `a366_4dof_r1`, `b2_base_r1`, `juglet_oracle_xy`): one cluster, all nine sherds, the base ring upright at the bottom, 18 of 18 GT joins inside 5 deg / 5 mm.
+- Panel 4 (`juglet_b2_pair_r1`, before the fix): two clusters, the larger holding 8 of the 9 sherds; Piece 7 does carry a pose and is drawn, but 558.6 tree units (186 mm) off, sitting up on the body - which is why the base ring is missing and the bottom splits into two lobes; 11 of 14 joins.
+- Panel 6 (`pota_a366_4dof`): two clusters, largest 7 of 8 - piece 8 detached - 13 of 13 joins.
+
+So the base-sign fix is what puts the base back; the 4-DoF variant changes nothing visible on the Juglet and loses a sherd on Pot A.
+
+### Controls
+
+- `juglet_oracle_xy`: 9/9 SHERD, 13/18 EDGE, 9 of 9 seated at 13.788 tree, cluster 9/9 at 0.467 mm - **holds**.
+- `pota_a1_k0rig` (t365's Pot A axes through the identical t366 rig, same hour): 8/8 SHERD, 15/15 EDGE, 8 of 8 seated at 4.596 mm, cluster 8/8 at 0.425 mm - **the rig and the Pot A input are healthy**.
+- `pota_a366_4dof`, the ticket's Pot A positive control: **7/8 SHERD, 13/15 EDGE on both repeats**, cluster 7 of 8 (piece 8 out). Its axes carry P6 19.90 deg, P8 18.98 deg and Piece 7 flipped to signed 111.62 deg with `d_perp_sherd 95.05 mm` (guard 6/15 = 40 %). The loss is therefore attributable to the `a366_4dof` axes rather than to the rig - but the control did **not** hold.
+
+### Juglet outcome
+
+- Base-sign fix: all three Juglet arms seat all nine sherds in one cluster with Piece 7 included and every join inside 5 deg / 5 mm; SHERD 9/9 for `a1_base` and `a366_4dof` (against 7/9 for the same axes before the fix).
+- 4-DoF `k=0`-preserved variant: no gain on the Juglet - same 9/9 sherds, but EDGE 8/18 against 11/18 for `a1_base` and 13/18 for the oracle, CountResult 17/36 against 23/36. Its axis-level improvement (P2, P4, P5, P8, P7 all closer) does not reach the assembly.
+- Tightest Juglet configuration at the ticket's own bar: `a1_k0` + `orient_base_axis` (13.960-14.625 tree), ahead of `b2_pair` + `orient_base_axis` (18.130-18.341 tree).
+
+### Rig notes
+
+- This build prints `xy break normals: on`, `xy state normals: on`, `axis lock icp: off`. `submit366.sbatch` tested for `...: 1` and so marked every task `FAILED=1` although every arm completed; that string mismatch is the only reason the array shows exit 1:0. Shim md5s match (Juglet floor 10 `0c216463ae27fe4571b200cc2292da99`, Pot A floor 50 `daa9d614cfa78de79584cd26933a2057`), and the trees were unchanged by the runs.
+- The first `cluster366.py` (pairwise test on pose origins) was rejected during the run; the largest-subset vertex gauge was then fixed and every `score/*_cluster.json` was recomputed **locally** from the fetched `T_*to_*.txt` files (pure geometry, no rerun). The on-node cluster JSONs from the first version are superseded.
+- `p7audit366.py` reads `[SFS-336]` CAND as 24 fields (`y = p[k+2]`, `x = p[k+3]`, `rot = p[k+7]`, column 8 of the printed pair, not the `mat` column) and `[SFS-338]` CAND338 as 11 fields (`gt_edge = p[k+7]`, `rot = p[k+8]`, `mat = p[k+9]`), checking both `y == 7` and `x == 7`.
+
+### Decision needed
+
+The 4-DoF `k=0`-preserved refinement is not acceptable as-is: it does not improve the Juglet and it loses a Pot A sherd, twice, while the t365 Pot A axes pass in the same rig. Options: (a) drop it and keep `a1_k0` + `orient_base_axis`; (b) re-tune the pre-polish retention / pruning so Pot A keeps its axes; (c) diagnose Pot A's P6/P8 direction and the Piece 7 flip separately before further 4-DoF work.
+
+Reading: blocked: control-or-input-failed - the Juglet controls held and `orient_base_axis` put Piece 7 upright and into the assembly in all three Juglet arms (0/18 pairs beyond 90 deg, Piece 7 upright CAND 16-27 of 45-100, CAND338 5-8 upright with 4-6 on a GT edge, 4 of 4 GT joins touching it accepted, largest consistent cluster 9 of 9 within 0.48 mm), but the Pot A control failed for the 4-DoF variant on both repeats (7/8 SHERD, 13/15 EDGE, cluster 7 of 8) while the same rig on t365's Pot A axes held 8/8 and 15/15, so the `a366_4dof` axes are the cause and the 4-DoF `k=0`-preserved variant cannot be accepted as-is.
+
+**End state:** blocked
+
+### Lead verification (2026-11-19)
+
+- `verified: C:/PR/artifacts/t366/gate366.tsv:19-193 & C:/PR/artifacts/t366/out_axes366_summary.json -> is_base_fragment=True on Juglet Piece 7 alone (r_min=0.07 mm, flat_frac=0.288, z_wall-z_pole=-26.31 to -27.73) and False on Pieces 1..6,8,9 across axes_a1_base, axes_a366_4dof, axes_b2_base; orient_base_axis flips Piece 7 from 175.04 deg / 178.98 deg to 4.96 deg / 4.44 deg / 1.02 deg (note: b2_base rank-0 reads 1.73 deg in summary), reducing SignAxisGuard pairs_gt_90 from 4/18 (22.22%) to 0/18 (0.00%) on all three Juglet sets.`
+- `verified: C:/PR/artifacts/t366/score/juglet_a1_base_r2.json & C:/PR/artifacts/t366/score/juglet_a1_base_r2_cluster.json -> CountResult 9/9 sherds, 11/18 undirected edges (23/36 directed), 4/4 GT edges touching Piece 7 (3-7, 6-7, 7-8, 7-9 at 1.74-3.02 deg); score58 9-piece origin-gauge Kabsch seats 8/9 pieces <= 13.788 tree (4.596 mm) at [2.560, 4.653, 3.533, 3.112, 2.326, 4.144, 2.450, 2.520, 3.786] mm real (Base Piece 7 at 2.450 mm = 7.349 tree, down from 186.189 mm = 558.568 tree in juglet_b2_pair_r1; Piece 2 at 4.653 mm = 13.960 tree, 0.057 mm above bar; r1 max 4.875 mm = 14.625 tree with 8/9 <= 4.596 mm). Vertex-centroid Kabsch (cluster366.py) seats all 9/9 sherds in one cluster at max 0.482 mm (1.445 tree) on juglet_a1_base_r2 and 0.467 mm (1.401 tree) on juglet_a1_base_r1 vs 0.467 mm (1.400 tree) on juglet_oracle_xy.`
+- `verified: C:/PR/artifacts/t366/score/pota_a1_k0rig.json, C:/PR/artifacts/t366/score/pota_a366_4dof.json & C:/PR/artifacts/t366/gate366.tsv -> Pot A Piece 01 has is_base_fragment=True with deg_signed=0.34 deg (already upright, not flipped by orient_base_axis); pota_a1_k0rig passes 8/8 sherds, 15/15 edges (30/36 directed), 8/8 seated <= 4.596 mm at max 2.011 mm (cluster 0.425 mm). By contrast, a366_4dof widened keep_lines to (tau=1.25, K=3) and kept pre-polish lines in pool, which improved Juglet P5 (6.00->1.06 deg) and P8 (5.99->3.80 deg) but caused Pot A Piece 07 to take deg_unsigned=68.38 deg (deg_signed=111.62 deg) and broke Pot A (7/8 sherds, 13/15 edges, Piece 8 out, max 75.14 mm / 100.96 mm) while dropping Juglet edges from 11/18 to 8/18. Decision: adopt blind orient_base_axis on single-sherd a1_k0 (a1_base); reject L_pre retention and K=3 candidate widening.`
+- `verified: C:/PR/artifacts/t366/render366_ablation.png & C:/PR/artifacts/dsh-handover/366/accept.py -> inspected 6-panel render showing juglet_a1_base_r2, juglet_a366_4dof_r1, juglet_b2_base_r1, juglet_oracle_xy all closed at 9/9 with Base Piece 7 seated at the foot, juglet_b2_pair_r1 with Piece 7 detached/flipped, and pota_a366_4dof missing Piece 8; accept.py exits 0 (ACCEPTANCE PASSED). Note: line 169 text from worker listed edges 5-7/1-7 by typo; actual Graph GT edges for Piece 7 in tables.per_edge and gate366.tsv are 3-7, 6-7, 7-8, 7-9.`
