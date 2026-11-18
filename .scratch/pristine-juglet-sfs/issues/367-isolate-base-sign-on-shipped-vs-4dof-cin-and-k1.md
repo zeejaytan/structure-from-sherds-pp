@@ -15,8 +15,10 @@ We compare three unconfounded axis configurations, all using blind `orient_base_
 
 **Answers:** S1
 **Blocked by:** None (Tickets 363, 364, 365, and 366 resolved 2026-11-18..19).
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-19)
+**Branch:** 367-isolate-base-sign-on-shipped-vs-4dof-cin-and-k1, in /c/PR/worktrees/structure-from-sherds-pp/367
+**Worker:** dsh one-shot subagent w367
 **Budget:** medium 5
 **Hand-over:** DeepSeek — Spartan compute node (read-only over `class/`, `sfs_axes/`, `Dataset/`, and existing `runs/`). Check path: `C:/PR/artifacts/dsh-handover/367/accept.py` + lead verification of `C:/PR/artifacts/t367/axes367_summary.json`, `C:/PR/artifacts/t367/gate367.tsv`, `sacct -X` (all jobs `COMPLETED 0:0`), recomputed 9-piece & cluster Kabsch + sherd-centroid `CountResult`, and visual inspection of `C:/PR/artifacts/t367/render367_ablation.png`.
 
