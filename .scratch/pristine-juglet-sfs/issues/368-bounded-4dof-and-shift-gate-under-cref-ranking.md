@@ -17,8 +17,10 @@ Two geometric guards (zero per-pot constants, zero GT, plus `15.0°` shipped ded
 
 **Answers:** S1
 **Blocked by:** None (Tickets 363–367 resolved 2026-11-18..19).
-**Status:** ready-for-agent
-**Worker:** unassigned
+**Status:** in-progress
+**Working in:** chat on Thinkbook16 (2026-11-19)
+**Branch:** 368-bounded-4dof-and-shift-gate-under-cref-ranking, in /c/PR/worktrees/structure-from-sherds-pp/368
+**Worker:** dsh one-shot subagent w368
 **Budget:** medium 5
 **Hand-over:** DeepSeek — Spartan compute node (read-only over `class/`, `sfs_axes/`, `Dataset/`, and existing `runs/`). Check path: `C:/PR/artifacts/dsh-handover/368/accept.py` + lead verification of `C:/PR/artifacts/t368/axes368_summary.json`, `C:/PR/artifacts/t368/gate368.tsv`, `sacct -X` (all jobs `COMPLETED 0:0`), 9-piece origin & vertex-centroid Kabsch, centroid-gauge `CountResult`, and visual inspection of `C:/PR/artifacts/t368/render368_ablation.png`.
 
