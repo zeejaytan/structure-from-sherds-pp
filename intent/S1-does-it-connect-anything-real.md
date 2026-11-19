@@ -1343,7 +1343,7 @@ Isolating three unconfounded `orient_base_axis` variants (none using `L_pre` inj
 ## 2026-11-19 - 6-deg 4-DoF direction guards still regress Pot A because P06/P08 require 18-35 deg walks; axis-ranking ablation closed (ticket 368)
 
 - **Claim type:** Claim (1), method failure — neither capping 4-DoF direction drift at `6°` nor gating out basins with `> 6°` walk separates Pot A's genuine convergence walks (`18.41°–35.06°`) from Juglet's false drifts (`10.1°–40.8°`).
-- **Evidence & provenance ([ticket 368](.scratch/pristine-juglet-sfs/issues/368-bounded-4dof-and-shift-gate-under-cref-ranking.md), commit `f13021e`, run `runs/20261119-0412_bf3fc0b_t368-bounded-4dof-cref`):**
+- **Evidence & provenance ([ticket 368](../.scratch/pristine-juglet-sfs/issues/368-bounded-4dof-and-shift-gate-under-cref-ranking.md), commit `f13021e`, run `runs/20261119-0412_bf3fc0b_t368-bounded-4dof-cref`):**
   - Slurm jobs `35393460 t368-axes` (`COMPLETED 0:0`, `00:13:14`) and `35393971_0..7 t368-arms` (`COMPLETED 0:0`, `00:05:44–00:13:42`; initial `35393947_0..7` failed at submit without `--export=RUN_DIR`, zero outputs). Conditional `--array=8-11` (`d5` downstream arms) was **not triggered** (`d5_trigger.triggered = False`: best Juglet `d15 -> d5` gain was `0.825°` on `P8 < 2.0°` while `P3`/`P9` regressed `-7.93°`/`-9.66°`, and Pot A max dev vs `axes323` remained `31.107° > 2.0°`).
   - Zero tracked source edits (`SfSpp_preprocessing` clean); 6-panel visual ablation in `artifacts/t368/render368_ablation.png`, numeric summary in `artifacts/t368/axes368_summary.json`, and downstream scores in `artifacts/t368/gate368.tsv`.
 - **Why Pot A still fails (`Reading: guarded-4dof-still-regresses-pota`):**
