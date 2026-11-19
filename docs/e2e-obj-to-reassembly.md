@@ -34,10 +34,16 @@ deviation in that day's ticket, never a private tool.
 
 ## 2. Axis (preprocessing README, step 3)
 
-MATLAB `preprocess_new_pots.m` (vendored twin kept in the preprocessing repo) writes
-`Dataset/Axes/<pot>/<piece>_Axis.xyz` per piece. A defective axis seats nothing while looking exactly
-like a method failure — Pot D 18/29 (ticket 301) is the standing example; those two pieces' released
-axis files point away from their own poses.
+MATLAB `preprocess_new_pots.m` (vendored twin kept in the preprocessing repo) writes the authors'
+baseline `Dataset/Axes/<pot>/<piece>_Axis.xyz` per piece; on our Python path, `sfs_axes`
+(`select_union_lines` / `run_potsac_union` with `normalized=True, line_rule=True, base_orient=True`
+since `SfSpp_preprocessing` ticket 335, `9e0fe6a`) extracts the normalized profile-ranked candidates
+and applies blind base-to-rim sign orientation (`orient_base_axis`, opt-out
+`SFS_AXES_BASE_ORIENT=0` / `--no-base-orient`). A defective or upside-down axis seats nothing while
+looking exactly like a method failure — Pot D 18/29 (ticket 301) is the standing example (released
+axis files pointing away from their own poses), and inverted base scans (`Pot_F_Piece_01`,
+`Pot_J_Piece_03`, `Juglet_Piece_7`) failed `SignAxisGuard` until ticket 335 flipped base caps from
+rim-to-base to base-to-rim.
 
 ## 3. Mesh → surfaces (`mesh_processing_headless` → `MeshPreprocessingHeadless`)
 
@@ -132,6 +138,18 @@ SFS_AXIS_LOCK_ICP=0 SFS_XY_BREAK_NORMALS=1 SFS_XY_STATE_NORMALS=1
 `FLOOR=50` → `10` is the only shim change for the Juglet (Pot A keeps the shipped 50 and must come
 back 15/15 or the batch is void). With both `XY` switches off the same lanes already seat **5 of 9**
 (5.92 mm worst): the breaklines make the vessel assemble, the switches make it sit.
+
+**Step 2 (axes) — landed default (`SfSpp_preprocessing` ticket 335, `9e0fe6a`, 2026-11-19):**
+```
+SFS_AXES_BASE_ORIENT=1    # DEFAULT ON in sfs_axes/select.py; 0 or --no-base-orient opts out
+```
+`orient_base_axis` keeps `170/172` benchmark pieces byte-identical to `axes323`, flips only genuine
+inverted base scans (`Pot_F_Piece_01`, `Pot_J_Piece_03`, and 3× `Juglet_Piece_7` `175.31° → 4.69°`,
+taking `SignAxisGuard` from `4/18` to `0/18`), and holds `Pot F 5/5 7/7` and `Pot J 8/11 16/21`
+(`20261119-1644_ac60d8d_t335-ship-base-orient`). 2-DoF tilt-only `a1_k0` was validated across all
+10 pots in ticket 336 (`e0cfcce`) and **rejected as default** because it drops corpus `K1 ≤ 10°`
+from `135/163` to `116/163` and regresses `Pot D, E, H, J` below their `t323` floors. Keep
+`4-DoF c_ref + orient_base_axis`.
 
 **Why the setting works, in one number.** At the true 6–7 pose the pair-stage overlap test reads
 **14.35** on these lanes against **52.28** on the GMnr lanes and **191.17** on the 355 lanes — same
